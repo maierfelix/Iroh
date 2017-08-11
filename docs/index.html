@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Iroh</title>
+
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,300,700" />
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <link rel="icon" type="image/png" href="img/favicon_clear-16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="img/favicon_clear-32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="img/favicon_clear-256.png" sizes="256x256">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header>
+    <article class="code-preview">        call "isPunctuatorChar" "end" "->" false 
+        call "isOperatorChar" "("  ")" 
+        call "isOperatorChar" "end" "->" false 
+        if 
+          break "" 
+        if end 
+      loop end 333 
+    call "scan" "end" "->" [object Object],[object Object],[object Object],[object Object] 
+    call "parse" "(" [object Object],[object Object],[object Object],[object Object] ")" 
+      - 1 "->" -1 
+      call "next" "("  ")" 
+      call "next" "end" "->"  
+      call "pushScope" "(" [object Object] ")" 
+        new Scope 
+        new end 
+      call "pushScope" "end" "->"  
+      call "parseStatementList" "("  ")" 
+        loop 340 
+          ! [object Object] "->" false 
+          call "peek" "(" 17 ")" 
+          call "peek" "end" "->" false 
+          call "parseStatement" "("  ")" 
+            call "peek" "(" 2 ")" 
+            call "peek" "end" "->" false 
+            call "peek" "(" 3 ")" 
+            call "peek" "end" "->" false 
+            call "peek" "(" 5 ")" 
+            call "peek" "end" "->" false 
+            call "peek" "(" 11 ")" 
+            call "peek" "end" "->" false </article>
+    <h2 class="text-center text-logo">Iroh.js</h2>
+    <div class="container text-center">
+      <img src="Iroh.png" alt="Iroh.js">
+      <canvas id="canvas"></canvas>
+    </div>
+    <h2 class="text-center">Dynamic code analysis for JavaScript</h2>
+  </header>
+  <section class="dark">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h3>Usage</h3>
+          <ul>
+            <li>Runtime call tree graphs</li>
+            <li>Runtime type checking</li>
+            <li>Runtime code quality</li>
+            <li>Runtime test cases</li>
+            <li>Intercept eval, setTimeout etc.</li>
+            <li>Intercept and manipulate code/data on the fly</li>
+            <li>Create realtime code visualizations</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h3>API Example</h3>
+
+          <script src="https://gist.github.com/maierfelix/77a0b7a630e430a440d8138fcc1aeb68.js"></script>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2"></div>
+        <div class="col-md-2 text-center">
+          <a href="#" class="button">Examples</a>
+        </div>
+        <div class="col-md-2 text-center">
+          <a href="https://github.com/maierfelix/Iroh" class="button"><i class="fa fa-github"></i> Github</a>
+        </div>
+        <div class="col-md-2 text-center">
+          <a href="#" class="button">Download</a>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h2>About Iroh</h2>
+
+          <p>If you aren't familiar with the term <i>dynamic analysis</i>, then you can read about it <a href="#dynamic-analysis-wat">here</a>.</p>
+
+          <h3>How does it work?</h3>
+          <ul>
+            <li><p>Iroh patches your code to be able to record everything happening inside it, but without changing the original program. You can add listeners to the patched code stage and then track and manipulate <b>everything</b>.</p></li>
+
+            <li><p>Iroh keeps track of the call stack, which makes it possible to view the code's flow and visualize it within any kind of model.</p></li>
+          </ul>
+
+          <h3>Limitations</h3>
+          <ul>
+            <li><p>Iroh cannot record what's happening inside native calls, external or non-patched functions. If you want a function to be tracked, then make sure to patch it as well.</p></li>
+          </ul>
+
+          <h3>Goals</h3>
+          <ul>
+            <li><p>The current main goal is to support the whole <code>ES5</code> syntax. A subset of ES6 features is already supported.</p></li>
+          </ul>
+
+          <h3>"Cool" features</h3>
+          <ul>
+            <li><p>Iroh's output is object based and <code><i>JSON</i></code> compatible.</p></li>
+
+            <li><p>Iroh supports <code><i>strict mode</i></code>.</p></li>
+
+            <li><p>Iroh intercepts all <code><i>Function.toString</i></code> calls by default and returns the original code. You could also intercept other ways like <code><i>String(ƒ)</i></code> or <code><i>ƒ + ""</i></code> on your own.</p></li>
+
+            <li><p>External (<i>non-trackable</i>) calls get detected and traced as <code><i>#external</i></code>.</p></li>
+
+            <li><p>Patched functions which get called from outside are traced as <code><i>#sloppy</i></code>, but the original call tree graph will remain - just their inner life isn't trackable.</p></li>
+
+            <li><p>The API exposes listeners for most AST node types. For example you can intercept all <code><i>Calls</i></code> in your code and determine what happens before (<i>e.g. track it's arguments</i>) and after it's called (<i>e.g. change it's return value based on the called function's name</i>).</p></li>
+          </ul>
+
+          <h3 id="dynamic-analysis-wat">What is dynamic code analysis?</h3>
+          <ul>
+            <li>Dynamic code analysis is in contrast to static analysis (<i>e.g. used in <a>ESlint</a></i>). It allows to collect information on how the code behaves during execution and record all it's data. Static analysis allows to get information based on the source code, but without any runtime informations. It's up to impossible to get a sense of how the program will <b>actually</b> behave.</li>
+            <br/>
+            <li><p>For example, Iroh allows you to record, intercept and manipulate all data in your code during execution. You can collect and change <code>types</code>, <code>parameters</code>, <code>return values</code>, <code>allocated objects</code>, <code>variables</code>, <code>expressions</code>, <code>function calls</code> and so on. </p></li>
+          </ul>
+
+        </div>
+
+        <div class="col-md-6">
+          <h2>Output examples</h2>
+
+          <p>A simple textual model is used below, which represents the code flow.</p>
+
+          <h3>Factorial</h3>
+          <p><script src="https://gist.github.com/maierfelix/c84d99d410e03c6bb1671c1bc3fcf93c.js"></script><script src="https://gist.github.com/maierfelix/9ec994d5fa5f9f4fa9a7e56477e508e4.js"></script></p>
+
+          <h3>Array.map</h3>
+          <p><script src="https://gist.github.com/maierfelix/7700bf214d078a55c25915fdce91a121.js"></script><script src="https://gist.github.com/maierfelix/56925d2b241b730c00d7f9de7d5e1385.js"></script></p>
+
+          <h3>Function.toString</h3>
+          <p><script src="https://gist.github.com/maierfelix/17b1a7ae04429a6f6273ae979b4c739e.js"></script><script src="https://gist.github.com/maierfelix/367d1bf0578ccfdfae345482cda49de9.js"></script></p>
+
+          <h3><a href="https://github.com/maierfelix/mini-js">mini-js</a></h3>
+          <p><script src="https://gist.github.com/maierfelix/dee12f6f145ba06ec62889e35915b679.js"></script><div class="sm-gist"><script src="https://gist.github.com/maierfelix/4f5a4d0e1ffa23e90528e3f8ea3d6932.js"></script></div></p>
+
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <p class="text-center"><small>Come on, you’ve got to feel the flow. - <i><a class="sm-link" href="https://en.wikipedia.org/wiki/Iroh">Iroh</a></i></small></p>
+    <p class="text-center">
+      <a class="sm-link" href="https://www.patreon.com/maierfelix">Donate</a> this project
+    </p>
+    <p class="text-center"><small>Iroh is MIT licensed, open source and free to use.</small></p>
+  </footer>
+
+  <script type="text/javascript" src="main.js"></script>
+
+</body>
+
+</html>
