@@ -109,7 +109,7 @@
 
           <h3>Limitations</h3>
           <ul>
-            <li><p>Iroh cannot record what's happening inside native calls, external or non-patched functions. If you want a function to be tracked, then make sure to patch it as well.</p></li>
+            <li><p>Iroh cannot record what's happening inside native calls, external or non-patched functions. If you want a function to be intercepted, then make sure to patch it as well.</p></li>
           </ul>
 
           <h3>Goals</h3>
@@ -134,9 +134,9 @@
 
           <h3 id="dynamic-analysis-wat">What is dynamic code analysis?</h3>
           <ul>
-            <li>Dynamic code analysis is in contrast to static analysis (<i>e.g. used in <a>ESlint</a></i>). It allows to collect information on how the code behaves during execution and record all it's data. Static analysis allows to get information based on the source code, but without any runtime informations. It's up to impossible to get a sense of how the program will <b>actually</b> behave.</li>
+            <li><a href="https://en.wikipedia.org/wiki/Dynamic_program_analysis">Dynamic analysis</a> is in contrast to <a href="https://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a> (<i>e.g. used in <a>ESlint</a></i>). Dynamic analysis allows to collect runtime data and how the code behaves during execution. Static analysis allows to get information based on the source code, but without any runtime informations. With static analysis it's up to impossible to get a sense of how the program will <b>actually</b> behave.</li>
             <br/>
-            <li><p>For example, Iroh allows you to record, intercept and manipulate all data in your code during execution. You can collect and change <code>types</code>, <code>parameters</code>, <code>return values</code>, <code>allocated objects</code>, <code>variables</code>, <code>expressions</code>, <code>function calls</code> and so on. </p></li>
+            <li><p>For example, Iroh allows you to track, intercept and manipulate all data in your code during execution. You can collect and change <code>types</code>, <code>parameters</code>, <code>return values</code>, <code>allocated objects</code>, <code>variables</code>, <code>expressions</code>, <code>function calls</code> and so on. </p></li>
           </ul>
 
         </div>
@@ -144,7 +144,7 @@
         <div class="col-md-6">
           <h2>Output examples</h2>
 
-          <p>A simple textual model is used below, which represents the code flow.</p>
+          <p>A simple textual model is used below to represent the code flow.</p>
 
           <h3>Factorial</h3>
           <p><script src="https://gist.github.com/maierfelix/c84d99d410e03c6bb1671c1bc3fcf93c.js"></script><script src="https://gist.github.com/maierfelix/9ec994d5fa5f9f4fa9a7e56477e508e4.js"></script></p>
@@ -164,9 +164,6 @@
   </section>
   <footer>
     <p class="text-center"><small>Come on, you’ve got to feel the flow. - <i><a class="sm-link" href="https://en.wikipedia.org/wiki/Iroh">Iroh</a></i></small></p>
-    <p class="text-center">
-      <a class="sm-link" href="https://www.patreon.com/maierfelix">Donate</a> this project
-    </p>
     <p class="text-center"><small>Iroh is MIT licensed, open source and free to use.</small></p>
   </footer>
 

@@ -96,6 +96,7 @@ Iroh.stage5.CallExpression = function(node) {
         magic: true,
         type: "CallExpression",
         callee: {
+          magic: true,
           type: "Identifier",
           name: Iroh.getLink("DEBUG_SUPER")
         },
@@ -103,9 +104,10 @@ Iroh.stage5.CallExpression = function(node) {
           // class ctor
           Iroh.scope.parent.parent.node.id,
           {
-            type: "SpreadElement",
             magic: true,
+            type: "SpreadElement",
             argument: {
+              magic: true,
               type: "ArrayExpression",
               elements: node.arguments
             }

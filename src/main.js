@@ -11,6 +11,15 @@ Iroh.DEBUG_IF_TEST_STRING_LIMIT = 42;
 Iroh.DEBUG_FUNCTION_ARG_LIMIT = 42;
 Iroh.ORIGINAL_FUNCTION_TOSTRING = true;
 
+Iroh.ENV = {};
+Iroh.ENV.isNode = (
+  (typeof module !== "undefined" && module.exports) &&
+  (typeof require !== "undefined")
+);
+Iroh.ENV.isBrowser = !Iroh.ENV.isNode;
+
+Iroh.NOP = function nop() {};
+
 (() => {
   let ii = 0;
   Iroh.INSTR = {
@@ -51,9 +60,19 @@ Iroh.ORIGINAL_FUNCTION_TOSTRING = true;
     OP_NEW: ii++,
     OP_NEW_END: ii++,
 
+    UNARY: ii++,
+
     SUPER: ii++,
 
     THIS: ii++,
+
+    LITERAL: ii++,
+    IDENTIFIER: ii++,
+
+    BINARY: ii++,
+    LOGICAL: ii++,
+    TERNARY: ii++,
+    ASSIGN: ii++,
 
     METHOD_ENTER: ii++,
     METHOD_LEAVE: ii++,
@@ -91,21 +110,40 @@ Iroh.ORIGINAL_FUNCTION_TOSTRING = true;
     ">>>": ii++,
     "&": ii++,
     "^": ii++,
-    "|": ii++
+    "|": ii++,
+    "!": ii++,
+    "~": ii++,
+    "in": ii++,
+    "void": ii++,
+    "typeof": ii++,
+    "delete": ii++,
+    "instanceof": ii++,
+    "&&": ii++,
+    "||": ii++,
+    "==": ii++,
+    "===": ii++,
+    "!=": ii++,
+    "!==": ii++,
+    ">": ii++,
+    ">=": ii++,
+    "<": ii++,
+    "<=": ii++,
   };
 })();
 
 Iroh.parse = acorn.parse;
 Iroh.generate = escodegen.generate;
 
-Iroh.tmpIfIndex = 0;
-
+Iroh.tmpVarIndex = 0;
+Iroh.$$frameHash = 0;
 Iroh.uidx = 0;
 Iroh.ubidx = 0;
 Iroh.indent = 0;
 Iroh.code = null;
 Iroh.stage = null;
 Iroh.scope = null;
+Iroh.currentScope = null;
+Iroh.previousScope = null;
 Iroh.state = {};
 Iroh.symbols = {};
 Iroh.nodes = {};
@@ -142,6 +180,12 @@ Iroh.stage8 = {};
     Iroh.createLink(key + callee);
   };
 })();
+
+Iroh.reserveTempVarId = function() {
+  return (
+    `${Iroh.TEMP_VAR_BASE}${Iroh.tmpVarIndex++}`
+  );
+};
 
 Iroh.Scope = class Scope {
   constructor(node) {
@@ -231,6 +275,7 @@ Iroh.Frame = class Frame {
     this.isReturnable = false;
     this.isTryStatement = false;
     this.isSwitchDefault = false;
+    this.isInstantiation = false;
     this.cleanType = Iroh.instructionToString(type);
     this.parent = null;
     this.values = [];
@@ -241,6 +286,7 @@ Iroh.Frame = class Frame {
     this.isReturnable = Iroh.isReturnableFrameType(type);
     this.isContinuable = Iroh.isContinuableFrameType(type);
     this.isTryStatement = Iroh.isTryStatementFrameType(type);
+    this.isInstantiation = Iroh.isInstantiationFrameType(type);
   }
   pushInstruction(type) {
     let instr = new Iroh.Instruction(type);
@@ -402,17 +448,6 @@ Iroh.getCallCallee = function(node) {
   // unknown
   //console.warn(`Uncommon expression callee ${type}`);
   return type;
-};
-
-Iroh.resolveFunctionName = function(ctx, callee) {
-  let name = null;
-  try {
-    name = eval.call(ctx, callee).name;
-  } catch (e) {
-    name = callee;
-    //console.warn(e);
-  };
-  return name;
 };
 
 Iroh.isFunctionNode = function(type) {
@@ -578,6 +613,12 @@ Iroh.isTryStatementFrameType = function(type) {
   );
 };
 
+Iroh.isInstantiationFrameType = function(type) {
+  return (
+    type === Iroh.INSTR.OP_NEW
+  );
+};
+
 Iroh.isValidFrameInstruction = function(frame) {
   console.assert(typeof frame.cleanType === "string");
   let type = frame.cleanType;
@@ -586,21 +627,56 @@ Iroh.isValidFrameInstruction = function(frame) {
   );
 };
 
+Iroh.operatorToString = function(op) {
+  let OP = Iroh.OP;
+  for (let key in OP) {
+    if (OP[key] === op) return key;
+  };
+  return "undefined";
+};
+
+Iroh.evalUnaryExpression = function(op, ctx, a) {
+  let OP = Iroh.OP;
+  switch (op) {
+    case OP["+"]:      return +a;
+    case OP["-"]:      return -a;
+    case OP["!"]:      return !a;
+    case OP["~"]:      return ~a;
+    case OP["void"]:   return void a;
+    case OP["typeof"]: return typeof a;
+    // handled outside
+    case OP["delete"]: return a;
+    default:
+      throw new Error(`Invalid operator ${op}`);
+    break;
+  };
+};
+
 Iroh.evalBinaryExpression = function(op, a, b) {
   let OP = Iroh.OP;
   switch (op) {
-    case OP["+"]:   return a + b;
-    case OP["-"]:   return a - b;
-    case OP["*"]:   return a * b;
-    case OP["/"]:   return a / b;
-    case OP["%"]:   return a % b;
-    case OP["**"]:  return a ** b;
-    case OP["<<"]:  return a << b;
-    case OP[">>"]:  return a >> b;
-    case OP[">>>"]: return a >>> b;
-    case OP["&"]:   return a & b;
-    case OP["^"]:   return a ^ b;
-    case OP["|"]:   return a | b;
+    case OP["+"]:          return a + b;
+    case OP["-"]:          return a - b;
+    case OP["*"]:          return a * b;
+    case OP["/"]:          return a / b;
+    case OP["%"]:          return a % b;
+    case OP["**"]:         return a ** b;
+    case OP["<<"]:         return a << b;
+    case OP[">>"]:         return a >> b;
+    case OP[">>>"]:        return a >>> b;
+    case OP["&"]:          return a & b;
+    case OP["^"]:          return a ^ b;
+    case OP["|"]:          return a | b;
+    case OP["in"]:         return a in b;
+    case OP["=="]:         return a == b;
+    case OP["==="]:        return a === b;
+    case OP["!="]:         return a != b;
+    case OP["!=="]:        return a !== b;
+    case OP[">"]:          return a > b;
+    case OP[">="]:         return a >= b;
+    case OP["<"]:          return a < b;
+    case OP["<="]:         return a <= b;
+    case OP["instanceof"]: return a instanceof b;
     default:
       throw new Error(`Invalid operator ${op}`);
     break;
@@ -632,7 +708,22 @@ Iroh.evalObjectAssignmentExpression = function(op, obj, prop, value) {
 Iroh.getInverseInstruction = function(frame) {
   let type = frame.type;
   switch (type) {
-    case Iroh.INSTR.FUNCTION_CALL:  return Iroh.DEBUG_FUNCTION_CALL_END;
+    // a function call is never left
+    // e.g. failed inside a try statement
+    /*case Iroh.INSTR.FUNCTION_CALL: {
+      Iroh.indent -= Iroh.INDENTFACTOR;
+      //console.log(Iroh.indentString(Iroh.indent) + "call", callee, "end", "->", [value]);
+      let callee = frame.values[2].name;
+      let value = void 0;
+      console.log(Iroh.indentString(Iroh.indent) + "call FIX", callee, "end", "->", [value]);
+      //console.log(Iroh.frame);
+      Iroh.popFrame();
+      let expect = Iroh.resolveTryFrame(Iroh.frame);
+      Iroh.leaveFrameUntil(expect);
+      return Iroh.NOP;
+    }*/
+    // a broken function call
+    // means we called sth but it failed afterwards
     case Iroh.INSTR.FUNCTION_ENTER: return Iroh.DEBUG_FUNCTION_LEAVE;
     case Iroh.INSTR.IF_ENTER:       return Iroh.DEBUG_IF_LEAVE;
     case Iroh.INSTR.ELSE_ENTER:     return Iroh.DEBUG_ELSE_LEAVE;
@@ -666,10 +757,19 @@ Iroh.leaveFrameUntil = function(target) {
   };
 };
 
+Iroh.leaveFrameUntilHash = function(hash) {
+  while (true) {
+    if (Iroh.frame.hash === hash) break;
+    Iroh.manuallyLeaveFrame(Iroh.frame);
+  };
+};
+
 Iroh.pushFrame = function(type, hash) {
   let parent = Iroh.frame;
   let frame = new Iroh.Frame(type, hash);
   frame.parent = parent;
+  frame.node = Iroh.nodes[hash].node;
+  frame.location = frame.node.loc;
   Iroh.frame = frame;
   return frame;
 };
@@ -701,7 +801,8 @@ Iroh.processLabels = function(node) {
 Iroh.resolveBreakFrame = function(frm, label) {
   let frame = frm;
   while (true) {
-    if (frame.isBreakable) {
+    // TODO: isContinuable stable?
+    if (frame.isBreakable || frame.isContinuable) {
       if (label !== null) {
         let node = Iroh.nodes[frame.hash].node;
         if (
@@ -727,12 +828,21 @@ Iroh.resolveBreakFrame = function(frm, label) {
 Iroh.resolveReturnFrame = function(frm) {
   let frame = frm;
   while (true) {
+    // break on instantiation calls
+    if (frame.isInstantiation) break;
+    // break on function call frames
     if (frame.isReturnable) break;
     if (frame.isGlobal()) break;
     frame = frame.parent;
   };
-  if (!Iroh.isReturnableFrameType(frame.type)) {
-    console.error(frame);
+  if (
+    !Iroh.isReturnableFrameType(frame.type) &&
+    !Iroh.isInstantiationFrameType(frame.type)
+  ) {
+    // only beef if frame hashes doesn't match
+    if (frame.hash !== Iroh.$$frameHash) {
+      console.error(frame);
+    }
   }
   return frame;
 };
@@ -775,6 +885,21 @@ Iroh.resolveProgramFrame = function(frm) {
   return frame;
 };
 
+Iroh.resolveLeftFrames = function(frm) {
+  let frame = frm;
+  while (true) {
+    // break on instantiation calls
+    if (frame.isInstantiation) break;
+    // break on function call frames
+    if (frame.isReturnable) break;
+    // frame is super sloppy (possibly async), break out of everything
+    if (frame.isGlobal()) break;
+    frame = frame.parent;
+  };
+  return frame;
+};
+
+/*
 Iroh.getFrameByHash = function(frame, hash) {
   if (frame.hash === hash) return frame;
   for (let ii = 0; ii < frame.children.length; ++ii) {
@@ -785,6 +910,17 @@ Iroh.getFrameByHash = function(frame, hash) {
     }
   };
   return null;
+};
+*/
+
+Iroh.getFrameByHashFrom = function(frm, hash) {
+  let frame = frm;
+  while (true) {
+    if (frame.hash === hash) break;
+    if (frame.isGlobal()) return null;
+    frame = frame.parent;
+  };
+  return frame;
 };
 
 Iroh.pushScope = function(node) {
@@ -993,7 +1129,7 @@ Iroh.on = function(event, handler) {
 Iroh.patch = function(code) {
   Iroh.code = code;
   let ast = Iroh.parse(code, { locations: true });
-  Iroh.frame = new Iroh.Frame(Iroh.INSTR.PROGRAM, -1);
+  Iroh.frame = new Iroh.Frame(Iroh.INSTR.PROGRAM, Iroh.$$frameHash);
   Iroh.applyStagePatch(ast, Iroh.stage2);
   Iroh.applyStagePatch(ast, Iroh.stage7);
   Iroh.applyStagePatch(ast, Iroh.stage4);

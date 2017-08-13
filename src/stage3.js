@@ -37,6 +37,17 @@ Iroh.stage3.BlockStatement = function(node) {
       ii++;
     }
     Iroh.walk(child, Iroh.state, Iroh.stage);
+    /*if (isTryStatement) {
+      if (child.handler) {
+        console.assert(child.handler.body.type === "BlockStatement");
+        let expr = Iroh.parseExpressionStatement(Iroh.getLinkCall("DEBUG_CATCH_ENTER"));
+        expr.expression.arguments.push(
+          Iroh.parseExpression(hash),
+          Iroh.parseExpression("e")
+        );
+        child.handler.body.body.unshift(expr);
+      }
+    }*/
     // #LEAVE
     if (isHashBranch) {
       let link = Iroh.getLinkCall(

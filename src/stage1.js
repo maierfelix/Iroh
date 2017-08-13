@@ -18,6 +18,7 @@ Iroh.stage1.Program = function(node) {
         magic: true,
         type: "CallExpression",
         callee: {
+          magic: true,
           type: "Identifier",
           name: Iroh.getLink("DEBUG_PROGRAM_FRAME_VALUE")
         },
@@ -131,11 +132,20 @@ Iroh.stage1.ArrowFunctionExpression = function(node) {
     call.magic = true;
     node.argument = call;
   }
+  // give a body
+  if (node.body.type !== "BlockStatement") {
+    node.expression = false;
+    node.body = {
+      magic: true,
+      type: "BlockStatement",
+      body: [node.body]
+    };
+  }
   node.params.map((param) => { Iroh.walk(param, Iroh.state, Iroh.stage); });
   Iroh.walk(node.body, Iroh.state, Iroh.stage);
   Iroh.popScope();
 };
-
+/*
 Iroh.stage1.CallExpression = function(node) {
   // patched in node, ignore
   if (node.magic) {
@@ -182,6 +192,7 @@ Iroh.stage1.CallExpression = function(node) {
         magic: true,
         type: "CallExpression",
         callee: {
+          magic: true,
           type: "Identifier",
           name: Iroh.getLink("DEBUG_FUNCTION_CALL")
         },
@@ -207,6 +218,7 @@ Iroh.stage1.CallExpression = function(node) {
     magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_FUNCTION_CALL_END")
     },
@@ -229,7 +241,7 @@ Iroh.stage1.CallExpression = function(node) {
   };
   node.magic = true;
 };
-
+*/
 Iroh.stage1.CallExpression = function(node) {
   // patched in node, ignore
   if (node.magic) {
@@ -255,6 +267,7 @@ Iroh.stage1.CallExpression = function(node) {
     magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_FUNCTION_CALL")
     },
@@ -267,6 +280,7 @@ Iroh.stage1.CallExpression = function(node) {
           let property = node.callee.property;
           // identifier
           if (property.type === "Identifier") return {
+            magic: true,
             type: "Literal",
             value: property.name
           };
@@ -275,6 +289,7 @@ Iroh.stage1.CallExpression = function(node) {
         return Iroh.parseExpression("null");
       })(),
       {
+        magic: true,
         type: "ArrayExpression",
         elements: [...node.arguments]
       }
@@ -297,6 +312,7 @@ Iroh.stage1.ReturnStatement = function(node) {
     magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_FUNCTION_RETURN")
     },
@@ -313,11 +329,14 @@ Iroh.stage1.BreakStatement = function(node) {
     node.label ? `"${node.label.name}"` : "null"
   );
   let expr = {
+    magic: true,
     start: 0, end: 0,
     type: "IfStatement",
     test: {
+      magic: true,
       type: "CallExpression",
       callee: {
+        magic: true,
         type: "Identifier",
         name: Iroh.getLink("DEBUG_BREAK")
       },
@@ -327,6 +346,7 @@ Iroh.stage1.BreakStatement = function(node) {
       ]
     },
     consequent: {
+      magic: true,
       type: "BreakStatement",
       label: node.label
     },
@@ -346,11 +366,13 @@ Iroh.stage1.ContinueStatement = function(node) {
     node.label ? `"${node.label.name}"` : "null"
   );
   let expr = {
+    magic: true,
     start: 0, end: 0,
     type: "IfStatement",
     test: {
       type: "CallExpression",
       callee: {
+        magic: true,
         type: "Identifier",
         name: Iroh.getLink("DEBUG_CONTINUE")
       },
@@ -360,6 +382,7 @@ Iroh.stage1.ContinueStatement = function(node) {
       ]
     },
     consequent: {
+      magic: true,
       type: "ContinueStatement",
       label: node.label
     },
@@ -390,6 +413,7 @@ Iroh.stage1.VariableDeclaration = function(node) {
       magic: true,
       type: "CallExpression",
       callee: {
+        magic: true,
         type: "Identifier",
         name: Iroh.getLink("DEBUG_VAR_INIT")
       },
@@ -400,10 +424,12 @@ Iroh.stage1.VariableDeclaration = function(node) {
           magic: true,
           type: "CallExpression",
           callee: {
+            magic: true,
             type: "Identifier",
             name: Iroh.getLink("DEBUG_VAR_DECLARE")
           },
           arguments: [{
+            magic: true,
             type: "Literal",
             value: decl.id.name,
             raw: `"${decl.id.name}"`
@@ -426,6 +452,7 @@ Iroh.stage1.NewExpression = function(node) {
   let args = [
     callee,
     {
+      magic: true,
       type: "ArrayExpression",
       elements: [...node.arguments]
     }
@@ -438,14 +465,17 @@ Iroh.stage1.NewExpression = function(node) {
   };
 
   node.callee = {
+    magic: true,
     type: "Identifier",
     name: Iroh.getLink("DEBUG_OP_NEW_END")
   };
   node.arguments = [
     Iroh.parseExpression(hash),
     {
+      magic: true,
       type: "CallExpression",
       callee: {
+        magic: true,
         type: "Identifier",
         name: Iroh.getLink("DEBUG_OP_NEW")
       },
@@ -462,8 +492,10 @@ Iroh.stage1.ObjectExpression = function(node) {
   node.magic = true;
   node.properties.map((prop) => { Iroh.walk(prop, Iroh.state, Iroh.stage); });
   let call = {
+    magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_ALLOC_OBJECT")
     },
@@ -494,8 +526,10 @@ Iroh.stage1.MemberExpression = function(node) {
     };
   }
   let call = {
+    magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_MEMBER_EXPR")
     },
@@ -505,6 +539,7 @@ Iroh.stage1.MemberExpression = function(node) {
     ]
   };
   call = {
+    magic: true,
     type: "MemberExpression",
     object: call,
     property: node.property
@@ -515,13 +550,94 @@ Iroh.stage1.MemberExpression = function(node) {
   };
 };
 
+Iroh.stage1.AssignmentExpression = function(node) {
+  if (node.magic) {
+    node.left.magic = true;
+    Iroh.walk(node.left, Iroh.state, Iroh.stage);
+    Iroh.walk(node.right, Iroh.state, Iroh.stage);
+    return;
+  }
+  node.magic = true;
+  node.left.magic = true;
+  let left = node.left;
+  let right = node.right;
+  let operator = node.operator;
+  if (operator !== "=") {
+    operator = operator.substr(0, operator.length - 1);
+  }
+  // #object assignment
+  let object = null;
+  let property = null;
+  // skip the last property and manually
+  // access it inside the debug function
+  if (left.type === "MemberExpression") {
+    if (left.property.type === "Identifier") {
+      if (left.computed) {
+        property = left.property;
+      } else {
+        property = {
+          magic: true,
+          type: "Literal",
+          value: left.property.name
+        };
+      }
+    } else {
+      property = left.property;
+    }
+    object = left.object;
+  }
+  // identifier based assignment
+  // fixed up below by turning into assign expr again
+  else if (left.type === "Identifier") {
+    object = left;
+    property = Iroh.parseExpression(null);
+  }
+  let call = {
+    magic: true,
+    type: "CallExpression",
+    callee: {
+      magic: true,
+      type: "Identifier",
+      name: Iroh.getLink("DEBUG_ASSIGN")
+    },
+    arguments: [
+      Iroh.parseExpression(Iroh.OP[operator]),
+      (
+        left.type === "Identifier" ?
+        Iroh.parseExpression(`"${left.name}"`) :
+        object
+      ),
+      property,
+      right
+    ]
+  };
+  // #identifier assignment
+  if (left.type === "Identifier") {
+    call = {
+      magic: true,
+      type: "AssignmentExpression",
+      operator: node.operator,
+      left: object,
+      right: call
+    };
+  }
+  Iroh.walk(node.left, Iroh.state, Iroh.stage);
+  Iroh.walk(node.right, Iroh.state, Iroh.stage);
+  for (let key in call) {
+    if (!call.hasOwnProperty(key)) continue;
+    node[key] = call[key];
+  };
+};
+
 Iroh.stage1.ArrayExpression = function(node) {
   if (node.magic) return;
   node.magic = true;
-  node.elements.map((el) => { Iroh.walk(el, Iroh.state, Iroh.stage); });
+  node.elements.map((el) => { if (el !== null) Iroh.walk(el, Iroh.state, Iroh.stage); });
   let call = {
+    magic: true,
     type: "CallExpression",
     callee: {
+      magic: true,
       type: "Identifier",
       name: Iroh.getLink("DEBUG_ALLOC_ARRAY")
     },
@@ -564,14 +680,14 @@ Iroh.stage1.ForOfStatement = function(node) {
 
 Iroh.stage1.WhileStatement = function(node) {
   Iroh.pushScope(node);
-  Iroh.walk(node.test, Iroh.state, Iroh.stage);
+  if (node.test) Iroh.walk(node.test, Iroh.state, Iroh.stage);
   Iroh.walk(node.body, Iroh.state, Iroh.stage);
   Iroh.popScope();
 };
 
 Iroh.stage1.DoWhileStatement = function(node) {
   Iroh.pushScope(node);
-  Iroh.walk(node.test, Iroh.state, Iroh.stage);
+  if (node.test) Iroh.walk(node.test, Iroh.state, Iroh.stage);
   Iroh.walk(node.body, Iroh.state, Iroh.stage);
   Iroh.popScope();
 };

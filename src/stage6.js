@@ -17,6 +17,7 @@ Iroh.stage6.FunctionDeclaration = function(node) {
   end.expression.arguments.push(Iroh.parseExpression("this"));
   start.expression.arguments.push(hashExpr);
   start.expression.arguments.push(Iroh.parseExpression("this"));
+  start.expression.arguments.push(Iroh.parseExpression(node.id.name));
   start.expression.arguments.push(Iroh.parseExpression("arguments"));
   node.body.body.unshift(start);
   node.body.body.push(end);
@@ -44,6 +45,7 @@ Iroh.stage6.FunctionExpression = function(node) {
   end.expression.arguments.push(Iroh.parseExpression("this"));
   start.expression.arguments.push(hashExpr);
   start.expression.arguments.push(Iroh.parseExpression("this"));
+  start.expression.arguments.push(Iroh.parseExpression(node.id.name));
   start.expression.arguments.push(Iroh.parseExpression("arguments"));
   node.body.body.unshift(start);
   node.body.body.push(end);
@@ -69,7 +71,9 @@ Iroh.stage6.ArrowFunctionExpression = function(node) {
   end.expression.arguments.push(Iroh.parseExpression("this"));
   start.expression.arguments.push(hashExpr);
   start.expression.arguments.push(Iroh.parseExpression("this"));
+  start.expression.arguments.push(Iroh.parseExpression(node.id.name));
   let args = {
+    magic: true,
     type: "ArrayExpression",
     elements: []
   };

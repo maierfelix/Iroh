@@ -1,4 +1,3 @@
-"use strict";
 /*
 let PIXEL_RATIO = window.devicePixelRatio;
 let ctx = canvas.getContext("2d");
@@ -47,7 +46,7 @@ function setEditorSize(editor, w, h) {
 // global scope as if it's real code
 function run(code) {
   let out = Iroh.patch(code);
-  console.log(out);
+  //console.log(out);
   //Iroh.editor.setValue(out);
   (() => {
     let script = document.createElement("script");

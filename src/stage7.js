@@ -25,7 +25,7 @@ Iroh.stage7.BlockStatement = function(node) {
     if (isHashBranch) {
       // generate hash
       hash = Iroh.uBranchHash();
-      id = `${Iroh.TEMP_VAR_BASE}${Iroh.tmpIfIndex++}`;
+      id = Iroh.reserveTempVarId();
       Iroh.nodes[hash] = {
         hash: hash,
         node: Iroh.cloneNode(child)
@@ -40,6 +40,7 @@ Iroh.stage7.BlockStatement = function(node) {
           magic: true,
           type: "CallExpression",
           callee: {
+            magic: true,
             type: "Identifier",
             name: Iroh.getLink("DEBUG_BLOCK_ENTER")
           },
@@ -55,6 +56,7 @@ Iroh.stage7.BlockStatement = function(node) {
           magic: true,
           type: "CallExpression",
           callee: {
+            magic: true,
             type: "Identifier",
             name: Iroh.getLink("DEBUG_BLOCK_LEAVE")
           },
@@ -72,6 +74,7 @@ Iroh.stage7.BlockStatement = function(node) {
         magic: true,
         type: "CallExpression",
         callee: {
+          magic: true,
           type: "Identifier",
           name: Iroh.getLink("DEBUG_SWITCH_TEST")
         },
@@ -92,12 +95,18 @@ Iroh.stage7.BlockStatement = function(node) {
         magic: true,
         type: "CallExpression",
         callee: {
+          magic: true,
           type: "Identifier",
           name: Iroh.getLink("DEBUG_LOOP_TEST")
         },
         arguments: [
           Iroh.parseExpression(hash),
-          child.test
+          child.test ? child.test : (
+            // empty for test means infinite
+            child.type === "ForStatement" ?
+            Iroh.parseExpression(true) :
+            "" // throws error
+          )
         ]
       };
       child.test = test;
@@ -114,6 +123,7 @@ Iroh.stage7.BlockStatement = function(node) {
             magic: true,
             type: "CallExpression",
             callee: {
+              magic: true,
               type: "Identifier",
               name: Iroh.getLink("DEBUG_LOOP_ENTER")
             },
@@ -136,6 +146,7 @@ Iroh.stage7.BlockStatement = function(node) {
           magic: true,
           type: "CallExpression",
           callee: {
+            magic: true,
             type: "Identifier",
             name: Iroh.getLink("DEBUG_LOOP_LEAVE")
           },

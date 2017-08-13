@@ -19,7 +19,7 @@ Iroh.stage4.SwitchStatement = function(node) {
     Iroh.walk(cs, Iroh.state, Iroh.stage);
   });
 
-  let id = `${Iroh.TEMP_VAR_BASE}${Iroh.tmpIfIndex++}`;
+  let id = Iroh.reserveTempVarId();
   let patch = Iroh.parseExpressionStatement(`var ${id};`);
   Iroh.injectPatchIntoNode(Iroh.scope.node, patch);
 
@@ -46,7 +46,7 @@ Iroh.stage4.SwitchCase = function(node) {
 
   let test = null;
   if (node.test) {
-    let id = `${Iroh.TEMP_VAR_BASE}${Iroh.tmpIfIndex++}`;
+    let id = Iroh.reserveTempVarId();
     let patch = Iroh.parseExpressionStatement(`var ${id};`);
     Iroh.injectPatchIntoNode(Iroh.scope.node, patch);
     test = Iroh.parseExpression(id);

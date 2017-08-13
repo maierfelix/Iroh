@@ -47,7 +47,7 @@ Iroh.stage2.IfStatement = function(node) {
   Iroh.walk(node.consequent, Iroh.state, Iroh.stage);
   if (node.alternate) Iroh.walk(node.alternate, Iroh.state, Iroh.stage);
 
-  let id = `${Iroh.TEMP_VAR_BASE}${Iroh.tmpIfIndex++}`;
+  let id = Iroh.reserveTempVarId();
   let patch = Iroh.parseExpressionStatement(`var ${id};`);
   Iroh.injectPatchIntoNode(Iroh.scope.node, patch);
 
@@ -61,6 +61,7 @@ Iroh.stage2.IfStatement = function(node) {
       magic: true,
       type: "CallExpression",
       callee: {
+        magic: true,
         type: "Identifier",
         name: Iroh.getLink("DEBUG_IF_TEST")
       },
@@ -109,7 +110,26 @@ Iroh.stage2.IfStatement = function(node) {
   }
 
 };
-
+/*
+Iroh.stage2.CatchClause = function(node) {
+  if (node.magic) {
+    // catch param forced?
+    Iroh.walk(node.param, Iroh.state, Iroh.stage);
+    Iroh.walk(node.body, Iroh.state, Iroh.stage);
+    return;
+  }
+  node.magic = true;
+  Iroh.walk(node.param, Iroh.state, Iroh.stage);
+  Iroh.walk(node.body, Iroh.state, Iroh.stage);
+  console.assert(node.body.type === "BlockStatement");
+  let start = Iroh.parseExpressionStatement(Iroh.getLinkCall("DEBUG_CATCH_ENTER"));
+  console.log(Iroh.scope.node);
+  throw new Error("");
+  start.expression.arguments.push(node.param);
+  start.expression.arguments.push(node.param);
+  node.body.body.unshift(start);
+};
+*/
 Iroh.stage2.Program = Iroh.stage1.Program;
 Iroh.stage2.BlockStatement = Iroh.stage1.BlockStatement;
 Iroh.stage2.MethodDefinition = Iroh.stage1.MethodDefinition;
