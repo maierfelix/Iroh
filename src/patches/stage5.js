@@ -1,43 +1,59 @@
-Iroh.stage5.ClassDeclaration = function(node) {
-  Iroh.pushScope(node);
-  Iroh.walk(node.id, Iroh.state, Iroh.stage);
-  Iroh.walk(node.body, Iroh.state, Iroh.stage);
-  Iroh.popScope();
+import {
+  uBranchHash,
+  reserveTempVarId
+} from "../utils";
+
+import {
+  cloneNode,
+  parseExpression,
+  injectPatchIntoNode,
+  parseExpressionStatement
+} from "../helpers";
+
+import STAGE1 from "./stage1";
+
+let STAGE5 = {};
+
+STAGE5.ClassDeclaration = function(node, patcher) {
+  patcher.pushScope(node);
+  patcher.walk(node.id, patcher, patcher.stage);
+  patcher.walk(node.body, patcher, patcher.stage);
+  patcher.popScope();
 };
 
-Iroh.stage5.MethodDefinition = function(node) {
+STAGE5.MethodDefinition = function(node, patcher) {
   if (node.magic) {
-    Iroh.pushScope(node);
-    Iroh.walk(node.key, Iroh.state, Iroh.stage);
-    Iroh.walk(node.value, Iroh.state, Iroh.stage);
-    Iroh.popScope();
+    patcher.pushScope(node);
+    patcher.walk(node.key, patcher, patcher.stage);
+    patcher.walk(node.value, patcher, patcher.stage);
+    patcher.popScope();
     return;
   }
 
-  let scope = Iroh.scope;
+  let scope = patcher.scope;
   // branch hash
-  let hash = Iroh.uBranchHash();
+  let hash = uBranchHash();
   // create node link
-  Iroh.nodes[hash] = {
+  patcher.nodes[hash] = {
     hash: hash,
-    node: Iroh.cloneNode(node)
+    node: cloneNode(node)
   };
 
   node.magic = true;
   node.value.superIndex = -1;
   node.value.superNode = null;
-  Iroh.pushScope(node);
-  Iroh.walk(node.key, Iroh.state, Iroh.stage);
-  Iroh.walk(node.value, Iroh.state, Iroh.stage);
+  patcher.pushScope(node);
+  patcher.walk(node.key, patcher, patcher.stage);
+  patcher.walk(node.value, patcher, patcher.stage);
 
   let isConstructor = node.kind === "constructor";
 
-  let end = Iroh.parseExpressionStatement(Iroh.getLinkCall("DEBUG_METHOD_LEAVE"));
-  let start = Iroh.parseExpressionStatement(Iroh.getLinkCall("DEBUG_METHOD_ENTER"));
+  let end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_METHOD_LEAVE"));
+  let start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_METHOD_ENTER"));
   let body = node.value.body.body;
 
-  start.expression.arguments.push(Iroh.parseExpression("this"));
-  start.expression.arguments.push(Iroh.parseExpression("arguments"));
+  start.expression.arguments.push(parseExpression("this"));
+  start.expression.arguments.push(parseExpression("arguments"));
 
   // patch constructor
   if (isConstructor) {
@@ -59,25 +75,25 @@ Iroh.stage5.MethodDefinition = function(node) {
   }
 
   // constructor state
-  end.expression.arguments.unshift(Iroh.parseExpression(isConstructor));
-  start.expression.arguments.unshift(Iroh.parseExpression(isConstructor));
+  end.expression.arguments.unshift(parseExpression(isConstructor));
+  start.expression.arguments.unshift(parseExpression(isConstructor));
 
   // class name
   end.expression.arguments.unshift(scope.node.id);
   start.expression.arguments.unshift(scope.node.id);
 
   // hash
-  end.expression.arguments.unshift(Iroh.parseExpression(hash));
-  start.expression.arguments.unshift(Iroh.parseExpression(hash));
+  end.expression.arguments.unshift(parseExpression(hash));
+  start.expression.arguments.unshift(parseExpression(hash));
 
-  Iroh.popScope();
+  patcher.popScope();
 };
 
-Iroh.stage5.CallExpression = function(node) {
+STAGE5.CallExpression = function(node, patcher) {
   if (node.magic) return;
   // dont patch super class calls
   if (node.callee && node.callee.type === "Super") {
-    let scope = Iroh.scope.node;
+    let scope = patcher.scope.node;
     let index = -1;
     console.assert(scope.type === "FunctionExpression");
     scope.body.body.map((child, idx) => {
@@ -98,11 +114,11 @@ Iroh.stage5.CallExpression = function(node) {
         callee: {
           magic: true,
           type: "Identifier",
-          name: Iroh.getLink("DEBUG_SUPER")
+          name: patcher.instance.getLink("DEBUG_SUPER")
         },
         arguments: [
           // class ctor
-          Iroh.scope.parent.parent.node.id,
+          patcher.scope.parent.parent.node.id,
           {
             magic: true,
             type: "SpreadElement",
@@ -118,8 +134,10 @@ Iroh.stage5.CallExpression = function(node) {
   }
 };
 
-Iroh.stage5.Program = Iroh.stage1.Program;
-Iroh.stage5.BlockStatement = Iroh.stage1.BlockStatement;
-Iroh.stage5.FunctionDeclaration = Iroh.stage1.FunctionDeclaration;
-Iroh.stage5.FunctionExpression = Iroh.stage1.FunctionExpression;
-Iroh.stage5.ArrowFunctionExpression = Iroh.stage1.ArrowFunctionExpression;
+STAGE5.Program = STAGE1.Program;
+STAGE5.BlockStatement = STAGE1.BlockStatement;
+STAGE5.FunctionDeclaration = STAGE1.FunctionDeclaration;
+STAGE5.FunctionExpression = STAGE1.FunctionExpression;
+STAGE5.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
+
+export default STAGE5;

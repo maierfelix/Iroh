@@ -1,0 +1,39 @@
+{
+  "name": "iroh",
+  "version": "0.1.4",
+  "description": "Dynamic code analysis tool",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/maierfelix/iroh.git"
+  },
+  "keywords": [
+    "iroh",
+    "analysis",
+    "dynamic",
+    "runtime",
+    "realtime",
+    "debug",
+    "record"
+  ],
+  "homepage": "http://maierfelix.github.io/Iroh/",
+  "author": "Felix Maier <xilefmai@gmail.com>",
+  "contributors": [
+    "Felix Maier <xilefmai@gmail.com> (https://github.com/maierfelix)"
+  ],
+  "bugs": {
+    "url": "https://github.com/maierfelix/iroh/issues"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "test": "node tests/index.js"
+  },
+  "engines": {
+    "node": ">= 6.x"
+  },
+  "devDependencies": {
+    "rollup": "^0.47.2",
+    "rollup-plugin-buble": "^0.15.0"
+  },
+  "dependencies": {}
+}

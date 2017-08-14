@@ -1,4 +1,25 @@
-Iroh.stage7.BlockStatement = function(node) {
+import {
+  uBranchHash,
+  reserveTempVarId
+} from "../utils";
+
+import {
+  cloneNode,
+  processLabels,
+  parseExpression,
+  isLoopStatement,
+  isSwitchStatement,
+  isLabeledStatement,
+  injectPatchIntoNode,
+  forceLoopBodyBlocked,
+  parseExpressionStatement
+} from "../helpers";
+
+import STAGE1 from "./stage1";
+
+let STAGE7 = {};
+
+STAGE7.BlockStatement = function(node, patcher) {
   let body = node.body;
   for (let ii = 0; ii < body.length; ++ii) {
     let child = body[ii];
@@ -6,29 +27,29 @@ Iroh.stage7.BlockStatement = function(node) {
     //child.magic = true;
 
     // labeled statement
-    let isLabeledStatement = Iroh.isLabeledStatement(child.type);
-    if (isLabeledStatement) {
-      child = Iroh.processLabels(child);
+    let isLabeledStmt = isLabeledStatement(child.type);
+    if (isLabeledStmt) {
+      child = processLabels(child);
     }
 
     let isLazyBlock = (
       child.type === "BlockStatement"
     );
-    let isLoopStatement = Iroh.isLoopStatement(child.type);
-    let isSwitchStatement = Iroh.isSwitchStatement(child.type);
+    let isLoopStmt = isLoopStatement(child.type);
+    let isSwitchStmt = isSwitchStatement(child.type);
     let isHashBranch = (
-      isLoopStatement ||
+      isLoopStmt ||
       isLazyBlock
     );
     let hash = -1;
     let id = null;
     if (isHashBranch) {
       // generate hash
-      hash = Iroh.uBranchHash();
-      id = Iroh.reserveTempVarId();
-      Iroh.nodes[hash] = {
+      hash = uBranchHash();
+      id = reserveTempVarId();
+      patcher.nodes[hash] = {
         hash: hash,
-        node: Iroh.cloneNode(child)
+        node: cloneNode(child)
       };
     }
 
@@ -42,10 +63,10 @@ Iroh.stage7.BlockStatement = function(node) {
           callee: {
             magic: true,
             type: "Identifier",
-            name: Iroh.getLink("DEBUG_BLOCK_ENTER")
+            name: patcher.instance.getLink("DEBUG_BLOCK_ENTER")
           },
           arguments: [
-            Iroh.parseExpression(hash)
+            parseExpression(hash)
           ]
         }
       };
@@ -58,36 +79,36 @@ Iroh.stage7.BlockStatement = function(node) {
           callee: {
             magic: true,
             type: "Identifier",
-            name: Iroh.getLink("DEBUG_BLOCK_LEAVE")
+            name: patcher.instance.getLink("DEBUG_BLOCK_LEAVE")
           },
-          arguments: [ Iroh.parseExpression(hash) ]
+          arguments: [ parseExpression(hash) ]
         }
       };
       child.body.unshift(start);
       child.body.push(end);
-      Iroh.walk(child, Iroh.state, Iroh.stage);
+      patcher.walk(child, patcher, patcher.stage);
       continue;
     }
 
-    if (isSwitchStatement) {
+    if (isSwitchStmt) {
       let test = {
         magic: true,
         type: "CallExpression",
         callee: {
           magic: true,
           type: "Identifier",
-          name: Iroh.getLink("DEBUG_SWITCH_TEST")
+          name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
         },
         arguments: [ child.discriminant ]
       };
       child.discriminant = test;
     }
 
-    if (isLoopStatement) {
-      Iroh.forceLoopBodyBlocked(child);
+    if (isLoopStmt) {
+      forceLoopBodyBlocked(child);
       console.assert(child.body.type === "BlockStatement");
 
-      let patch = Iroh.parseExpressionStatement(`var ${id} = 0;`);
+      let patch = parseExpressionStatement(`var ${id} = 0;`);
       body.splice(ii, 0, patch);
       ii++;
 
@@ -97,14 +118,14 @@ Iroh.stage7.BlockStatement = function(node) {
         callee: {
           magic: true,
           type: "Identifier",
-          name: Iroh.getLink("DEBUG_LOOP_TEST")
+          name: patcher.instance.getLink("DEBUG_LOOP_TEST")
         },
         arguments: [
-          Iroh.parseExpression(hash),
+          parseExpression(hash),
           child.test ? child.test : (
             // empty for test means infinite
             child.type === "ForStatement" ?
-            Iroh.parseExpression(true) :
+            parseExpression(true) :
             "" // throws error
           )
         ]
@@ -114,7 +135,7 @@ Iroh.stage7.BlockStatement = function(node) {
       let start = {
         magic: true,
         type: "IfStatement",
-        test: Iroh.parseExpression(`${id} === 0`),
+        test: parseExpression(`${id} === 0`),
         alternate: null,
         consequent: {
           magic: true,
@@ -125,20 +146,20 @@ Iroh.stage7.BlockStatement = function(node) {
             callee: {
               magic: true,
               type: "Identifier",
-              name: Iroh.getLink("DEBUG_LOOP_ENTER")
+              name: patcher.instance.getLink("DEBUG_LOOP_ENTER")
             },
             arguments: [
-              Iroh.parseExpression(hash),
+              parseExpression(hash),
               // set the loop enter state to fullfilled
-              Iroh.parseExpression(`${id} = 1`)
+              parseExpression(`${id} = 1`)
             ]
           }
         }
       };
       child.body.body.unshift(start);
     }
-    Iroh.walk(child, Iroh.state, Iroh.stage);
-    if (isLoopStatement) {
+    patcher.walk(child, patcher, patcher.stage);
+    if (isLoopStmt) {
       let end = {
         magic: true,
         type: "ExpressionStatement",
@@ -148,11 +169,11 @@ Iroh.stage7.BlockStatement = function(node) {
           callee: {
             magic: true,
             type: "Identifier",
-            name: Iroh.getLink("DEBUG_LOOP_LEAVE")
+            name: patcher.instance.getLink("DEBUG_LOOP_LEAVE")
           },
           arguments: [
-            Iroh.parseExpression(hash),
-            Iroh.parseExpression(id)
+            parseExpression(hash),
+            parseExpression(id)
           ]
         }
       };
@@ -162,8 +183,10 @@ Iroh.stage7.BlockStatement = function(node) {
   };
 };
 
-Iroh.stage7.Program = Iroh.stage1.Program;
-Iroh.stage7.MethodDefinition = Iroh.stage1.MethodDefinition;
-Iroh.stage7.FunctionDeclaration = Iroh.stage1.FunctionDeclaration;
-Iroh.stage7.FunctionExpression = Iroh.stage1.FunctionExpression;
-Iroh.stage7.ArrowFunctionExpression = Iroh.stage1.ArrowFunctionExpression;
+STAGE7.Program = STAGE1.Program;
+STAGE7.MethodDefinition = STAGE1.MethodDefinition;
+STAGE7.FunctionDeclaration = STAGE1.FunctionDeclaration;
+STAGE7.FunctionExpression = STAGE1.FunctionExpression;
+STAGE7.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
+
+export default STAGE7;

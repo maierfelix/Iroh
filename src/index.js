@@ -1,0 +1,53 @@
+import extend from "./extend";
+
+import Stage from "./stage/index";
+import Scope from "./scope";
+import Frame from "./frame";
+
+import * as _utils from "./utils";
+import * as _setup from "./setup";
+import * as _patch from "./patch";
+
+class Iroh {
+  constructor() {
+    // patch AST scope
+    this.scope = null;
+    // patch stage
+    this.stage = null;
+    // patch state
+    this.state = null;
+    // stage instance
+    this.instance = null;
+    // container for all stages
+    this.stages = {};
+    // enter setup phase
+    this.setup();
+    // say hello
+    this.greet();
+  }
+};
+
+// link methods to main class
+extend(Iroh, _utils);
+extend(Iroh, _setup);
+extend(Iroh, _patch);
+
+const iroh = new Iroh();
+
+// intercept Stage instantiations
+let _Stage = function() {
+  Stage.apply(this, arguments);
+  // register it to iroh stages
+  iroh.stages[this.key] = this;
+};
+_Stage.prototype = Object.create(Stage.prototype);
+iroh.Stage = _Stage;
+
+// link to outer world
+if (typeof window !== "undefined") {
+  window.Iroh = iroh;
+} else if (typeof module !== "undefined") {
+  module.exports = iroh;
+} else {
+  throw new Error("Failed to initialise Iroh: Unexpected environment");
+}

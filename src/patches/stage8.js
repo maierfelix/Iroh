@@ -1,62 +1,80 @@
-Iroh.stage8.ThisExpression = function(node) {
+import { OP } from "../labels";
+
+import {
+  uBranchHash,
+  reserveTempVarId
+} from "../utils";
+
+import {
+  cloneNode,
+  parseExpression,
+  injectPatchIntoNode,
+  parseExpressionStatement
+} from "../helpers";
+
+import STAGE1 from "./stage1";
+
+let STAGE8 = {};
+
+STAGE8.ThisExpression = function(node, patcher) {
   if (node.magic) return;
   node.magic = true;
   node.type = "CallExpression";
   node.callee = {
     magic: true,
     type: "Identifier",
-    name: Iroh.getLink("DEBUG_THIS")
+    name: patcher.instance.getLink("DEBUG_THIS")
   };
-  node.arguments = [ Iroh.parseExpression("this") ];
+  node.arguments = [ parseExpression("this") ];
 };
 
-Iroh.stage8.BinaryExpression = function(node) {
+STAGE8.BinaryExpression = function(node, patcher) {
   if (node.magic) return;
-  Iroh.walk(node.left, Iroh.state, Iroh.stage);
-  Iroh.walk(node.right, Iroh.state, Iroh.stage);
+  patcher.walk(node.left, patcher, patcher.stage);
+  patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
   node.type = "CallExpression";
   node.callee = {
     magic: true,
     type: "Identifier",
-    name: Iroh.getLink("DEBUG_BINARY")
+    name: patcher.instance.getLink("DEBUG_BINARY")
   };
   node.arguments = [
-    Iroh.parseExpression(Iroh.OP[node.operator]),
+    parseExpression(OP[node.operator]),
     node.left,
     node.right
   ];
 };
 
-Iroh.stage8.LogicalExpression = function(node) {
+STAGE8.LogicalExpression = function(node, patcher) {
   if (node.magic) return;
-  Iroh.walk(node.left, Iroh.state, Iroh.stage);
-  Iroh.walk(node.right, Iroh.state, Iroh.stage);
+  patcher.walk(node.left, patcher, patcher.stage);
+  patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
   node.type = "CallExpression";
   node.callee = {
     magic: true,
     type: "Identifier",
-    name: Iroh.getLink("DEBUG_LOGICAL")
+    name: patcher.instance.getLink("DEBUG_LOGICAL")
   };
-  let right = Iroh.parseExpression("() => null");
+  let right = parseExpression("() => null");
   right.body = node.right;
   node.arguments = [
-    Iroh.parseExpression(Iroh.OP[node.operator]),
+    parseExpression(OP[node.operator]),
     node.left,
     right
   ];
 };
 
-Iroh.stage8.UnaryExpression = function(node) {
+STAGE8.UnaryExpression = function(node, patcher) {
   if (node.magic) return;
   node.magic = true;
-  Iroh.walk(node.argument, Iroh.state, Iroh.stage);
+  patcher.walk(node.argument, patcher, patcher.stage);
   node.type = "CallExpression";
   node.callee = {
     magic: true,
     type: "Identifier",
-    name: Iroh.getLink("DEBUG_UNARY")
+    name: patcher.instance.getLink("DEBUG_UNARY")
   };
   let argument = node.argument;
   // non-trackable yet FIXME
@@ -70,27 +88,27 @@ Iroh.stage8.UnaryExpression = function(node) {
     };
   }
   node.arguments = [
-    Iroh.parseExpression(Iroh.OP[node.operator]),
-    Iroh.parseExpression("this"),
-    Iroh.parseExpression(false),
+    parseExpression(OP[node.operator]),
+    parseExpression("this"),
+    parseExpression(false),
     argument
   ];
   // typeof fixup
   // typeof is a weirdo
   if (node.operator === "typeof" && argument.type === "Identifier") {
-    let id = Iroh.reserveTempVarId();
-    let patch = Iroh.parseExpressionStatement(`var ${id};`);
-    Iroh.injectPatchIntoNode(Iroh.scope.node, patch);
+    let id = reserveTempVarId();
+    let patch = parseExpressionStatement(`var ${id};`);
+    injectPatchIntoNode(patcher.scope.node, patch);
     let name = argument.name;
     // heute sind wir räudig
-    let critical = Iroh.parseExpression(
+    let critical = parseExpression(
       `(() => { try { ${name}; } catch(e) { ${id} = "undefined"; return true; } ${id} = ${name}; return false; })()`
     );
     node.arguments = [
-      Iroh.parseExpression(Iroh.OP[node.operator]),
-      Iroh.parseExpression("this"),
+      parseExpression(OP[node.operator]),
+      parseExpression("this"),
       critical,
-      Iroh.parseExpression(id)
+      parseExpression(id)
     ];
   }
 };
@@ -115,23 +133,23 @@ everything else: #non-critical
     typeof a !== "undefined" ? a : void 0
   )
 */
-Iroh.stage8.ConditionalExpression = function(node) {
+STAGE8.ConditionalExpression = function(node, patcher) {
   if (node.magic) return;
   node.magic = true;
-  Iroh.walk(node.test, Iroh.state, Iroh.stage);
-  Iroh.walk(node.consequent, Iroh.state, Iroh.stage);
-  Iroh.walk(node.alternate, Iroh.state, Iroh.stage);
+  patcher.walk(node.test, patcher, patcher.stage);
+  patcher.walk(node.consequent, patcher, patcher.stage);
+  patcher.walk(node.alternate, patcher, patcher.stage);
 
-  let cons = Iroh.parseExpression("() => null");
+  let cons = parseExpression("() => null");
   cons.body = node.consequent;
-  let alt = Iroh.parseExpression("() => null");
+  let alt = parseExpression("() => null");
   alt.body = node.alternate;
 
   node.type = "CallExpression";
   node.callee = {
     magic: true,
     type: "Identifier",
-    name: Iroh.getLink("DEBUG_TERNARY")
+    name: patcher.instance.getLink("DEBUG_TERNARY")
   };
   node.arguments = [
     node.test,
@@ -142,14 +160,14 @@ Iroh.stage8.ConditionalExpression = function(node) {
 };
 
 /*
-Iroh.stage8.UpdateExpression = function(node) {
+STAGE8.UpdateExpression = function(node) {
   if (node.magic) return;
   node.magic = true;
   Iroh.walk(node.argument, Iroh.state, Iroh.stage);
   console.log(node);
 };*/
 /*
-Iroh.stage8.Literal = function(node) {
+STAGE8.Literal = function(node) {
   if (node.magic) return;
   let clone = Iroh.cloneNode(node);
   node.magic = true;
@@ -164,7 +182,7 @@ Iroh.stage8.Literal = function(node) {
   ];
 };
 
-Iroh.stage8.Identifier = function(node) {
+STAGE8.Identifier = function(node) {
   if (node.magic) return;
   node.magic = true;
   let clone = Iroh.cloneNode(node);
@@ -212,14 +230,14 @@ DBG_ASSIGN:
     a.b += c;
     (DBG_ASSIGN("+=", a, "b", c))
 
-Iroh.stage8.ConditionalExpression = function(node) {
+STAGE8.ConditionalExpression = function(node) {
   return DBG_TERNARY(
     $$x0 = (a === 1),
     $$x0 ? a = 2 : b = 7
   );
 };
 
-Iroh.stage8.LogicalExpression = function(node) {
+STAGE8.LogicalExpression = function(node) {
   return DBG_LOGICAL(
     op,
     a,
@@ -227,7 +245,7 @@ Iroh.stage8.LogicalExpression = function(node) {
   );
 };
 
-Iroh.stage8.BinaryExpression = function(node) {
+STAGE8.BinaryExpression = function(node) {
   return DBG_BINARY(
     op,
     a,
@@ -236,9 +254,11 @@ Iroh.stage8.BinaryExpression = function(node) {
 };
 */
 
-Iroh.stage8.Program = Iroh.stage1.Program;
-Iroh.stage8.BlockStatement = Iroh.stage1.BlockStatement;
-Iroh.stage8.MethodDefinition = Iroh.stage1.MethodDefinition;
-Iroh.stage8.FunctionDeclaration = Iroh.stage1.FunctionDeclaration;
-Iroh.stage8.FunctionExpression = Iroh.stage1.FunctionExpression;
-Iroh.stage8.ArrowFunctionExpression = Iroh.stage1.ArrowFunctionExpression;
+STAGE8.Program = STAGE1.Program;
+STAGE8.BlockStatement = STAGE1.BlockStatement;
+STAGE8.MethodDefinition = STAGE1.MethodDefinition;
+STAGE8.FunctionDeclaration = STAGE1.FunctionDeclaration;
+STAGE8.FunctionExpression = STAGE1.FunctionExpression;
+STAGE8.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
+
+export default STAGE8;
