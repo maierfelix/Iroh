@@ -9116,7 +9116,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 }.call(this, this));
 
       (function() {
-        $$VERSION = "0.1.3";
+        $$VERSION = "0.1.4";
         $$HOMEPAGE = "http://maierfelix.github.io/Iroh/";
         'use strict';
 
@@ -9560,10 +9560,6 @@ function forceLoopBodyBlocked(node) {
   }
 }
 
-var Instruction = function Instruction() {
-
-};
-
 var Frame = function Frame(type, hash) {
   this.uid = uid();
   this.hash = hash;
@@ -9585,11 +9581,6 @@ var Frame = function Frame(type, hash) {
   this.isContinuable = isContinuableFrameType(type);
   this.isTryStatement = isTryStatementFrameType(type);
   this.isInstantiation = isInstantiationFrameType(type);
-};
-Frame.prototype.pushInstruction = function pushInstruction (type) {
-  var instr = new Instruction(type);
-  this.children.push(instr);
-  return instr;
 };
 Frame.prototype.isGlobal = function isGlobal () {
   return (
@@ -11266,6 +11257,51 @@ Patcher.prototype.applyPatches = function(ast) {
   this.applyStagePatch(ast, STAGE8);
 };
 
+var RuntimeEvent = function RuntimeEvent(type, instance) {
+  this.type = type;
+  // base properties
+  this.hash = -1;
+  this.indent = -1;
+  this.location = null;
+  this.instance = instance;
+  // TODO
+  // turn all events into seperate classes
+  // so we can save a lot garbage
+};
+RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
+  // trigger all attached listeners
+  this.instance.triggerListeners(this.type, this, trigger$1);
+};
+
+var RuntimeListenerEvent = function RuntimeListenerEvent(type, callback) {
+  this.type = type;
+  this.callback = callback;
+};
+
+var RuntimeListener = function RuntimeListener(type) {
+  this.type = type;
+  this.triggers = {};
+};
+RuntimeListener.prototype.on = function on (type, callback) {
+  var event = new RuntimeListenerEvent(type, callback);
+  // not registered yet
+  if (this.triggers[type] === void 0) {
+    this.triggers[type] = [];
+  }
+  this.triggers[type].push(event);
+};
+RuntimeListener.prototype.trigger = function trigger (event, trigger$1) {
+  // validate
+  if (!this.triggers.hasOwnProperty(trigger$1)) {
+    console.error(("Unexpected listener event " + trigger$1));
+    return;
+  }
+  var triggers = this.triggers[trigger$1];
+  for (var ii = 0; ii < triggers.length; ++ii) {
+    triggers[ii].callback(event);
+  }
+};
+
 function evalUnaryExpression(op, ctx, a) {
   switch (op) {
     case OP["+"]:      return +a;
@@ -11335,84 +11371,68 @@ function evalObjectAssignmentExpression(op, obj, prop, value) {
 
 // #IF
 function DEBUG_IF_TEST(hash, value) {
-
+  var event = this.createEvent(INSTR.IF_TEST);
+  event.hash = hash;
+  event.value = value;
+  console.log(event);
+  event.trigger("test");
   return value;
 }
 function DEBUG_IF_ENTER(hash, value) {
   console.log(indentString(this.indent) + "if");
-  var instr = this.frame.pushInstruction(INSTR.IF_ENTER);
-  instr.values = [value];
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.IF_ENTER, hash);
   frame.values = [hash, value];
-  instr.subFrame = this.frame;
 }
 function DEBUG_IF_LEAVE(hash) {
   var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + "if end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.IF_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 // #ELSE
 function DEBUG_ELSE_ENTER(hash) {
   console.log(indentString(this.indent) + "else");
-  var instr = this.frame.pushInstruction(INSTR.ELSE_ENTER);
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.ELSE_ENTER, hash);
   frame.values = [hash];
-  instr.subFrame = this.frame;
 }
 function DEBUG_ELSE_LEAVE(hash) {
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + "else end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.ELSE_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 // #LOOPS
 function DEBUG_LOOP_TEST(hash, value) {
-
   return value;
 }
 function DEBUG_LOOP_ENTER(hash) {
   console.log(indentString(this.indent) + "loop", hash);
-  var instr = this.frame.pushInstruction(INSTR.LOOP_ENTER);
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.LOOP_ENTER, hash);
   frame.values = [hash, 1];
-  instr.subFrame = this.frame;
 }
 function DEBUG_LOOP_LEAVE(hash, entered) {
   // loop never entered, so dont leave it
   if (entered === 0) { return; }
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + "loop end", hash);
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.LOOP_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 // #FLOW
 function DEBUG_BREAK(label, ctx) {
   console.log(indentString(this.indent) + "break", label ? label : "");
-  this.frame.pushInstruction(INSTR.BREAK);
   var expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-
   return true;
 }
 function DEBUG_CONTINUE(label, ctx) {
   console.log(indentString(this.indent) + "continue", label ? label : "");
-  this.frame.pushInstruction(INSTR.CONTINUE);
   var expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-
   return true;
 }
 
@@ -11422,19 +11442,14 @@ function DEBUG_SWITCH_TEST(value) {
 }
 function DEBUG_SWITCH_ENTER(hash) {
   console.log(indentString(this.indent) + "switch");
-  var instr = this.frame.pushInstruction(INSTR.SWITCH_ENTER);
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.SWITCH_ENTER, hash);
   frame.values = [hash];
-  instr.subFrame = this.frame;
 }
 function DEBUG_SWITCH_LEAVE(hash) {
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + "switch end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.SWITCH_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 // #CASE
@@ -11444,22 +11459,16 @@ function DEBUG_CASE_TEST(value) {
 function DEBUG_CASE_ENTER(hash, dflt) {
   var isDefault = dflt === null;
   console.log(indentString(this.indent) + (isDefault ? "default" : "case"));
-  var instr = this.frame.pushInstruction(INSTR.CASE_ENTER);
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.CASE_ENTER, hash);
   frame.values = [hash, dflt];
   this.frame.isSwitchDefault = isDefault;
-  instr.subFrame = this.frame;
-
 }
 function DEBUG_CASE_LEAVE() {
   var isDefault = this.resolveCaseFrame(this.frame).isSwitchDefault;
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + (isDefault ? "default" : "case") + " end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.CASE_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 // #FUNCTIONS
@@ -11590,8 +11599,6 @@ function DEBUG_VAR_DECLARE(name) {
   return name;
 }
 function DEBUG_VAR_INIT(name, value) {
-  //let instr = this.frame.pushInstruction(INSTR.VAR_DECLARE);
-  //instr.values = [name, value];
   //console.log(indentString(this.indent) + "⏩ Initialise " + name + "::" + value);
 
   return value;
@@ -11620,7 +11627,6 @@ function DEBUG_OP_NEW_END(hash, self, ret) {
 function DEBUG_SUPER(cls, args) {
   return args;
 }
-
 // method enter not available before super
 // super_fix is injected after super
 function DEBUG_SUPER_FIX(ctx) {
@@ -11634,19 +11640,14 @@ function DEBUG_METHOD_ENTER(hash, cls, isConstructor, args) {
   } else {
     console.log(indentString(this.indent) + "method");
   }
-  var instr = this.frame.pushInstruction(INSTR.METHOD_ENTER);
   this.indent += INDENT_FACTOR;
   var frame = this.pushFrame(INSTR.METHOD_ENTER, hash);
   frame.values = [hash, cls, isConstructor, args];
-  instr.subFrame = this.frame;
 }
 function DEBUG_METHOD_LEAVE(hash, cls, isConstructor) {
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + (isConstructor ? "ctor" : "method") + " end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.METHOD_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 function DEBUG_TRY_ENTER(hash) {
@@ -11656,7 +11657,6 @@ function DEBUG_TRY_ENTER(hash) {
   frame.values = [hash];
 }
 function DEBUG_TRY_LEAVE(hash) {
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   // fix up missing left frames until try_leave
   // e.g. a call inside try, but never finished because it failed
@@ -11666,8 +11666,6 @@ function DEBUG_TRY_LEAVE(hash) {
   }
   console.log(indentString(this.indent) + "try end");
   this.popFrame();
-  var instr = this.frame.pushInstruction(INSTR.TRY_LEAVE);
-  instr.subFrame = topFrame;
 }
 
 function DEBUG_ALLOC(value) {
@@ -11691,8 +11689,6 @@ function DEBUG_BLOCK_LEAVE(hash) {
 }
 
 function DEBUG_THIS(ctx) {
-  this.frame.pushInstruction(INSTR.THIS);
-
   return ctx;
 }
 
@@ -11835,7 +11831,9 @@ var Stage = function Stage(input) {
   this.$$frameHash = 0;
   this.currentScope = null;
   this.previousScope = null;
+  this.listeners = {};
   this.generateLinks();
+  this.generateListeners();
   this.script = this.patch(input);
 };
 
@@ -11843,10 +11841,44 @@ var Stage = function Stage(input) {
 
 extend(Stage, _debug);
 
-Stage.prototype.addListener = function() {
-  return {
-    on: function() { }
-  };
+Stage.prototype.triggerListeners = function(type, event, trigger) {
+  // invalid listener
+  if (!this.listeners.hasOwnProperty(type)) {
+    console.error(("Unexpected listener trigger " + type));
+    return;
+  }
+  var listeners = this.listeners[type];
+  console.log(listeners);
+  // no listeners are attached
+  if (listeners.length <= 0) { return; }
+  for (var ii = 0; ii < listeners.length; ++ii) {
+    var listener = listeners[ii];
+    listener.trigger(event, trigger);
+  }
+};
+
+Stage.prototype.createEvent = function(type) {
+  var event = new RuntimeEvent(type, this);
+  return event;
+};
+
+Stage.prototype.addListener = function(type) {
+  // validate
+  if (!this.listeners.hasOwnProperty(type)) {
+    console.error(("Unexpected runtime listener type " + type));
+    return null;
+  }
+  var listener = new RuntimeListener(type);
+  this.listeners[type].push(listener);
+  return listener;
+};
+
+Stage.prototype.generateListeners = function() {
+  var this$1 = this;
+
+  for (var key in INSTR) {
+    this$1.listeners[key] = [];
+  }
 };
 
 Stage.prototype.generateLinks = function() {

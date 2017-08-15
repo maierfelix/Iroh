@@ -21,106 +21,180 @@ import {
 
 // #IF
 export function DEBUG_IF_TEST(hash, value) {
-
-  return value;
+  // API
+  let event = this.createEvent(INSTR.IF_TEST);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 };
 export function DEBUG_IF_ENTER(hash, value) {
   console.log(indentString(this.indent) + "if");
-  let instr = this.frame.pushInstruction(INSTR.IF_ENTER);
-  instr.values = [value];
-  this.indent += INDENT_FACTOR;
+  // FRAME
   let frame = this.pushFrame(INSTR.IF_ENTER, hash);
   frame.values = [hash, value];
-  instr.subFrame = this.frame;
+  // FRAME END
+  // API
+  let event = this.createEvent(INSTR.IF_ENTER);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  this.indent += INDENT_FACTOR;
 };
 export function DEBUG_IF_LEAVE(hash) {
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
+  // API
+  let event = this.createEvent(INSTR.IF_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
   console.log(indentString(this.indent) + "if end");
+  // FRAME
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.IF_LEAVE);
-  instr.subFrame = topFrame;
+  // FRAME END
 };
 
 // #ELSE
 export function DEBUG_ELSE_ENTER(hash) {
+  // API
+  let event = this.createEvent(INSTR.ELSE_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
   console.log(indentString(this.indent) + "else");
-  let instr = this.frame.pushInstruction(INSTR.ELSE_ENTER);
-  this.indent += INDENT_FACTOR;
+  // FRAME
   let frame = this.pushFrame(INSTR.ELSE_ENTER, hash);
   frame.values = [hash];
-  instr.subFrame = this.frame;
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 };
 export function DEBUG_ELSE_LEAVE(hash) {
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
+  // API
+  let event = this.createEvent(INSTR.ELSE_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
   console.log(indentString(this.indent) + "else end");
+  // FRAME
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.ELSE_LEAVE);
-  instr.subFrame = topFrame;
+  // FRAME END
 };
 
 // #LOOPS
 export function DEBUG_LOOP_TEST(hash, value) {
-
-  return value;
+  // API
+  let event = this.createEvent(INSTR.LOOP_TEST);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 };
 export function DEBUG_LOOP_ENTER(hash) {
+  // API
+  let event = this.createEvent(INSTR.LOOP_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
   console.log(indentString(this.indent) + "loop", hash);
-  let instr = this.frame.pushInstruction(INSTR.LOOP_ENTER);
-  this.indent += INDENT_FACTOR;
+  // FRAME
   let frame = this.pushFrame(INSTR.LOOP_ENTER, hash);
   frame.values = [hash, 1];
-  instr.subFrame = this.frame;
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 };
 export function DEBUG_LOOP_LEAVE(hash, entered) {
   // loop never entered, so dont leave it
   if (entered === 0) return;
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
+  // API
+  let event = this.createEvent(INSTR.LOOP_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
   console.log(indentString(this.indent) + "loop end", hash);
+  // FRAME
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.LOOP_LEAVE);
-  instr.subFrame = topFrame;
+  // FRAME END
 };
 
 // #FLOW
 export function DEBUG_BREAK(label, ctx) {
+  // API
+  let event = this.createEvent(INSTR.BREAK);
+  event.value = true;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
   console.log(indentString(this.indent) + "break", label ? label : "");
-  this.frame.pushInstruction(INSTR.BREAK);
+  // FRAME
   let expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-
-  return true;
+  // FRAME END
+  return event.value;
 };
 export function DEBUG_CONTINUE(label, ctx) {
+  // API
+  let event = this.createEvent(INSTR.CONTINUE);
+  event.value = true;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
   console.log(indentString(this.indent) + "continue", label ? label : "");
-  this.frame.pushInstruction(INSTR.CONTINUE);
+  // FRAME
   let expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-
-  return true;
+  // FRAME END
+  return event.value;
 };
 
 // # SWITCH
 export function DEBUG_SWITCH_TEST(value) {
-  return value;
+  // API
+  let event = this.createEvent(INSTR.SWITCH_TEST);
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 };
 export function DEBUG_SWITCH_ENTER(hash) {
+  // API
+  let event = this.createEvent(INSTR.SWITCH_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
   console.log(indentString(this.indent) + "switch");
-  let instr = this.frame.pushInstruction(INSTR.SWITCH_ENTER);
-  this.indent += INDENT_FACTOR;
+  // FRAME
   let frame = this.pushFrame(INSTR.SWITCH_ENTER, hash);
   frame.values = [hash];
-  instr.subFrame = this.frame;
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 };
 export function DEBUG_SWITCH_LEAVE(hash) {
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
+  // API
+  let event = this.createEvent(INSTR.SWITCH_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
   console.log(indentString(this.indent) + "switch end");
+  // FRAME
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.SWITCH_LEAVE);
-  instr.subFrame = topFrame;
+  // FRAME END
 };
 
 // #CASE
@@ -130,22 +204,16 @@ export function DEBUG_CASE_TEST(value) {
 export function DEBUG_CASE_ENTER(hash, dflt) {
   let isDefault = dflt === null;
   console.log(indentString(this.indent) + (isDefault ? "default" : "case"));
-  let instr = this.frame.pushInstruction(INSTR.CASE_ENTER);
   this.indent += INDENT_FACTOR;
   let frame = this.pushFrame(INSTR.CASE_ENTER, hash);
   frame.values = [hash, dflt];
   this.frame.isSwitchDefault = isDefault;
-  instr.subFrame = this.frame;
-
 };
 export function DEBUG_CASE_LEAVE() {
   let isDefault = this.resolveCaseFrame(this.frame).isSwitchDefault;
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + (isDefault ? "default" : "case") + " end");
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.CASE_LEAVE);
-  instr.subFrame = topFrame;
 };
 
 // #FUNCTIONS
@@ -276,8 +344,6 @@ export function DEBUG_VAR_DECLARE(name) {
   return name;
 };
 export function DEBUG_VAR_INIT(name, value) {
-  //let instr = this.frame.pushInstruction(INSTR.VAR_DECLARE);
-  //instr.values = [name, value];
   //console.log(indentString(this.indent) + "⏩ Initialise " + name + "::" + value);
 
   return value;
@@ -306,7 +372,6 @@ export function DEBUG_OP_NEW_END(hash, self, ret) {
 export function DEBUG_SUPER(cls, args) {
   return args;
 };
-
 // method enter not available before super
 // super_fix is injected after super
 export function DEBUG_SUPER_FIX(ctx) {
@@ -320,19 +385,14 @@ export function DEBUG_METHOD_ENTER(hash, cls, isConstructor, args) {
   } else {
     console.log(indentString(this.indent) + "method");
   }
-  let instr = this.frame.pushInstruction(INSTR.METHOD_ENTER);
   this.indent += INDENT_FACTOR;
   let frame = this.pushFrame(INSTR.METHOD_ENTER, hash);
   frame.values = [hash, cls, isConstructor, args];
-  instr.subFrame = this.frame;
 };
 export function DEBUG_METHOD_LEAVE(hash, cls, isConstructor) {
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + (isConstructor ? "ctor" : "method") + " end");
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.METHOD_LEAVE);
-  instr.subFrame = topFrame;
 };
 
 export function DEBUG_TRY_ENTER(hash) {
@@ -342,7 +402,6 @@ export function DEBUG_TRY_ENTER(hash) {
   frame.values = [hash];
 };
 export function DEBUG_TRY_LEAVE(hash) {
-  let topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
   // fix up missing left frames until try_leave
   // e.g. a call inside try, but never finished because it failed
@@ -352,8 +411,6 @@ export function DEBUG_TRY_LEAVE(hash) {
   }
   console.log(indentString(this.indent) + "try end");
   this.popFrame();
-  let instr = this.frame.pushInstruction(INSTR.TRY_LEAVE);
-  instr.subFrame = topFrame;
 };
 
 export function DEBUG_ALLOC(value) {
@@ -377,8 +434,6 @@ export function DEBUG_BLOCK_LEAVE(hash) {
 };
 
 export function DEBUG_THIS(ctx) {
-  this.frame.pushInstruction(INSTR.THIS);
-
   return ctx;
 };
 

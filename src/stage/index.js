@@ -18,6 +18,9 @@ import {
 import Frame from "../frame";
 import Patcher from "../patcher/index";
 
+import RuntimeEvent from "./event";
+import RuntimeListener from "./listener";
+
 import * as _debug from "./debug";
 
 export default class Stage {
@@ -37,16 +40,50 @@ export default class Stage {
     this.$$frameHash = 0;
     this.currentScope = null;
     this.previousScope = null;
+    this.listeners = {};
     this.generateLinks();
+    this.generateListeners();
     this.script = this.patch(input);
   }
 };
 
 extend(Stage, _debug);
 
-Stage.prototype.addListener = function() {
-  return {
-    on: function() { }
+Stage.prototype.triggerListeners = function(type, event, trigger) {
+  // invalid listener
+  if (!this.listeners.hasOwnProperty(type)) {
+    console.error(`Unexpected listener trigger ${type}`);
+    return;
+  };
+  let listeners = this.listeners[type];
+  console.log(listeners);
+  // no listeners are attached
+  if (listeners.length <= 0) return;
+  for (let ii = 0; ii < listeners.length; ++ii) {
+    let listener = listeners[ii];
+    listener.trigger(event, trigger);
+  };
+};
+
+Stage.prototype.createEvent = function(type) {
+  let event = new RuntimeEvent(type, this);
+  return event;
+};
+
+Stage.prototype.addListener = function(type) {
+  // validate
+  if (!this.listeners.hasOwnProperty(type)) {
+    console.error(`Unexpected runtime listener type ${type}`);
+    return null;
+  }
+  let listener = new RuntimeListener(type);
+  this.listeners[type].push(listener);
+  return listener;
+};
+
+Stage.prototype.generateListeners = function() {
+  for (let key in INSTR) {
+    this.listeners[key] = [];
   };
 };
 

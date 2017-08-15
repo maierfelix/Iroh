@@ -12,8 +12,6 @@ import {
   isInstantiationFrameType
 } from "./helpers";
 
-import Instruction from "./instruction";
-
 export default class Frame {
   constructor(type, hash) {
     this.uid = uid();
@@ -36,11 +34,6 @@ export default class Frame {
     this.isContinuable = isContinuableFrameType(type);
     this.isTryStatement = isTryStatementFrameType(type);
     this.isInstantiation = isInstantiationFrameType(type);
-  }
-  pushInstruction(type) {
-    let instr = new Instruction(type);
-    this.children.push(instr);
-    return instr;
   }
   isGlobal() {
     return (
