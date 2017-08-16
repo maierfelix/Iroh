@@ -1,6 +1,6 @@
 import extend from "../extend";
 
-import { INSTR } from "../labels";
+import { INSTR, CATEGORY } from "../labels";
 import {
   DEBUG_KEY,
   CLEAN_DEBUG_INJECTION
@@ -12,7 +12,8 @@ import {
   generate,
   isReturnableFrameType,
   isValidFrameInstruction,
-  isInstantiationFrameType
+  isInstantiationFrameType,
+  getCategoryFromInstruction
 } from "../helpers";
 
 import Frame from "../frame";
@@ -49,14 +50,15 @@ export default class Stage {
 
 extend(Stage, _debug);
 
-Stage.prototype.triggerListeners = function(type, event, trigger) {
+Stage.prototype.triggerListeners = function(event, trigger) {
+  let type = event.type;
+  let category = event.category;
   // invalid listener
-  if (!this.listeners.hasOwnProperty(type)) {
-    console.error(`Unexpected listener trigger ${type}`);
+  if (!this.listeners.hasOwnProperty(category)) {
+    console.error(`Unexpected trigger category ${category}`);
     return;
   };
-  let listeners = this.listeners[type];
-  console.log(listeners);
+  let listeners = this.listeners[category];
   // no listeners are attached
   if (listeners.length <= 0) return;
   for (let ii = 0; ii < listeners.length; ++ii) {
@@ -70,20 +72,21 @@ Stage.prototype.createEvent = function(type) {
   return event;
 };
 
-Stage.prototype.addListener = function(type) {
+Stage.prototype.addListener = function(category) {
   // validate
-  if (!this.listeners.hasOwnProperty(type)) {
-    console.error(`Unexpected runtime listener type ${type}`);
+  if (!this.listeners.hasOwnProperty(category)) {
+    console.error(`Unexpected listener category`);
     return null;
   }
-  let listener = new RuntimeListener(type);
-  this.listeners[type].push(listener);
+  let listener = new RuntimeListener(category);
+  this.listeners[category].push(listener);
   return listener;
 };
 
 Stage.prototype.generateListeners = function() {
-  for (let key in INSTR) {
-    this.listeners[key] = [];
+  for (let key in CATEGORY) {
+    let bit = CATEGORY[key];
+    this.listeners[bit] = [];
   };
 };
 
@@ -107,9 +110,11 @@ Stage.prototype.generateLinks = function() {
 };
 
 Stage.prototype.getLink = function(name) {
-  if (CLEAN_DEBUG_INJECTION) name = "$" + name;
+  name = "$" + name;
+  if (CLEAN_DEBUG_INJECTION) {
+    return `${this.key}.${name}`;
+  }
   let key = this.links[name].key;
-  if (CLEAN_DEBUG_INJECTION) return `${this.key}.${name}`;
   return `${this.key}.${key}`;
 };
 
@@ -125,17 +130,18 @@ Stage.prototype.getFunctionNodeByName = function(name) {
 
 Stage.prototype.getInverseInstruction = function(frame) {
   let type = frame.type;
+  let links = this.links;
   switch (type) {
-    case INSTR.FUNCTION_ENTER: return this.$DEBUG_FUNCTION_LEAVE;
-    case INSTR.IF_ENTER:       return this.$DEBUG_IF_LEAVE;
-    case INSTR.ELSE_ENTER:     return this.$DEBUG_ELSE_LEAVE;
-    case INSTR.LOOP_ENTER:     return this.$DEBUG_LOOP_LEAVE;
-    case INSTR.SWITCH_ENTER:   return this.$DEBUG_SWITCH_LEAVE;
-    case INSTR.CASE_ENTER:     return this.$DEBUG_CASE_LEAVE;
-    case INSTR.METHOD_ENTER:   return this.$DEBUG_METHOD_LEAVE;
-    case INSTR.OP_NEW:         return this.$DEBUG_OP_NEW_END;
-    case INSTR.TRY_ENTER:      return this.$DEBUG_TRY_LEAVE;
-    case INSTR.BLOCK_ENTER:    return this.$DEBUG_BLOCK_LEAVE;
+    case INSTR.FUNCTION_ENTER: return links.$DEBUG_FUNCTION_LEAVE.fn;
+    case INSTR.IF_ENTER:       return links.$DEBUG_IF_LEAVE.fn;
+    case INSTR.ELSE_ENTER:     return links.$DEBUG_ELSE_LEAVE.fn;
+    case INSTR.LOOP_ENTER:     return links.$DEBUG_LOOP_LEAVE.fn;
+    case INSTR.SWITCH_ENTER:   return links.$DEBUG_SWITCH_LEAVE.fn;
+    case INSTR.CASE_ENTER:     return links.$DEBUG_CASE_LEAVE.fn;
+    case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
+    case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
+    case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
       throw new Error(`Unexpected frame type ${frame.cleanType}`);
     break;

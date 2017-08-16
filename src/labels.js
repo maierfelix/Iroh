@@ -2,10 +2,10 @@ import { DEBUG_KEY } from "./cfg";
 
 export let OP = {};
 export let INSTR = {};
+export let CATEGORY = {};
 
-let ii = 0;
 (() => {
-
+  let ii = 0;
   INSTR.PROGRAM = ii++;
 
   INSTR.FUNCTION_RETURN = ii++;
@@ -76,7 +76,37 @@ let ii = 0;
 })();
 
 (() => {
+  let ii = 0;
+  CATEGORY.THIS = ii++;
+  CATEGORY.UNARY = ii++;
+  CATEGORY.BINARY = ii++;
+  CATEGORY.LOGICAL = ii++;
+  CATEGORY.TERNARY = ii++;
+  CATEGORY.ASSIGN = ii++;
+  CATEGORY.ALLOC = ii++;
+  CATEGORY.MEMBER = ii++;
+  CATEGORY.LITERAL = ii++;
+  CATEGORY.IDENTIFIER = ii++;
+  CATEGORY.TRY = ii++;
+  CATEGORY.OP_NEW = ii++;
+  CATEGORY.VAR = ii++;
+  CATEGORY.IF = ii++;
+  CATEGORY.ELSE = ii++;
+  CATEGORY.SWITCH = ii++;
+  CATEGORY.CASE = ii++;
+  CATEGORY.BREAK = ii++;
+  CATEGORY.CONTINUE = ii++;
+  CATEGORY.LOOP = ii++;
+  CATEGORY.CALL = ii++;
+  CATEGORY.FUNCTION = ii++;
+  CATEGORY.BLOCK = ii++;
+  CATEGORY.PROGRAM = ii++;
+  CATEGORY.METHOD = ii++;
+  CATEGORY.SUPER = ii++;
+})();
 
+(() => {
+  let ii = 0;  
   OP["="] = ii++;
   OP["+"] = ii++;
   OP["-"] = ii++;

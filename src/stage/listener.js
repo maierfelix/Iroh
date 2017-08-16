@@ -6,8 +6,8 @@ class RuntimeListenerEvent {
 };
 
 export default class RuntimeListener {
-  constructor(type) {
-    this.type = type;
+  constructor(category) {
+    this.category = category;
     this.triggers = {};
   }
   on(type, callback) {
@@ -17,13 +17,12 @@ export default class RuntimeListener {
       this.triggers[type] = [];
     }
     this.triggers[type].push(event);
+    // allow stream calls
+    return this;
   }
   trigger(event, trigger) {
-    // validate
-    if (!this.triggers.hasOwnProperty(trigger)) {
-      console.error(`Unexpected listener event ${trigger}`);
-      return;
-    }
+    // any triggers registered?
+    if (!this.triggers.hasOwnProperty(trigger)) return;
     let triggers = this.triggers[trigger];
     for (let ii = 0; ii < triggers.length; ++ii) {
       triggers[ii].callback(event);

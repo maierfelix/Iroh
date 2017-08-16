@@ -44,7 +44,7 @@ function draw() {
   let p7 = new Particle(position.x + 0.75, position.y);
   particles.push(p1, p2, p3, p4, p5, p6, p7);
 
-  while (particles.length > 800) {
+  while (particles.length > 275) {
     particles.shift();
   };
 

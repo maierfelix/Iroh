@@ -60,6 +60,13 @@ STAGE4.SwitchCase = function(node, patcher) {
   }
   node.magic = true;
 
+  let hash = uBranchHash();
+
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+
   let test = null;
   if (node.test) {
     let id = reserveTempVarId();
@@ -74,13 +81,20 @@ STAGE4.SwitchCase = function(node, patcher) {
       left: test,
       right: node.test
     };
+    node.test = {
+      magic: true,
+      type: "CallExpression",
+      callee: {
+        magic: true,
+        type: "Identifier",
+        name: patcher.instance.getLink("DEBUG_CASE_TEST")
+      },
+      arguments: [
+        parseExpression(hash),
+        node.test
+      ]
+    };
   }
-
-  let hash = uBranchHash();
-  patcher.nodes[hash] = {
-    hash: hash,
-    node: cloneNode(node)
-  };
 
   // default or case
   let type = (
@@ -94,8 +108,12 @@ STAGE4.SwitchCase = function(node, patcher) {
   start.expression.arguments.push(
     parseExpression(hash)
   );
-  // pass type
-  start.expression.arguments.push(type);
+  // pass case value
+  start.expression.arguments.push(test || parseExpression(null));
+  // trace default case
+  start.expression.arguments.push(
+    parseExpression(test === null)
+  );
   node.consequent.splice(0, 0, start);
 
   let end = parseExpressionStatement(

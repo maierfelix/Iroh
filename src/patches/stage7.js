@@ -90,20 +90,6 @@ STAGE7.BlockStatement = function(node, patcher) {
       continue;
     }
 
-    if (isSwitchStmt) {
-      let test = {
-        magic: true,
-        type: "CallExpression",
-        callee: {
-          magic: true,
-          type: "Identifier",
-          name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
-        },
-        arguments: [ child.discriminant ]
-      };
-      child.discriminant = test;
-    }
-
     if (isLoopStmt) {
       forceLoopBodyBlocked(child);
       console.assert(child.body.type === "BlockStatement");

@@ -56,31 +56,10 @@
   <section class="dark">
     <div class="container">
       <div class="row">
-        <div class="col-md-6">
-          <h3>Usage</h3>
-          <ul>
-            <li>Runtime call tree graphs</li>
-            <li>Runtime type checking</li>
-            <li>Runtime code quality</li>
-            <li>Runtime test cases</li>
-            <li>Intercept eval, setTimeout etc.</li>
-            <li>Intercept and manipulate code/data on the fly</li>
-            <li>Create realtime code visualizations</li>
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <h3>API Example</h3>
-
-          <script src="https://gist.github.com/maierfelix/77a0b7a630e430a440d8138fcc1aeb68.js"></script>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-      <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-2"></div>
         <div class="col-md-2 text-center">
-          <a href="#" class="button">Examples</a>
+          <a href="#" class="button">Demo</a>
         </div>
         <div class="col-md-2 text-center">
           <a href="https://github.com/maierfelix/Iroh" class="button"><i class="fa fa-github"></i> Github</a>
@@ -96,6 +75,21 @@
     <div class="container">
       <div class="row">
         <div class="col-md-6">
+
+          <h2>Usage</h2>
+          <ul>
+            <li>Runtime call tree graphs</li>
+            <li>Runtime type checking</li>
+            <li>Runtime code quality</li>
+            <li>Runtime test cases</li>
+            <li>Realtime code visualizations</li>
+            <li>Intercept eval, setTimeout etc.</li>
+            <li>Intercept and manipulate code/data on the fly</li>
+            <li>Visual learning</li>
+          </ul>
+
+          <div style="padding-bottom:1px;"></div>
+
           <h2>About Iroh</h2>
 
           <p>If you aren't familiar with the term <i>dynamic analysis</i>, then you can read about it <a href="#dynamic-analysis-wat">here</a>.</p>
@@ -104,7 +98,22 @@
           <ul>
             <li><p>Iroh patches your code to be able to record everything happening inside it, but without changing the original program. You can add listeners to the patched code stage and then track and manipulate <b>everything</b>.</p></li>
 
-            <li><p>Iroh keeps track of the call stack, which makes it possible to view the code's flow and visualize it within any kind of model.</p></li>
+            <li><p>Iroh also keeps track of the call stack, which makes it possible to view the code's flow and visualize it within any kind of model.</p></li>
+          </ul>
+
+          <h3>FYI</h3>
+          <ul>
+            <!--<li><p>Iroh's output is object based and <code><i>JSON</i></code> compatible.</p></li>-->
+
+            <li><p>Iroh supports <code><i>strict mode</i></code>.</p></li>
+
+            <li><p>Iroh intercepts all <code><i>Function.toString</i></code> calls by default and returns the original code. You could also intercept other ways like <code><i>String(ƒ)</i></code> or <code><i>ƒ + ""</i></code> on your own.</p></li>
+
+            <li><p>External (<i>non-trackable</i>) calls get detected and traced as <code><i><b>external</b></i></code>.</p></li>
+
+            <li><p>Patched functions which get called from outside (e.g. <code><i>setTimeout(ƒ)</i></code>) are traced as <code><i><b>sloppy</b></i></code>.</p></li>
+
+            <li><p>The API exposes listeners for most AST node types. For example you can intercept all <code><i>Calls</i></code> in your code and determine what happens before (<i>e.g. track it's arguments</i>) and after it's called (<i>e.g. change it's return value based on the called function's name</i>).</p></li>
           </ul>
 
           <h3>Limitations</h3>
@@ -114,27 +123,15 @@
 
           <h3>Goals</h3>
           <ul>
-            <li><p>The current main goal is to support the whole <code>ES5</code> syntax. A subset of ES6 features is already supported.</p></li>
-          </ul>
-
-          <h3>"Cool" features</h3>
-          <ul>
-            <li><p>Iroh's output is object based and <code><i>JSON</i></code> compatible.</p></li>
-
-            <li><p>Iroh supports <code><i>strict mode</i></code>.</p></li>
-
-            <li><p>Iroh intercepts all <code><i>Function.toString</i></code> calls by default and returns the original code. You could also intercept other ways like <code><i>String(ƒ)</i></code> or <code><i>ƒ + ""</i></code> on your own.</p></li>
-
-            <li><p>External (<i>non-trackable</i>) calls get detected and traced as <code><i>#external</i></code>.</p></li>
-
-            <li><p>Patched functions which get called from outside are traced as <code><i>#sloppy</i></code>, but the original call tree graph will remain - just their inner life isn't trackable.</p></li>
-
-            <li><p>The API exposes listeners for most AST node types. For example you can intercept all <code><i>Calls</i></code> in your code and determine what happens before (<i>e.g. track it's arguments</i>) and after it's called (<i>e.g. change it's return value based on the called function's name</i>).</p></li>
+            <li><p>The current main goal is to have full <code>ES5</code> support.
+              Iroh is already successfully tested with <code>jQuery</code>, <code>acorn</code> and <code>underscore</code>.
+              A subset of ES6 features is already supported.</p></li>
+            <li><p>Also <code>node.js</code> support is ongoing since we can intercept <code>require</code> calls.</p></li>
           </ul>
 
           <h3 id="dynamic-analysis-wat">What is dynamic code analysis?</h3>
           <ul>
-            <li><a href="https://en.wikipedia.org/wiki/Dynamic_program_analysis">Dynamic analysis</a> is in contrast to <a href="https://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a> (<i>e.g. used in <a>ESlint</a></i>). Dynamic analysis allows to collect runtime data and how the code behaves during execution. Static analysis allows to get information based on the source code, but without any runtime informations. With static analysis it's up to impossible to get a sense of how the program will <b>actually</b> behave.</li>
+            <li><a href="https://en.wikipedia.org/wiki/Dynamic_program_analysis">Dynamic analysis</a> is in contrast to <a href="https://en.wikipedia.org/wiki/Static_program_analysis">static analysis</a> (<i>e.g. used in JavaScript linters</i>). Dynamic analysis allows to collect runtime data and how the code behaves during execution. Static analysis allows to get information based on the source code, but without any runtime informations. With static analysis it's up to impossible to get a sense of how the program will <b>actually</b> behave.</li>
             <br/>
             <li><p>For example, Iroh allows you to track, intercept and manipulate all data in your code during execution. You can collect and change <code>types</code>, <code>parameters</code>, <code>return values</code>, <code>allocated objects</code>, <code>variables</code>, <code>expressions</code>, <code>function calls</code> and so on. </p></li>
           </ul>
@@ -164,6 +161,11 @@
   </section>
   <footer>
     <p class="text-center"><small>Come on, you’ve got to feel the flow. - <i><a class="sm-link" href="https://en.wikipedia.org/wiki/Iroh">Iroh</a></i></small></p>
+    <!--
+    <p class="text-center">
+      <a class="sm-link" href="https://www.patreon.com/maierfelix">Donate</a> this project
+    </p>
+    -->
     <p class="text-center"><small>Iroh is MIT licensed, open source and free to use.</small></p>
   </footer>
 

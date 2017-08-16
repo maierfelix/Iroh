@@ -54,6 +54,23 @@ STAGE3.BlockStatement = function(node, patcher) {
       body.splice(ii, 0, start);
       ii++;
     }
+    // switch test
+    if (isSwitchStmt) {
+      let test = {
+        magic: true,
+        type: "CallExpression",
+        callee: {
+          magic: true,
+          type: "Identifier",
+          name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
+        },
+        arguments: [
+          parseExpression(hash),
+          child.discriminant
+        ]
+      };
+      child.discriminant = test;
+    }
     patcher.walk(child, patcher, patcher.stage);
     // #LEAVE
     if (isHashBranch) {

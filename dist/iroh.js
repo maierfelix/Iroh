@@ -9116,7 +9116,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 }.call(this, this));
 
       (function() {
-        $$VERSION = "0.1.4";
+        $$VERSION = "0.1.8";
         $$HOMEPAGE = "http://maierfelix.github.io/Iroh/";
         'use strict';
 
@@ -9145,17 +9145,17 @@ var DEBUG_KEY = "$";
 var TEMP_VAR_BASE = "Iroh$$x";
 
 // clean or minimal debug command related output
-var CLEAN_DEBUG_INJECTION = true;
+var CLEAN_DEBUG_INJECTION = false;
 
 // auto intercept Function.toString
 var ORIGINAL_FUNCTION_TOSTRING = true;
 
 var OP = {};
 var INSTR = {};
+var CATEGORY = {};
 
-var ii = 0;
 (function () {
-
+  var ii = 0;
   INSTR.PROGRAM = ii++;
 
   INSTR.FUNCTION_RETURN = ii++;
@@ -9226,7 +9226,37 @@ var ii = 0;
 })();
 
 (function () {
+  var ii = 0;
+  CATEGORY.THIS = ii++;
+  CATEGORY.UNARY = ii++;
+  CATEGORY.BINARY = ii++;
+  CATEGORY.LOGICAL = ii++;
+  CATEGORY.TERNARY = ii++;
+  CATEGORY.ASSIGN = ii++;
+  CATEGORY.ALLOC = ii++;
+  CATEGORY.MEMBER = ii++;
+  CATEGORY.LITERAL = ii++;
+  CATEGORY.IDENTIFIER = ii++;
+  CATEGORY.TRY = ii++;
+  CATEGORY.OP_NEW = ii++;
+  CATEGORY.VAR = ii++;
+  CATEGORY.IF = ii++;
+  CATEGORY.ELSE = ii++;
+  CATEGORY.SWITCH = ii++;
+  CATEGORY.CASE = ii++;
+  CATEGORY.BREAK = ii++;
+  CATEGORY.CONTINUE = ii++;
+  CATEGORY.LOOP = ii++;
+  CATEGORY.CALL = ii++;
+  CATEGORY.FUNCTION = ii++;
+  CATEGORY.BLOCK = ii++;
+  CATEGORY.PROGRAM = ii++;
+  CATEGORY.METHOD = ii++;
+  CATEGORY.SUPER = ii++;
+})();
 
+(function () {
+  var ii = 0;  
   OP["="] = ii++;
   OP["+"] = ii++;
   OP["-"] = ii++;
@@ -9493,13 +9523,7 @@ function processLabels(node) {
   return node;
 }
 
-function processArguments(args) {
-  var values = [];
-  for (var ii = 0; ii < args.length; ++ii) {
-    values.push(args[ii]);
-  }
-  return values;
-}
+
 
 function getCallee(callee, call) {
   if (call === null) {
@@ -9509,11 +9533,7 @@ function getCallee(callee, call) {
 }
 
 function indentString(n) {
-  var str = "";
-  for (var ii = 0; ii < n; ++ii) {
-    str += " ";
-  }
-  return str;
+  return " ".repeat(n);
 }
 
 function cloneNode(node) {
@@ -9548,6 +9568,85 @@ function parseExpressionStatement(input) {
   var result = node.body[0];
   deepMagicPatch(result);
   return result;
+}
+
+function getCategoryFromInstruction(type) {
+  type = type | 0;
+  switch (type) {
+    case INSTR.THIS:
+      return CATEGORY.THIS | 0;
+    case INSTR.UNARY:
+      return CATEGORY.UNARY | 0;
+    case INSTR.BINARY:
+      return CATEGORY.BINARY | 0;
+    case INSTR.LOGICAL:
+      return CATEGORY.LOGICAL | 0;
+    case INSTR.TERNARY:
+      return CATEGORY.TERNARY | 0;
+    case INSTR.ASSIGN:
+      return CATEGORY.ASSIGN | 0;
+    case INSTR.ALLOC:
+      return CATEGORY.ALLOC | 0;
+    case INSTR.MEMBER_EXPR:
+      return CATEGORY.MEMBER | 0;
+    case INSTR.LITERAL:
+      return CATEGORY.LITERAL | 0;
+    case INSTR.IDENTIFIER:
+      return CATEGORY.IDENTIFIER | 0;
+    case INSTR.TRY_ENTER:
+    case INSTR.TRY_LEAVE:
+      return CATEGORY.TRY | 0;
+    case INSTR.OP_NEW:
+    case INSTR.OP_NEW_END:
+      return CATEGORY.OP_NEW | 0;
+    case INSTR.VAR_INIT:
+    case INSTR.VAR_DECLARE:
+      return CATEGORY.VAR | 0;
+    case INSTR.IF_TEST:
+    case INSTR.IF_ENTER:
+    case INSTR.IF_LEAVE:
+      return CATEGORY.IF | 0;
+    case INSTR.ELSE_ENTER:
+    case INSTR.ELSE_LEAVE:
+      return CATEGORY.ELSE | 0;
+    case INSTR.SWITCH_TEST:
+    case INSTR.SWITCH_ENTER:
+    case INSTR.SWITCH_LEAVE:
+      return CATEGORY.SWITCH | 0;
+    case INSTR.CASE_TEST:
+    case INSTR.CASE_ENTER:
+    case INSTR.CASE_LEAVE:
+      return CATEGORY.CASE | 0;
+    case INSTR.BREAK:
+      return CATEGORY.BREAK | 0;
+    case INSTR.CONTINUE:
+      return CATEGORY.CONTINUE | 0;
+    case INSTR.LOOP_TEST:
+    case INSTR.LOOP_ENTER:
+    case INSTR.LOOP_LEAVE:
+      return CATEGORY.LOOP | 0;
+    case INSTR.FUNCTION_CALL:
+    case INSTR.FUNCTION_CALL_END:
+      return CATEGORY.CALL | 0;
+    case INSTR.FUNCTION_ENTER:
+    case INSTR.FUNCTION_LEAVE:
+    case INSTR.FUNCTION_RETURN:
+      return CATEGORY.FUNCTION | 0;
+    case INSTR.BLOCK_ENTER:
+    case INSTR.BLOCK_LEAVE:
+      return CATEGORY.BLOCK | 0;
+    case INSTR.PROGRAM:
+    case INSTR.PROGRAM_ENTER:
+    case INSTR.PROGRAM_LEAVE:
+    case INSTR.PROGRAM_FRAME_VALUE:
+      return CATEGORY.PROGRAM | 0;
+    case INSTR.METHOD_ENTER:
+    case INSTR.METHOD_LEAVE:
+      return CATEGORY.METHOD | 0;
+    case INSTR.SUPER:
+      return CATEGORY.SUPER | 0;
+  }
+  return -1;
 }
 
 function forceLoopBodyBlocked(node) {
@@ -10440,6 +10539,23 @@ STAGE3.BlockStatement = function(node, patcher) {
       body.splice(ii, 0, start);
       ii++;
     }
+    // switch test
+    if (isSwitchStmt) {
+      var test = {
+        magic: true,
+        type: "CallExpression",
+        callee: {
+          magic: true,
+          type: "Identifier",
+          name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
+        },
+        arguments: [
+          parseExpression(hash),
+          child.discriminant
+        ]
+      };
+      child.discriminant = test;
+    }
     patcher.walk(child, patcher, patcher.stage);
     // #LEAVE
     if (isHashBranch) {
@@ -10512,6 +10628,13 @@ STAGE4.SwitchCase = function(node, patcher) {
   }
   node.magic = true;
 
+  var hash = uBranchHash();
+
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+
   var test = null;
   if (node.test) {
     var id = reserveTempVarId();
@@ -10526,13 +10649,20 @@ STAGE4.SwitchCase = function(node, patcher) {
       left: test,
       right: node.test
     };
+    node.test = {
+      magic: true,
+      type: "CallExpression",
+      callee: {
+        magic: true,
+        type: "Identifier",
+        name: patcher.instance.getLink("DEBUG_CASE_TEST")
+      },
+      arguments: [
+        parseExpression(hash),
+        node.test
+      ]
+    };
   }
-
-  var hash = uBranchHash();
-  patcher.nodes[hash] = {
-    hash: hash,
-    node: cloneNode(node)
-  };
 
   // default or case
   var type = (
@@ -10546,8 +10676,12 @@ STAGE4.SwitchCase = function(node, patcher) {
   start.expression.arguments.push(
     parseExpression(hash)
   );
-  // pass type
-  start.expression.arguments.push(type);
+  // pass case value
+  start.expression.arguments.push(test || parseExpression(null));
+  // trace default case
+  start.expression.arguments.push(
+    parseExpression(test === null)
+  );
   node.consequent.splice(0, 0, start);
 
   var end = parseExpressionStatement(
@@ -10863,20 +10997,6 @@ STAGE7.BlockStatement = function(node, patcher) {
       continue;
     }
 
-    if (isSwitchStmt) {
-      var test = {
-        magic: true,
-        type: "CallExpression",
-        callee: {
-          magic: true,
-          type: "Identifier",
-          name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
-        },
-        arguments: [ child.discriminant ]
-      };
-      child.discriminant = test;
-    }
-
     if (isLoopStmt) {
       forceLoopBodyBlocked(child);
       console.assert(child.body.type === "BlockStatement");
@@ -10885,7 +11005,7 @@ STAGE7.BlockStatement = function(node, patcher) {
       body.splice(ii, 0, patch);
       ii++;
 
-      var test$1 = {
+      var test = {
         magic: true,
         type: "CallExpression",
         callee: {
@@ -10903,7 +11023,7 @@ STAGE7.BlockStatement = function(node, patcher) {
           )
         ]
       };
-      child.test = test$1;
+      child.test = test;
 
       var start$1 = {
         magic: true,
@@ -11259,18 +11379,20 @@ Patcher.prototype.applyPatches = function(ast) {
 
 var RuntimeEvent = function RuntimeEvent(type, instance) {
   this.type = type;
+  this.category = getCategoryFromInstruction(type);
   // base properties
   this.hash = -1;
   this.indent = -1;
+  this.node = null;
   this.location = null;
   this.instance = instance;
   // TODO
   // turn all events into seperate classes
-  // so we can save a lot garbage
+  // so we can save a lot memory
 };
 RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
   // trigger all attached listeners
-  this.instance.triggerListeners(this.type, this, trigger$1);
+  this.instance.triggerListeners(this, trigger$1);
 };
 
 var RuntimeListenerEvent = function RuntimeListenerEvent(type, callback) {
@@ -11278,8 +11400,8 @@ var RuntimeListenerEvent = function RuntimeListenerEvent(type, callback) {
   this.callback = callback;
 };
 
-var RuntimeListener = function RuntimeListener(type) {
-  this.type = type;
+var RuntimeListener = function RuntimeListener(category) {
+  this.category = category;
   this.triggers = {};
 };
 RuntimeListener.prototype.on = function on (type, callback) {
@@ -11289,13 +11411,12 @@ RuntimeListener.prototype.on = function on (type, callback) {
     this.triggers[type] = [];
   }
   this.triggers[type].push(event);
+  // allow stream calls
+  return this;
 };
 RuntimeListener.prototype.trigger = function trigger (event, trigger$1) {
-  // validate
-  if (!this.triggers.hasOwnProperty(trigger$1)) {
-    console.error(("Unexpected listener event " + trigger$1));
-    return;
-  }
+  // any triggers registered?
+  if (!this.triggers.hasOwnProperty(trigger$1)) { return; }
   var triggers = this.triggers[trigger$1];
   for (var ii = 0; ii < triggers.length; ++ii) {
     triggers[ii].callback(event);
@@ -11371,107 +11492,230 @@ function evalObjectAssignmentExpression(op, obj, prop, value) {
 
 // #IF
 function DEBUG_IF_TEST(hash, value) {
+  // API
   var event = this.createEvent(INSTR.IF_TEST);
   event.hash = hash;
   event.value = value;
-  console.log(event);
+  event.indent = this.indent;
   event.trigger("test");
-  return value;
+  // API END
+  return event.value;
 }
 function DEBUG_IF_ENTER(hash, value) {
-  console.log(indentString(this.indent) + "if");
-  this.indent += INDENT_FACTOR;
+  //console.log(indentString(this.indent) + "if");
+  // FRAME
   var frame = this.pushFrame(INSTR.IF_ENTER, hash);
   frame.values = [hash, value];
+  // FRAME END
+  // API
+  var event = this.createEvent(INSTR.IF_ENTER);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  this.indent += INDENT_FACTOR;
 }
 function DEBUG_IF_LEAVE(hash) {
-  var topFrame = this.frame;
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + "if end");
+  // API
+  var event = this.createEvent(INSTR.IF_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+  //console.log(indentString(this.indent) + "if end");
+  // FRAME
   this.popFrame();
+  // FRAME END
 }
 
 // #ELSE
 function DEBUG_ELSE_ENTER(hash) {
-  console.log(indentString(this.indent) + "else");
-  this.indent += INDENT_FACTOR;
+  // API
+  var event = this.createEvent(INSTR.ELSE_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  //console.log(indentString(this.indent) + "else");
+  // FRAME
   var frame = this.pushFrame(INSTR.ELSE_ENTER, hash);
   frame.values = [hash];
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 }
 function DEBUG_ELSE_LEAVE(hash) {
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + "else end");
+  // API
+  var event = this.createEvent(INSTR.ELSE_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+  //console.log(indentString(this.indent) + "else end");
+  // FRAME
   this.popFrame();
+  // FRAME END
 }
 
 // #LOOPS
 function DEBUG_LOOP_TEST(hash, value) {
-  return value;
+  // API
+  var event = this.createEvent(INSTR.LOOP_TEST);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 }
 function DEBUG_LOOP_ENTER(hash) {
-  console.log(indentString(this.indent) + "loop", hash);
-  this.indent += INDENT_FACTOR;
+  // API
+  var event = this.createEvent(INSTR.LOOP_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  //console.log(indentString(this.indent) + "loop", hash);
+  // FRAME
   var frame = this.pushFrame(INSTR.LOOP_ENTER, hash);
   frame.values = [hash, 1];
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 }
 function DEBUG_LOOP_LEAVE(hash, entered) {
   // loop never entered, so dont leave it
   if (entered === 0) { return; }
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + "loop end", hash);
+  // API
+  var event = this.createEvent(INSTR.LOOP_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+  //console.log(indentString(this.indent) + "loop end", hash);
+  // FRAME
   this.popFrame();
+  // FRAME END
 }
 
 // #FLOW
 function DEBUG_BREAK(label, ctx) {
-  console.log(indentString(this.indent) + "break", label ? label : "");
+  // API
+  var event = this.createEvent(INSTR.BREAK);
+  event.value = true;
+  event.label = label;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  //console.log(indentString(this.indent) + "break", label ? label : "");
+  // FRAME
   var expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-  return true;
+  // FRAME END
+  return event.value;
 }
 function DEBUG_CONTINUE(label, ctx) {
-  console.log(indentString(this.indent) + "continue", label ? label : "");
+  // API
+  var event = this.createEvent(INSTR.CONTINUE);
+  event.value = true;
+  event.label = label;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  //console.log(indentString(this.indent) + "continue", label ? label : "");
+  // FRAME
   var expect = this.resolveBreakFrame(this.frame, label);
   this.leaveFrameUntil(expect);
-  return true;
+  // FRAME END
+  return event.value;
 }
 
 // # SWITCH
-function DEBUG_SWITCH_TEST(value) {
-  return value;
+function DEBUG_SWITCH_TEST(hash, value) {
+  // API
+  var event = this.createEvent(INSTR.SWITCH_TEST);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 }
 function DEBUG_SWITCH_ENTER(hash) {
-  console.log(indentString(this.indent) + "switch");
-  this.indent += INDENT_FACTOR;
+  // API
+  var event = this.createEvent(INSTR.SWITCH_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  //console.log(indentString(this.indent) + "switch");
+  // FRAME
   var frame = this.pushFrame(INSTR.SWITCH_ENTER, hash);
   frame.values = [hash];
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 }
 function DEBUG_SWITCH_LEAVE(hash) {
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + "switch end");
+  // API
+  var event = this.createEvent(INSTR.SWITCH_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+  //console.log(indentString(this.indent) + "switch end");
+  // FRAME
   this.popFrame();
+  // FRAME END
 }
 
 // #CASE
-function DEBUG_CASE_TEST(value) {
-  return value;
+function DEBUG_CASE_TEST(hash, value) {
+  // API
+  var event = this.createEvent(INSTR.CASE_TEST);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("test");
+  // API END
+  return event.value;
 }
-function DEBUG_CASE_ENTER(hash, dflt) {
-  var isDefault = dflt === null;
-  console.log(indentString(this.indent) + (isDefault ? "default" : "case"));
-  this.indent += INDENT_FACTOR;
+function DEBUG_CASE_ENTER(hash, value, isDefault) {
+  // API
+  var event = this.createEvent(INSTR.CASE_ENTER);
+  event.hash = hash;
+  event.value = value;
+  event.default = isDefault;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+  //console.log(indentString(this.indent) + (isDefault ? "default" : "case"));
+  // FRAME
   var frame = this.pushFrame(INSTR.CASE_ENTER, hash);
-  frame.values = [hash, dflt];
+  frame.values = [hash, value, isDefault];
   this.frame.isSwitchDefault = isDefault;
+  // FRAME END
+  this.indent += INDENT_FACTOR;
 }
-function DEBUG_CASE_LEAVE() {
-  var isDefault = this.resolveCaseFrame(this.frame).isSwitchDefault;
+function DEBUG_CASE_LEAVE(hash) {
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + (isDefault ? "default" : "case") + " end");
+  var isDefault = this.resolveCaseFrame(this.frame).isSwitchDefault;
+  // API
+  var event = this.createEvent(INSTR.CASE_LEAVE);
+  event.hash = hash;
+  event.isDefault = isDefault;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+  //console.log(indentString(this.indent) + (isDefault ? "default" : "case") + " end");
+  // FRAME
   this.popFrame();
+  // FRAME END
 }
 
-// #FUNCTIONS
+// #CALL
 function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   var ctor = object.constructor.prototype;
   var callee = getCallee(object, call);
@@ -11497,28 +11741,44 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
 
   node.isSloppy = isSloppy;
 
-  this.indent += INDENT_FACTOR;
-  var frame = this.pushFrame(INSTR.FUNCTION_CALL, hash);
-  frame.values = [hash, ctx, object, call, args];
+  // API
+  var before = this.createEvent(INSTR.FUNCTION_CALL);
+  before.hash = hash;
+  before.context = ctx;
+  before.object = object;
+  before.callee = call;
+  before.name = callee;
+  before.arguments = args;
+  before.external = isSloppy;
+  before.indent = this.indent;
+  before.trigger("before");
+  // API END
 
-  if (isSloppy) {
+  // FRAME
+  var frame = this.pushFrame(INSTR.FUNCTION_CALL, hash);
+  frame.values = [hash, ctx, before.object, before.callee, before.arguments];
+  this.$$frameHash = Math.abs(hash);
+  // FRAME END
+
+  /*if (isSloppy) {
     console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "#external", "(", args, ")");
   } else {
     console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "(", args, ")");
-  }
+  }*/
 
-  this.$$frameHash = Math.abs(hash);
+  this.indent += INDENT_FACTOR; 
+
   // intercept function.toString calls
   // to remain code reification feature
   var fn = null;
   if (
     ORIGINAL_FUNCTION_TOSTRING &&
-    object instanceof Function &&
-    call === "toString" &&
+    before.object instanceof Function &&
+    before.callee === "toString" &&
     // native toString
-    object[call] === Function.toString &&
+    before.object[before.callee] === Function.toString &&
     // function is known and patched
-    (fn = this.getFunctionNodeByName(object.name)) !== null
+    (fn = this.getFunctionNodeByName(before.object.name)) !== null
   ) {
     // extract original code
     var code = this.input.substr(fn.start, fn.end - fn.start);
@@ -11527,10 +11787,10 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   // untested but could work in theory
   } else if (
     (Iroh.isNode) &&
-    (object === require ||
-    object[call] === require)
+    (before.object === require ||
+      before.object[before.callee] === require)
   ) {
-    var path = require.resolve(args[0]);
+    var path = require.resolve(before.arguments[0]);
     console.log(("Intercepting require for " + path));
     var code$1 = require("fs").readFileSync(path, "utf-8");
     var script = this.patch(code$1);
@@ -11538,7 +11798,7 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   } else {
     // evaluate function bully protected
     try {
-      value = root.apply(proto, args);
+      value = root.apply(proto, before.arguments);
     } catch (e) {
       console.error(e);
       // function knocked out :(
@@ -11546,18 +11806,37 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   }
 
   this.indent -= INDENT_FACTOR;
-  if (isSloppy) {
-    console.log(indentString(this.indent) + "call", callee, "end #external", "->", [value]);
+
+  // API
+  var after = this.createEvent(INSTR.FUNCTION_CALL_END);
+  after.hash = hash;
+  after.context = before.context;
+  after.object = before.object;
+  after.callee = before.callee;
+  after.name = callee;
+  after.arguments = before.arguments;
+  after.return = value;
+  after.external = isSloppy;
+  after.indent = this.indent;
+  after.trigger("after");
+  // API END
+
+  /*if (isSloppy) {
+    console.log(indentString(this.indent) + "call", after.callee, "end #external", "->", [after.return]);
   } else {
-    console.log(indentString(this.indent) + "call", callee, "end", "->", [value]);
-  }
+    console.log(indentString(this.indent) + "call", after.callee, "end", "->", [after.return]);
+  }*/
+
+  // FRAME
   this.popFrame();
-
   this.$$frameHash = previous;
+  // FRAME END
 
-  return value;
+  return after.return;
 }
-function DEBUG_FUNCTION_ENTER(hash, ctx, scope, argz) {
+
+// #FUNCTION
+function DEBUG_FUNCTION_ENTER(hash, ctx, scope, args) {
   this.previousScope = this.currentScope;
   this.currentScope = scope;
   // function sloppy since called with invalid call hash
@@ -11565,75 +11844,150 @@ function DEBUG_FUNCTION_ENTER(hash, ctx, scope, argz) {
     (this.$$frameHash <= 0) ||
     this.nodes[this.$$frameHash].node.isSloppy
   );
+
+  // API
+  var event = this.createEvent(INSTR.FUNCTION_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.scope = scope;
+  event.sloppy = isSloppy;
+  event.arguments = args;
+  event.name = this.nodes[hash].node.id.name;
+  event.trigger("enter");
+  // API END
+
   if (isSloppy) {
-    var name = this.nodes[hash].node.id.name;
-    var args = processArguments(argz);
-    console.log(indentString(this.indent) + "call", name, "#sloppy", "(", args, ")");
+    //console.log(indentString(this.indent) + "call", name, "#sloppy", "(", args, ")");
     this.indent += INDENT_FACTOR;
   }
 }
 function DEBUG_FUNCTION_LEAVE(hash, ctx) {
   this.currentScope = this.previousScope;
   var isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
+
+  // API
+  var event = this.createEvent(INSTR.FUNCTION_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent - (isSloppy ? INDENT_FACTOR : 0);
+  event.sloppy = isSloppy;
+  event.name = this.nodes[hash].node.id.name;
+  event.trigger("leave");
+  // API END
+
   if (isSloppy) {
-    var name = this.nodes[hash].node.id.name;
     this.indent -= INDENT_FACTOR;
-    console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [void 0]);
+    //console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [void 0]);
   }
 }
 function DEBUG_FUNCTION_RETURN(name, value) {
+  // FRAME
   var expect = this.resolveReturnFrame(this.frame);
   this.leaveFrameUntil(expect);
+  // FRAME END
   this.currentScope = this.previousScope;
   var isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
+
+  // API
+  var event = this.createEvent(INSTR.FUNCTION_RETURN);
+  event.name = name;
+  event.return = value;
+  event.indent = this.indent - (isSloppy ? INDENT_FACTOR : 0);
+  event.sloppy = isSloppy;
+  event.trigger("return");
+  // API END
+
   if (isSloppy) {
     this.indent -= INDENT_FACTOR;
-    console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [value]);
+    //console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [value]);
   }
-  return value;
+  return event.return;
 }
 
 // # DECLS
 function DEBUG_VAR_DECLARE(name) {
   //console.log(indentString(this.indent) + "▶️ Declare " + name);
+
+  // API
+  var event = this.createEvent(INSTR.VAR_DECLARE);
+  event.name = name;
+  event.indent = this.indent;
+  event.trigger("before");
+  // API END
+
   return name;
 }
 function DEBUG_VAR_INIT(name, value) {
   //console.log(indentString(this.indent) + "⏩ Initialise " + name + "::" + value);
 
-  return value;
+  // API
+  var event = this.createEvent(INSTR.VAR_INIT);
+  event.name = name;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("after");
+  // API END
+
+  return event.value;
 }
 
+// #NEW
 function DEBUG_OP_NEW(hash, ctor, args) {
-  var isClass = ctor.toString().substr(0, 5) === "class";
-  var name = ctor.constructor.name;
-  var methods = Object.getPrototypeOf(ctor);
-  var properties = Object.getOwnPropertyNames(ctor);
-  console.log(indentString(this.indent) + "new " + ctor.name);
-  this.indent += INDENT_FACTOR;
-  var frame = this.pushFrame(INSTR.OP_NEW, hash);
-  frame.values = [hash, ctor, args];
 
-  return new (Function.prototype.bind.apply( ctor, [ null ].concat( args) ));
+  // API
+  var event = this.createEvent(INSTR.OP_NEW);
+  event.hash = hash;
+  event.ctor = ctor;
+  event.name = ctor.name || ctor.constructor.name;
+  event.arguments = args;
+  event.indent = this.indent;
+  event.trigger("before");
+  // API END
+
+  //console.log(indentString(this.indent) + "new " + ctor.name);
+
+  this.indent += INDENT_FACTOR;
+
+  // FRAME
+  var frame = this.pushFrame(INSTR.OP_NEW, hash);
+  frame.values = [hash, event.ctor, event.arguments];
+  // FRAME END
+
+  return new (Function.prototype.bind.apply( event.ctor, [ null ].concat( event.arguments) ));
 }
 function DEBUG_OP_NEW_END(hash, self, ret) {
   self.indent -= INDENT_FACTOR;
-  self.popFrame();
-  console.log(indentString(self.indent) + "new end");
 
-  return ret;
+  // FRAME
+  self.popFrame();
+  // FRAME END
+
+  // API
+  var event = self.createEvent(INSTR.OP_NEW_END);
+  event.hash = hash;
+  event.return = ret;
+  event.indent = self.indent;
+  event.trigger("after");
+  // API END
+
+  //console.log(indentString(self.indent) + "new end");
+
+  return event.return;
 }
 
+// #SUPER
 function DEBUG_SUPER(cls, args) {
+  // API TODO
   return args;
 }
 // method enter not available before super
 // super_fix is injected after super
 function DEBUG_SUPER_FIX(ctx) {
-
+  // API TODO
 }
 
+// # CLASS METHOD
 function DEBUG_METHOD_ENTER(hash, cls, isConstructor, args) {
+  // API TODO
   if (isConstructor) {
     var tree = getInheritanceTree(cls);
     console.log(indentString(this.indent) + "ctor", tree.join("->"));
@@ -11645,38 +11999,79 @@ function DEBUG_METHOD_ENTER(hash, cls, isConstructor, args) {
   frame.values = [hash, cls, isConstructor, args];
 }
 function DEBUG_METHOD_LEAVE(hash, cls, isConstructor) {
+  // API TODO
   this.indent -= INDENT_FACTOR;
   console.log(indentString(this.indent) + (isConstructor ? "ctor" : "method") + " end");
   this.popFrame();
 }
 
+// #TRY
 function DEBUG_TRY_ENTER(hash) {
   console.log(indentString(this.indent) + "try");
+
+  // API
+  var event = this.createEvent(INSTR.TRY_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
   this.indent += INDENT_FACTOR;
+  // FRAME
   var frame = this.pushFrame(INSTR.TRY_ENTER, hash);
   frame.values = [hash];
+  // FRAME END
 }
 function DEBUG_TRY_LEAVE(hash) {
   this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.TRY_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  // FRAME
   // fix up missing left frames until try_leave
   // e.g. a call inside try, but never finished because it failed
   if (this.frame.type !== INSTR.TRY_ENTER) {
     var expect = this.resolveTryFrame(this.frame);
     this.leaveFrameUntil(expect);
   }
-  console.log(indentString(this.indent) + "try end");
   this.popFrame();
+  // FRAME END
+
+  //console.log(indentString(this.indent) + "try end");
 }
 
+// #ALLOC
 function DEBUG_ALLOC(value) {
-  //console.log(indentString(this.indent) + "#Allocated", array);
+  //console.log(indentString(this.indent) + "#Allocated", value);
 
-  return value;
+  // API
+  var event = this.createEvent(INSTR.ALLOC);
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+
+  return event.value;
 }
 
+// #MEMBER
 function DEBUG_MEMBER_EXPR(object, property) {
-  //console.log(indentString(this.indent), object, "[" + property + "]", "->", value);
-  return object;
+  //console.log(indentString(this.indent), object, "[" + property + "]");
+
+  // API
+  var event = this.createEvent(INSTR.MEMBER_EXPR);
+  event.object = object;
+  event.property = property;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+
+  return event.object;
 }
 
 // fix for lazy blocks
@@ -11688,31 +12083,60 @@ function DEBUG_BLOCK_LEAVE(hash) {
   this.popFrame();
 }
 
+// #THIS
 function DEBUG_THIS(ctx) {
-  return ctx;
+  // API
+  var event = this.createEvent(INSTR.THIS);
+  event.context = ctx;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.context;
 }
 
+// #EXPRESSIONS
 function DEBUG_ASSIGN(op, obj, prop, value) {
   var result = null;
+  // API: add before, after
   if (prop === null) {
     if (op === OP["="]) { result = value; }
     else { result = value; }
   } else {
     result = evalObjectAssignmentExpression(op, obj, prop, value);
   }
-  return result;
+  // API
+  var event = this.createEvent(INSTR.ASSIGN);
+  event.op = operatorToString(op) + "=";
+  event.object = obj;
+  event.property = prop;
+  event.value = value;
+  event.result = result;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.result;
 }
 
 function DEBUG_TERNARY(test, truthy, falsy) {
   var result = null;
+  // API: add before, after
   if (test) { result = truthy(); }
   else { result = falsy(); }
-
-  return result;
+  // API
+  var event = this.createEvent(INSTR.TERNARY);
+  event.test = test;
+  event.falsy = falsy;
+  event.truthy = truthy;
+  event.result = result;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.result;
 }
 
 function DEBUG_LOGICAL(op, a, b) {
   var result = null;
+  // API: add before, after
   switch (op) {
     case OP["&&"]:
       result = a ? b() : a;
@@ -11721,14 +12145,30 @@ function DEBUG_LOGICAL(op, a, b) {
       result = a ? a : b();
     break;
   }
-
-  return result;
+  // API
+  var event = this.createEvent(INSTR.LOGICAL);
+  event.op = operatorToString(op);
+  event.left = a;
+  event.right = b;
+  event.result = result;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.result;
 }
 
 function DEBUG_BINARY(op, a, b) {
   var result = evalBinaryExpression(op, a, b);
-
-  return result;
+  // API
+  var event = this.createEvent(INSTR.BINARY);
+  event.op = operatorToString(op);
+  event.left = a;
+  event.right = b;
+  event.result = result;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.result;
 }
 
 function DEBUG_UNARY(op, ctx, critical, value) {
@@ -11739,8 +12179,16 @@ function DEBUG_UNARY(op, ctx, critical, value) {
   } else {
     result = evalUnaryExpression(op, ctx, value);
   }
-  console.log(indentString(this.indent) + operatorToString(op), value, "->", result, critical);
-  return result;
+  // API
+  var event = this.createEvent(INSTR.UNARY);
+  event.op = operatorToString(op);
+  event.value = value;
+  event.result = result;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  //console.log(indentString(this.indent) + operatorToString(op), value, "->", result, critical);
+  return event.result;
 }
 
 // deprecated
@@ -11755,14 +12203,24 @@ export function DEBUG_IDENTIFIER = function(id, value) {
 };*/
 
 function DEBUG_PROGRAM_ENTER() {
-  console.log(indentString(this.indent) + "Program");
+  //console.log(indentString(this.indent) + "Program");
+  // API
+  var event = this.createEvent(INSTR.PROGRAM_ENTER);
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
   this.indent += INDENT_FACTOR;
 }
 function DEBUG_PROGRAM_LEAVE(ret) {
   this.indent -= INDENT_FACTOR;
-  console.log(indentString(this.indent) + "Program end ->", ret);
-  console.log(this.frame.type, this.frame.cleanType, this.frame.hash);
-  return ret;
+  //console.log(indentString(this.indent) + "Program end ->", ret);
+  // API
+  var event = this.createEvent(INSTR.PROGRAM_LEAVE);
+  event.indent = this.indent;
+  event.return = ret;
+  event.trigger("leave");
+  // API END
+  return event.return;
 }
 function DEBUG_PROGRAM_FRAME_VALUE(value) {
   //console.log(value);
@@ -11841,14 +12299,15 @@ var Stage = function Stage(input) {
 
 extend(Stage, _debug);
 
-Stage.prototype.triggerListeners = function(type, event, trigger) {
+Stage.prototype.triggerListeners = function(event, trigger) {
+  var type = event.type;
+  var category = event.category;
   // invalid listener
-  if (!this.listeners.hasOwnProperty(type)) {
-    console.error(("Unexpected listener trigger " + type));
+  if (!this.listeners.hasOwnProperty(category)) {
+    console.error(("Unexpected trigger category " + category));
     return;
   }
-  var listeners = this.listeners[type];
-  console.log(listeners);
+  var listeners = this.listeners[category];
   // no listeners are attached
   if (listeners.length <= 0) { return; }
   for (var ii = 0; ii < listeners.length; ++ii) {
@@ -11862,22 +12321,23 @@ Stage.prototype.createEvent = function(type) {
   return event;
 };
 
-Stage.prototype.addListener = function(type) {
+Stage.prototype.addListener = function(category) {
   // validate
-  if (!this.listeners.hasOwnProperty(type)) {
-    console.error(("Unexpected runtime listener type " + type));
+  if (!this.listeners.hasOwnProperty(category)) {
+    console.error("Unexpected listener category");
     return null;
   }
-  var listener = new RuntimeListener(type);
-  this.listeners[type].push(listener);
+  var listener = new RuntimeListener(category);
+  this.listeners[category].push(listener);
   return listener;
 };
 
 Stage.prototype.generateListeners = function() {
   var this$1 = this;
 
-  for (var key in INSTR) {
-    this$1.listeners[key] = [];
+  for (var key in CATEGORY) {
+    var bit = CATEGORY[key];
+    this$1.listeners[bit] = [];
   }
 };
 
@@ -11903,9 +12363,11 @@ Stage.prototype.generateLinks = function() {
 };
 
 Stage.prototype.getLink = function(name) {
-  if (CLEAN_DEBUG_INJECTION) { name = "$" + name; }
+  name = "$" + name;
+  if (CLEAN_DEBUG_INJECTION) {
+    return ((this.key) + "." + name);
+  }
   var key = this.links[name].key;
-  if (CLEAN_DEBUG_INJECTION) { return ((this.key) + "." + name); }
   return ((this.key) + "." + key);
 };
 
@@ -11921,17 +12383,18 @@ Stage.prototype.getFunctionNodeByName = function(name) {
 
 Stage.prototype.getInverseInstruction = function(frame) {
   var type = frame.type;
+  var links = this.links;
   switch (type) {
-    case INSTR.FUNCTION_ENTER: return this.$DEBUG_FUNCTION_LEAVE;
-    case INSTR.IF_ENTER:       return this.$DEBUG_IF_LEAVE;
-    case INSTR.ELSE_ENTER:     return this.$DEBUG_ELSE_LEAVE;
-    case INSTR.LOOP_ENTER:     return this.$DEBUG_LOOP_LEAVE;
-    case INSTR.SWITCH_ENTER:   return this.$DEBUG_SWITCH_LEAVE;
-    case INSTR.CASE_ENTER:     return this.$DEBUG_CASE_LEAVE;
-    case INSTR.METHOD_ENTER:   return this.$DEBUG_METHOD_LEAVE;
-    case INSTR.OP_NEW:         return this.$DEBUG_OP_NEW_END;
-    case INSTR.TRY_ENTER:      return this.$DEBUG_TRY_LEAVE;
-    case INSTR.BLOCK_ENTER:    return this.$DEBUG_BLOCK_LEAVE;
+    case INSTR.FUNCTION_ENTER: return links.$DEBUG_FUNCTION_LEAVE.fn;
+    case INSTR.IF_ENTER:       return links.$DEBUG_IF_LEAVE.fn;
+    case INSTR.ELSE_ENTER:     return links.$DEBUG_ELSE_LEAVE.fn;
+    case INSTR.LOOP_ENTER:     return links.$DEBUG_LOOP_LEAVE.fn;
+    case INSTR.SWITCH_ENTER:   return links.$DEBUG_SWITCH_LEAVE.fn;
+    case INSTR.CASE_ENTER:     return links.$DEBUG_CASE_LEAVE.fn;
+    case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
+    case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
+    case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
       throw new Error(("Unexpected frame type " + (frame.cleanType)));
     break;
@@ -12112,19 +12575,27 @@ Stage.prototype.patch = function(input) {
 };
 
 function setup() {
-
   // detect environment
   this.isNode = (
     (typeof module !== "undefined" && module.exports) &&
     (typeof require !== "undefined")
   );
   this.isBrowser = !this.isNode;
+  this.generateCategoryBits();
+}
 
+function generateCategoryBits() {
+  var this$1 = this;
+
+  for (var key in CATEGORY) {
+    this$1[key] = CATEGORY[key] | 0;
+  }
 }
 
 function greet() {
   var version = $$VERSION;
   if (
+    this.isBrowser &&
     typeof navigator !== "undefined" &&
     navigator.userAgent.toLowerCase().indexOf("chrome") > -1
   ) {
@@ -12137,6 +12608,7 @@ function greet() {
 
 var _setup = Object.freeze({
 	setup: setup,
+	generateCategoryBits: generateCategoryBits,
 	greet: greet
 });
 
@@ -12213,13 +12685,14 @@ var iroh = new Iroh$1();
 // intercept Stage instantiations
 var _Stage = function() {
   Stage.apply(this, arguments);
-  // register it to iroh stages
+  // register stage to iroh stages
+  // so we can keep track of it
   iroh.stages[this.key] = this;
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
 
-// link to outer world
+// link to outer space
 if (typeof window !== "undefined") {
   window.Iroh = iroh;
 } else if (typeof module !== "undefined") {

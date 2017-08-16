@@ -37,13 +37,14 @@ const iroh = new Iroh();
 // intercept Stage instantiations
 let _Stage = function() {
   Stage.apply(this, arguments);
-  // register it to iroh stages
+  // register stage to iroh stages
+  // so we can keep track of it
   iroh.stages[this.key] = this;
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
 
-// link to outer world
+// link to outer space
 if (typeof window !== "undefined") {
   window.Iroh = iroh;
 } else if (typeof module !== "undefined") {

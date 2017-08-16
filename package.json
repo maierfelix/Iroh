@@ -1,6 +1,6 @@
 {
   "name": "iroh",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "description": "Dynamic code analysis tool",
   "license": "MIT",
   "repository": {
@@ -14,7 +14,7 @@
     "runtime",
     "realtime",
     "debug",
-    "record"
+    "visual"
   ],
   "homepage": "http://maierfelix.github.io/Iroh/",
   "author": "Felix Maier <xilefmai@gmail.com>",
