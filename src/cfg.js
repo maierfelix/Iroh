@@ -1,5 +1,5 @@
 // indent factor
-export const INDENT_FACTOR = 2;
+export const INDENT_FACTOR = 1;
 
 // minimal debug commands start with this
 export const DEBUG_KEY = `$`;

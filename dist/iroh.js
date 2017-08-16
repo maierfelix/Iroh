@@ -9136,7 +9136,7 @@ var extend = function(cls, prot) {
 };
 
 // indent factor
-var INDENT_FACTOR = 2;
+var INDENT_FACTOR = 1;
 
 // minimal debug commands start with this
 var DEBUG_KEY = "$";
@@ -11800,7 +11800,7 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
     try {
       value = root.apply(proto, before.arguments);
     } catch (e) {
-      console.error(e);
+      //console.error(e);
       // function knocked out :(
     }
   }
