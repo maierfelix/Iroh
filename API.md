@@ -2,9 +2,9 @@
 
 The pipeline consists of three steps.
 
- * 1. Create a stage, pass in your code
- * 2. Add listeners to the stage
- * 3. Finally run the stage
+ * Create a stage, pass in your code
+ * Add listeners to the stage
+ * Finally run the stage
 
 ##### 1. Creating a stage:
 ````js
