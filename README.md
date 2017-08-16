@@ -6,7 +6,8 @@
 
 <p align="center">
   <a href="http://maierfelix.github.io/Iroh/">Website</a> |
-  <a href="http://maierfelix.github.io/Iroh/demo/index.html">Playground</a> |
+  <a href="http://maierfelix.github.io/Iroh/playground/index.html">Playground</a> |
+  <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a> |
   <a href="https://github.com/maierfelix/Iroh/releases">Download</a>
 </p>
 
@@ -52,6 +53,3 @@ call factorial end -> [6]
  * Intercept eval, setTimeout etc.
  * Intercept and manipulate code/data on the fly
  * Visual learning
- 
- ### API:
-   Coming soon..
