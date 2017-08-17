@@ -130,9 +130,10 @@ export function DEBUG_LOOP_LEAVE(hash, entered) {
 };
 
 // #FLOW
-export function DEBUG_BREAK(label, ctx) {
+export function DEBUG_BREAK(hash, label, ctx) {
   // API
   let event = this.createEvent(INSTR.BREAK);
+  event.hash = hash;
   event.value = true;
   event.label = label;
   event.indent = this.indent;
@@ -145,9 +146,10 @@ export function DEBUG_BREAK(label, ctx) {
   // FRAME END
   return event.value;
 };
-export function DEBUG_CONTINUE(label, ctx) {
+export function DEBUG_CONTINUE(hash, label, ctx) {
   // API
   let event = this.createEvent(INSTR.CONTINUE);
+  event.hash = hash;
   event.value = true;
   event.label = label;
   event.indent = this.indent;
@@ -408,7 +410,7 @@ export function DEBUG_FUNCTION_LEAVE(hash, ctx) {
     //console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [void 0]);
   }
 };
-export function DEBUG_FUNCTION_RETURN(name, value) {
+export function DEBUG_FUNCTION_RETURN(hash, name, value) {
   // FRAME
   let expect = this.resolveReturnFrame(this.frame);
   this.leaveFrameUntil(expect);
@@ -418,6 +420,7 @@ export function DEBUG_FUNCTION_RETURN(name, value) {
 
   // API
   let event = this.createEvent(INSTR.FUNCTION_RETURN);
+  event.hash = hash;
   event.name = name;
   event.return = value;
   event.indent = this.indent - (isSloppy ? INDENT_FACTOR : 0);
@@ -433,11 +436,12 @@ export function DEBUG_FUNCTION_RETURN(name, value) {
 };
 
 // # DECLS
-export function DEBUG_VAR_DECLARE(name) {
+export function DEBUG_VAR_DECLARE(hash, name) {
   //console.log(indentString(this.indent) + "▶️ Declare " + name);
 
   // API
   let event = this.createEvent(INSTR.VAR_DECLARE);
+  event.hash = hash;
   event.name = name;
   event.indent = this.indent;
   event.trigger("before");
@@ -445,11 +449,12 @@ export function DEBUG_VAR_DECLARE(name) {
 
   return name;
 };
-export function DEBUG_VAR_INIT(name, value) {
+export function DEBUG_VAR_INIT(hash, name, value) {
   //console.log(indentString(this.indent) + "⏩ Initialise " + name + "::" + value);
 
   // API
   let event = this.createEvent(INSTR.VAR_INIT);
+  event.hash = hash;
   event.name = name;
   event.value = value;
   event.indent = this.indent;
@@ -575,11 +580,12 @@ export function DEBUG_TRY_LEAVE(hash) {
 };
 
 // #ALLOC
-export function DEBUG_ALLOC(value) {
+export function DEBUG_ALLOC(hash, value) {
   //console.log(indentString(this.indent) + "#Allocated", value);
 
   // API
   let event = this.createEvent(INSTR.ALLOC);
+  event.hash = hash;
   event.value = value;
   event.indent = this.indent;
   event.trigger("fire");
@@ -589,11 +595,12 @@ export function DEBUG_ALLOC(value) {
 };
 
 // #MEMBER
-export function DEBUG_MEMBER_EXPR(object, property) {
+export function DEBUG_MEMBER_EXPR(hash, object, property) {
   //console.log(indentString(this.indent), object, "[" + property + "]");
 
   // API
   let event = this.createEvent(INSTR.MEMBER_EXPR);
+  event.hash = hash;
   event.object = object;
   event.property = property;
   event.indent = this.indent;
@@ -613,9 +620,10 @@ export function DEBUG_BLOCK_LEAVE(hash) {
 };
 
 // #THIS
-export function DEBUG_THIS(ctx) {
+export function DEBUG_THIS(hash, ctx) {
   // API
   let event = this.createEvent(INSTR.THIS);
+  event.hash = hash;
   event.context = ctx;
   event.indent = this.indent;
   event.trigger("fire");
@@ -624,7 +632,7 @@ export function DEBUG_THIS(ctx) {
 };
 
 // #EXPRESSIONS
-export function DEBUG_ASSIGN(op, obj, prop, value) {
+export function DEBUG_ASSIGN(hash, op, obj, prop, value) {
   let result = null;
   // API: add before, after
   if (prop === null) {
@@ -636,6 +644,7 @@ export function DEBUG_ASSIGN(op, obj, prop, value) {
   // API
   let event = this.createEvent(INSTR.ASSIGN);
   event.op = operatorToString(op) + "=";
+  event.hash = hash;
   event.object = obj;
   event.property = prop;
   event.value = value;
@@ -646,13 +655,14 @@ export function DEBUG_ASSIGN(op, obj, prop, value) {
   return event.result;
 };
 
-export function DEBUG_TERNARY(test, truthy, falsy) {
+export function DEBUG_TERNARY(hash, test, truthy, falsy) {
   let result = null;
   // API: add before, after
   if (test) result = truthy();
   else result = falsy();
   // API
   let event = this.createEvent(INSTR.TERNARY);
+  event.hash = hash;
   event.test = test;
   event.falsy = falsy;
   event.truthy = truthy;
@@ -663,7 +673,7 @@ export function DEBUG_TERNARY(test, truthy, falsy) {
   return event.result;
 };
 
-export function DEBUG_LOGICAL(op, a, b) {
+export function DEBUG_LOGICAL(hash, op, a, b) {
   let result = null;
   // API: add before, after
   switch (op) {
@@ -677,6 +687,7 @@ export function DEBUG_LOGICAL(op, a, b) {
   // API
   let event = this.createEvent(INSTR.LOGICAL);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.left = a;
   event.right = b;
   event.result = result;
@@ -686,11 +697,12 @@ export function DEBUG_LOGICAL(op, a, b) {
   return event.result;
 };
 
-export function DEBUG_BINARY(op, a, b) {
+export function DEBUG_BINARY(hash, op, a, b) {
   let result = evalBinaryExpression(op, a, b);
   // API
   let event = this.createEvent(INSTR.BINARY);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.left = a;
   event.right = b;
   event.result = result;
@@ -700,7 +712,7 @@ export function DEBUG_BINARY(op, a, b) {
   return event.result;
 };
 
-export function DEBUG_UNARY(op, ctx, critical, value) {
+export function DEBUG_UNARY(hash, op, ctx, critical, value) {
   let result = null;
   // typeof argument is not defined
   if (op === OP["typeof"] && critical) {
@@ -711,6 +723,7 @@ export function DEBUG_UNARY(op, ctx, critical, value) {
   // API
   let event = this.createEvent(INSTR.UNARY);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.value = value;
   event.result = result;
   event.indent = this.indent;

@@ -256,6 +256,12 @@ STAGE1.CallExpression = function(node, patcher) {
 
 STAGE1.ReturnStatement = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   let arg = cloneNode(node.argument);
   if (arg !== null) patcher.walk(arg, patcher, patcher.stage);
@@ -269,7 +275,10 @@ STAGE1.ReturnStatement = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_FUNCTION_RETURN")
     },
-    arguments: [name]
+    arguments: [
+      parseExpression(hash),
+      name
+    ]
   };
   if (arg !== null) {
     node.argument.arguments.push(arg);
@@ -278,6 +287,12 @@ STAGE1.ReturnStatement = function(node, patcher) {
 
 STAGE1.BreakStatement = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   let label = parseExpression(
     node.label ? `"${node.label.name}"` : "null"
   );
@@ -294,6 +309,7 @@ STAGE1.BreakStatement = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_BREAK")
       },
       arguments: [
+        parseExpression(hash),
         label,
         parseExpression("this")
       ]
@@ -314,6 +330,12 @@ STAGE1.BreakStatement = function(node, patcher) {
 
 STAGE1.ContinueStatement = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   if (node.label) patcher.walk(node.label, patcher, patcher.stage);
   let label = parseExpression(
     node.label ? `"${node.label.name}"` : "null"
@@ -330,6 +352,7 @@ STAGE1.ContinueStatement = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_CONTINUE")
       },
       arguments: [
+        parseExpression(hash),
         label,
         parseExpression("this")
       ]
@@ -350,6 +373,13 @@ STAGE1.ContinueStatement = function(node, patcher) {
 
 STAGE1.VariableDeclaration = function(node, patcher) {
   if (node.magic) return;
+  let ihash = uBranchHash();
+  // create node link
+  let clone = cloneNode(node);
+  patcher.nodes[ihash] = {
+    hash: ihash,
+    node: clone
+  };
   node.magic = true;
   let decls = node.declarations;
   // walk
@@ -359,9 +389,16 @@ STAGE1.VariableDeclaration = function(node, patcher) {
   // patch
   for (let ii = 0; ii < decls.length; ++ii) {
     let decl = decls[ii];
+    let declClone = clone.declarations[ii];
     if (decl.magic) continue;
     let init = decl.init;
     decl.magic = true;
+    let dhash = uBranchHash();
+    // create node link
+    patcher.nodes[dhash] = {
+      hash: dhash,
+      node: declClone
+    };
     decl.init = {
       magic: true,
       type: "CallExpression",
@@ -371,6 +408,7 @@ STAGE1.VariableDeclaration = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_VAR_INIT")
       },
       arguments: [
+        parseExpression(ihash),
         // fire declaration instant by placing a call wrapper around
         // then assign its value afterwards
         {
@@ -381,12 +419,15 @@ STAGE1.VariableDeclaration = function(node, patcher) {
             type: "Identifier",
             name: patcher.instance.getLink("DEBUG_VAR_DECLARE")
           },
-          arguments: [{
-            magic: true,
-            type: "Literal",
-            value: decl.id.name,
-            raw: `"${decl.id.name}"`
-          }]
+          arguments: [
+            parseExpression(dhash),
+            {
+              magic: true,
+              type: "Literal",
+              value: decl.id.name,
+              raw: `"${decl.id.name}"`
+            }
+          ]
         }
       ]
     };
@@ -443,6 +484,12 @@ STAGE1.NewExpression = function(node, patcher) {
 
 STAGE1.ObjectExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.properties.map((prop) => { patcher.walk(prop, patcher, patcher.stage); });
   let call = {
@@ -453,7 +500,10 @@ STAGE1.ObjectExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [cloneNode(node)]
+    arguments: [
+      parseExpression(hash),
+      cloneNode(node)
+    ]
   };
   delete node.properties;
   for (let key in call) {
@@ -468,6 +518,12 @@ STAGE1.MemberExpression = function(node, patcher) {
     patcher.walk(node.property, patcher, patcher.stage);
     return;
   }
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.object, patcher, patcher.stage);
   patcher.walk(node.property, patcher, patcher.stage);
@@ -488,6 +544,7 @@ STAGE1.MemberExpression = function(node, patcher) {
       name: patcher.instance.getLink("DEBUG_MEMBER_EXPR")
     },
     arguments: [
+      parseExpression(hash),
       node.object,
       property
     ]
@@ -511,6 +568,12 @@ STAGE1.AssignmentExpression = function(node, patcher) {
     patcher.walk(node.right, patcher, patcher.stage);
     return;
   }
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.left.magic = true;
   let left = node.left;
@@ -555,6 +618,7 @@ STAGE1.AssignmentExpression = function(node, patcher) {
       name: patcher.instance.getLink("DEBUG_ASSIGN")
     },
     arguments: [
+      parseExpression(hash),
       parseExpression(OP[operator]),
       (
         left.type === "Identifier" ?
@@ -585,6 +649,12 @@ STAGE1.AssignmentExpression = function(node, patcher) {
 
 STAGE1.ArrayExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.elements.map((el) => { if (el !== null) patcher.walk(el, patcher, patcher.stage); });
   let call = {
@@ -595,7 +665,10 @@ STAGE1.ArrayExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [cloneNode(node)]
+    arguments: [
+      parseExpression(hash),
+      cloneNode(node)
+    ]
   };
   delete node.elements;
   for (let key in call) {

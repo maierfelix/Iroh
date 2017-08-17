@@ -9989,6 +9989,12 @@ STAGE1.CallExpression = function(node, patcher) {
 
 STAGE1.ReturnStatement = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   var arg = cloneNode(node.argument);
   if (arg !== null) { patcher.walk(arg, patcher, patcher.stage); }
@@ -10002,7 +10008,10 @@ STAGE1.ReturnStatement = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_FUNCTION_RETURN")
     },
-    arguments: [name]
+    arguments: [
+      parseExpression(hash),
+      name
+    ]
   };
   if (arg !== null) {
     node.argument.arguments.push(arg);
@@ -10011,6 +10020,12 @@ STAGE1.ReturnStatement = function(node, patcher) {
 
 STAGE1.BreakStatement = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   var label = parseExpression(
     node.label ? ("\"" + (node.label.name) + "\"") : "null"
   );
@@ -10027,6 +10042,7 @@ STAGE1.BreakStatement = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_BREAK")
       },
       arguments: [
+        parseExpression(hash),
         label,
         parseExpression("this")
       ]
@@ -10047,6 +10063,12 @@ STAGE1.BreakStatement = function(node, patcher) {
 
 STAGE1.ContinueStatement = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   if (node.label) { patcher.walk(node.label, patcher, patcher.stage); }
   var label = parseExpression(
     node.label ? ("\"" + (node.label.name) + "\"") : "null"
@@ -10063,6 +10085,7 @@ STAGE1.ContinueStatement = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_CONTINUE")
       },
       arguments: [
+        parseExpression(hash),
         label,
         parseExpression("this")
       ]
@@ -10083,6 +10106,13 @@ STAGE1.ContinueStatement = function(node, patcher) {
 
 STAGE1.VariableDeclaration = function(node, patcher) {
   if (node.magic) { return; }
+  var ihash = uBranchHash();
+  // create node link
+  var clone = cloneNode(node);
+  patcher.nodes[ihash] = {
+    hash: ihash,
+    node: clone
+  };
   node.magic = true;
   var decls = node.declarations;
   // walk
@@ -10092,9 +10122,16 @@ STAGE1.VariableDeclaration = function(node, patcher) {
   // patch
   for (var ii$1 = 0; ii$1 < decls.length; ++ii$1) {
     var decl = decls[ii$1];
+    var declClone = clone.declarations[ii$1];
     if (decl.magic) { continue; }
     var init = decl.init;
     decl.magic = true;
+    var dhash = uBranchHash();
+    // create node link
+    patcher.nodes[dhash] = {
+      hash: dhash,
+      node: declClone
+    };
     decl.init = {
       magic: true,
       type: "CallExpression",
@@ -10104,6 +10141,7 @@ STAGE1.VariableDeclaration = function(node, patcher) {
         name: patcher.instance.getLink("DEBUG_VAR_INIT")
       },
       arguments: [
+        parseExpression(ihash),
         // fire declaration instant by placing a call wrapper around
         // then assign its value afterwards
         {
@@ -10114,12 +10152,15 @@ STAGE1.VariableDeclaration = function(node, patcher) {
             type: "Identifier",
             name: patcher.instance.getLink("DEBUG_VAR_DECLARE")
           },
-          arguments: [{
-            magic: true,
-            type: "Literal",
-            value: decl.id.name,
-            raw: ("\"" + (decl.id.name) + "\"")
-          }]
+          arguments: [
+            parseExpression(dhash),
+            {
+              magic: true,
+              type: "Literal",
+              value: decl.id.name,
+              raw: ("\"" + (decl.id.name) + "\"")
+            }
+          ]
         }
       ]
     };
@@ -10174,6 +10215,12 @@ STAGE1.NewExpression = function(node, patcher) {
 
 STAGE1.ObjectExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.properties.map(function (prop) { patcher.walk(prop, patcher, patcher.stage); });
   var call = {
@@ -10184,7 +10231,10 @@ STAGE1.ObjectExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [cloneNode(node)]
+    arguments: [
+      parseExpression(hash),
+      cloneNode(node)
+    ]
   };
   delete node.properties;
   for (var key in call) {
@@ -10199,6 +10249,12 @@ STAGE1.MemberExpression = function(node, patcher) {
     patcher.walk(node.property, patcher, patcher.stage);
     return;
   }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.object, patcher, patcher.stage);
   patcher.walk(node.property, patcher, patcher.stage);
@@ -10219,6 +10275,7 @@ STAGE1.MemberExpression = function(node, patcher) {
       name: patcher.instance.getLink("DEBUG_MEMBER_EXPR")
     },
     arguments: [
+      parseExpression(hash),
       node.object,
       property
     ]
@@ -10242,6 +10299,12 @@ STAGE1.AssignmentExpression = function(node, patcher) {
     patcher.walk(node.right, patcher, patcher.stage);
     return;
   }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.left.magic = true;
   var left = node.left;
@@ -10286,6 +10349,7 @@ STAGE1.AssignmentExpression = function(node, patcher) {
       name: patcher.instance.getLink("DEBUG_ASSIGN")
     },
     arguments: [
+      parseExpression(hash),
       parseExpression(OP[operator]),
       (
         left.type === "Identifier" ?
@@ -10316,6 +10380,12 @@ STAGE1.AssignmentExpression = function(node, patcher) {
 
 STAGE1.ArrayExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.elements.map(function (el) { if (el !== null) { patcher.walk(el, patcher, patcher.stage); } });
   var call = {
@@ -10326,7 +10396,10 @@ STAGE1.ArrayExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [cloneNode(node)]
+    arguments: [
+      parseExpression(hash),
+      cloneNode(node)
+    ]
   };
   delete node.elements;
   for (var key in call) {
@@ -11086,6 +11159,12 @@ var STAGE8 = {};
 
 STAGE8.ThisExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.type = "CallExpression";
   node.callee = {
@@ -11093,11 +11172,20 @@ STAGE8.ThisExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_THIS")
   };
-  node.arguments = [ parseExpression("this") ];
+  node.arguments = [
+    parseExpression(hash),
+    parseExpression("this")
+  ];
 };
 
 STAGE8.BinaryExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
@@ -11108,6 +11196,7 @@ STAGE8.BinaryExpression = function(node, patcher) {
     name: patcher.instance.getLink("DEBUG_BINARY")
   };
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     node.left,
     node.right
@@ -11116,6 +11205,12 @@ STAGE8.BinaryExpression = function(node, patcher) {
 
 STAGE8.LogicalExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
@@ -11128,6 +11223,7 @@ STAGE8.LogicalExpression = function(node, patcher) {
   var right = parseExpression("() => null");
   right.body = node.right;
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     node.left,
     right
@@ -11136,6 +11232,12 @@ STAGE8.LogicalExpression = function(node, patcher) {
 
 STAGE8.UnaryExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.argument, patcher, patcher.stage);
   node.type = "CallExpression";
@@ -11156,6 +11258,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
     };
   }
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     parseExpression("this"),
     parseExpression(false),
@@ -11173,6 +11276,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
       ("(() => { try { " + name + "; } catch(e) { " + id + " = \"undefined\"; return true; } " + id + " = " + name + "; return false; })()")
     );
     node.arguments = [
+      parseExpression(hash),
       parseExpression(OP[node.operator]),
       parseExpression("this"),
       critical,
@@ -11180,29 +11284,15 @@ STAGE8.UnaryExpression = function(node, patcher) {
     ];
   }
 };
-/*
-identifier: #critical
 
-  typeof identifier
-
-  Iroh.DEBUG_UNARY(
-    // operator
-    typeof,
-    // context
-    this,
-    // critical
-    () => { try { ID; } catch(e) { $$tmp = "undefined"; return true; } $$tmp = ID; return false; })(),
-    // value
-    $$tmp
-  );
-
-everything else: #non-critical
-  dbg(
-    typeof a !== "undefined" ? a : void 0
-  )
-*/
 STAGE8.ConditionalExpression = function(node, patcher) {
   if (node.magic) { return; }
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.test, patcher, patcher.stage);
   patcher.walk(node.consequent, patcher, patcher.stage);
@@ -11220,6 +11310,7 @@ STAGE8.ConditionalExpression = function(node, patcher) {
     name: patcher.instance.getLink("DEBUG_TERNARY")
   };
   node.arguments = [
+    parseExpression(hash),
     node.test,
     cons,
     alt
@@ -11264,61 +11355,6 @@ STAGE8.Identifier = function(node) {
     Iroh.parseExpression(`"${node.name}"`),
     clone
   ];
-};
-*/
-/*
-var gg = "123";
-gg += "1";
-
-(gg = DBG_ASSIGN("+", gg, "1"));
-
-DBG_ASSIGN("+=", gg, "1", null);
-
-var a = {b:"123"};
-a.b += c;
-a.b = a.b + c;
-DBG_ASSIGN("+=", a, b, "b");
-
-"DEBUG_ASSIGN_EXPR";
-"DEBUG_UPDATE_EXPR"; argument = dbg(op, argument)
-
-DBG_UPDATE:
-  ++
-  --
-
-DBG_ASSIGN:
-  single id:
-    var a = "123";
-    var c = "4";
-    a += c;
-    (a += DBG_ASSIGN("+", a, null, c));
-  object:
-    var a = { b: "123" };
-    var c = "4";
-    a.b += c;
-    (DBG_ASSIGN("+=", a, "b", c))
-
-STAGE8.ConditionalExpression = function(node) {
-  return DBG_TERNARY(
-    $$x0 = (a === 1),
-    $$x0 ? a = 2 : b = 7
-  );
-};
-
-STAGE8.LogicalExpression = function(node) {
-  return DBG_LOGICAL(
-    op,
-    a,
-    b
-  );
-};
-
-STAGE8.BinaryExpression = function(node) {
-  return DBG_BINARY(
-    op,
-    a,
-    b
-  );
 };
 */
 
@@ -11393,6 +11429,26 @@ var RuntimeEvent = function RuntimeEvent(type, instance) {
 RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
   // trigger all attached listeners
   this.instance.triggerListeners(this, trigger$1);
+};
+RuntimeEvent.prototype.getASTNode = function getASTNode () {
+  var source = this.getSource();
+  var ast = acorn.parse(source, {
+    allowReturnOutsideFunction: true
+  });
+  return ast;
+};
+RuntimeEvent.prototype.getLocation = function getLocation () {
+  var node = this.instance.nodes[this.hash].node;
+  return {
+    end: node.end,
+    start: node.start
+  };
+};
+RuntimeEvent.prototype.getSource = function getSource () {
+  var loc = this.getLocation();
+  var input = this.instance.input;
+  var output = input.substr(loc.start, loc.end - loc.start);
+  return output;
 };
 
 var RuntimeListenerEvent = function RuntimeListenerEvent(type, callback) {
@@ -11601,9 +11657,10 @@ function DEBUG_LOOP_LEAVE(hash, entered) {
 }
 
 // #FLOW
-function DEBUG_BREAK(label, ctx) {
+function DEBUG_BREAK(hash, label, ctx) {
   // API
   var event = this.createEvent(INSTR.BREAK);
+  event.hash = hash;
   event.value = true;
   event.label = label;
   event.indent = this.indent;
@@ -11616,9 +11673,10 @@ function DEBUG_BREAK(label, ctx) {
   // FRAME END
   return event.value;
 }
-function DEBUG_CONTINUE(label, ctx) {
+function DEBUG_CONTINUE(hash, label, ctx) {
   // API
   var event = this.createEvent(INSTR.CONTINUE);
+  event.hash = hash;
   event.value = true;
   event.label = label;
   event.indent = this.indent;
@@ -11879,7 +11937,7 @@ function DEBUG_FUNCTION_LEAVE(hash, ctx) {
     //console.log(indentString(this.indent) + "call", name, "end #sloppy", "->", [void 0]);
   }
 }
-function DEBUG_FUNCTION_RETURN(name, value) {
+function DEBUG_FUNCTION_RETURN(hash, name, value) {
   // FRAME
   var expect = this.resolveReturnFrame(this.frame);
   this.leaveFrameUntil(expect);
@@ -11889,6 +11947,7 @@ function DEBUG_FUNCTION_RETURN(name, value) {
 
   // API
   var event = this.createEvent(INSTR.FUNCTION_RETURN);
+  event.hash = hash;
   event.name = name;
   event.return = value;
   event.indent = this.indent - (isSloppy ? INDENT_FACTOR : 0);
@@ -11904,11 +11963,12 @@ function DEBUG_FUNCTION_RETURN(name, value) {
 }
 
 // # DECLS
-function DEBUG_VAR_DECLARE(name) {
+function DEBUG_VAR_DECLARE(hash, name) {
   //console.log(indentString(this.indent) + "▶️ Declare " + name);
 
   // API
   var event = this.createEvent(INSTR.VAR_DECLARE);
+  event.hash = hash;
   event.name = name;
   event.indent = this.indent;
   event.trigger("before");
@@ -11916,11 +11976,12 @@ function DEBUG_VAR_DECLARE(name) {
 
   return name;
 }
-function DEBUG_VAR_INIT(name, value) {
+function DEBUG_VAR_INIT(hash, name, value) {
   //console.log(indentString(this.indent) + "⏩ Initialise " + name + "::" + value);
 
   // API
   var event = this.createEvent(INSTR.VAR_INIT);
+  event.hash = hash;
   event.name = name;
   event.value = value;
   event.indent = this.indent;
@@ -12046,11 +12107,12 @@ function DEBUG_TRY_LEAVE(hash) {
 }
 
 // #ALLOC
-function DEBUG_ALLOC(value) {
+function DEBUG_ALLOC(hash, value) {
   //console.log(indentString(this.indent) + "#Allocated", value);
 
   // API
   var event = this.createEvent(INSTR.ALLOC);
+  event.hash = hash;
   event.value = value;
   event.indent = this.indent;
   event.trigger("fire");
@@ -12060,11 +12122,12 @@ function DEBUG_ALLOC(value) {
 }
 
 // #MEMBER
-function DEBUG_MEMBER_EXPR(object, property) {
+function DEBUG_MEMBER_EXPR(hash, object, property) {
   //console.log(indentString(this.indent), object, "[" + property + "]");
 
   // API
   var event = this.createEvent(INSTR.MEMBER_EXPR);
+  event.hash = hash;
   event.object = object;
   event.property = property;
   event.indent = this.indent;
@@ -12084,9 +12147,10 @@ function DEBUG_BLOCK_LEAVE(hash) {
 }
 
 // #THIS
-function DEBUG_THIS(ctx) {
+function DEBUG_THIS(hash, ctx) {
   // API
   var event = this.createEvent(INSTR.THIS);
+  event.hash = hash;
   event.context = ctx;
   event.indent = this.indent;
   event.trigger("fire");
@@ -12095,7 +12159,7 @@ function DEBUG_THIS(ctx) {
 }
 
 // #EXPRESSIONS
-function DEBUG_ASSIGN(op, obj, prop, value) {
+function DEBUG_ASSIGN(hash, op, obj, prop, value) {
   var result = null;
   // API: add before, after
   if (prop === null) {
@@ -12107,6 +12171,7 @@ function DEBUG_ASSIGN(op, obj, prop, value) {
   // API
   var event = this.createEvent(INSTR.ASSIGN);
   event.op = operatorToString(op) + "=";
+  event.hash = hash;
   event.object = obj;
   event.property = prop;
   event.value = value;
@@ -12117,13 +12182,14 @@ function DEBUG_ASSIGN(op, obj, prop, value) {
   return event.result;
 }
 
-function DEBUG_TERNARY(test, truthy, falsy) {
+function DEBUG_TERNARY(hash, test, truthy, falsy) {
   var result = null;
   // API: add before, after
   if (test) { result = truthy(); }
   else { result = falsy(); }
   // API
   var event = this.createEvent(INSTR.TERNARY);
+  event.hash = hash;
   event.test = test;
   event.falsy = falsy;
   event.truthy = truthy;
@@ -12134,7 +12200,7 @@ function DEBUG_TERNARY(test, truthy, falsy) {
   return event.result;
 }
 
-function DEBUG_LOGICAL(op, a, b) {
+function DEBUG_LOGICAL(hash, op, a, b) {
   var result = null;
   // API: add before, after
   switch (op) {
@@ -12148,6 +12214,7 @@ function DEBUG_LOGICAL(op, a, b) {
   // API
   var event = this.createEvent(INSTR.LOGICAL);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.left = a;
   event.right = b;
   event.result = result;
@@ -12157,11 +12224,12 @@ function DEBUG_LOGICAL(op, a, b) {
   return event.result;
 }
 
-function DEBUG_BINARY(op, a, b) {
+function DEBUG_BINARY(hash, op, a, b) {
   var result = evalBinaryExpression(op, a, b);
   // API
   var event = this.createEvent(INSTR.BINARY);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.left = a;
   event.right = b;
   event.result = result;
@@ -12171,7 +12239,7 @@ function DEBUG_BINARY(op, a, b) {
   return event.result;
 }
 
-function DEBUG_UNARY(op, ctx, critical, value) {
+function DEBUG_UNARY(hash, op, ctx, critical, value) {
   var result = null;
   // typeof argument is not defined
   if (op === OP["typeof"] && critical) {
@@ -12182,6 +12250,7 @@ function DEBUG_UNARY(op, ctx, critical, value) {
   // API
   var event = this.createEvent(INSTR.UNARY);
   event.op = operatorToString(op);
+  event.hash = hash;
   event.value = value;
   event.result = result;
   event.indent = this.indent;

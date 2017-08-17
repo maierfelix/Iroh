@@ -24,18 +24,23 @@ export default class RuntimeEvent {
     this.instance.triggerListeners(this, trigger);
   }
   getASTNode() {
-    if (this.hash === -1 || !this.instance.nodes[this.hash]) {
-      console.error(this, this.hash, this.instance.nodes[this.hash]);
-    }
-    return this.instance.nodes[this.hash].node;
+    let source = this.getSource();
+    let ast = acorn.parse(source, {
+      allowReturnOutsideFunction: true
+    });
+    return ast;
   }
   getLocation() {
-    let node = this.getASTNode();
-    return node.loc;
+    let node = this.instance.nodes[this.hash].node;
+    return {
+      end: node.end,
+      start: node.start
+    };
   }
   getSource() {
-    let node = this.getASTNode();
-    let source = generate(node);
-    return "";
+    let loc = this.getLocation();
+    let input = this.instance.input;
+    let output = input.substr(loc.start, loc.end - loc.start);
+    return output;
   }
 };

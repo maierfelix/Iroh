@@ -18,6 +18,12 @@ let STAGE8 = {};
 
 STAGE8.ThisExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   node.type = "CallExpression";
   node.callee = {
@@ -25,11 +31,20 @@ STAGE8.ThisExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_THIS")
   };
-  node.arguments = [ parseExpression("this") ];
+  node.arguments = [
+    parseExpression(hash),
+    parseExpression("this")
+  ];
 };
 
 STAGE8.BinaryExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
@@ -40,6 +55,7 @@ STAGE8.BinaryExpression = function(node, patcher) {
     name: patcher.instance.getLink("DEBUG_BINARY")
   };
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     node.left,
     node.right
@@ -48,6 +64,12 @@ STAGE8.BinaryExpression = function(node, patcher) {
 
 STAGE8.LogicalExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
   node.magic = true;
@@ -60,6 +82,7 @@ STAGE8.LogicalExpression = function(node, patcher) {
   let right = parseExpression("() => null");
   right.body = node.right;
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     node.left,
     right
@@ -68,6 +91,12 @@ STAGE8.LogicalExpression = function(node, patcher) {
 
 STAGE8.UnaryExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.argument, patcher, patcher.stage);
   node.type = "CallExpression";
@@ -88,6 +117,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
     };
   }
   node.arguments = [
+    parseExpression(hash),
     parseExpression(OP[node.operator]),
     parseExpression("this"),
     parseExpression(false),
@@ -105,6 +135,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
       `(() => { try { ${name}; } catch(e) { ${id} = "undefined"; return true; } ${id} = ${name}; return false; })()`
     );
     node.arguments = [
+      parseExpression(hash),
       parseExpression(OP[node.operator]),
       parseExpression("this"),
       critical,
@@ -112,29 +143,15 @@ STAGE8.UnaryExpression = function(node, patcher) {
     ];
   }
 };
-/*
-identifier: #critical
 
-  typeof identifier
-
-  Iroh.DEBUG_UNARY(
-    // operator
-    typeof,
-    // context
-    this,
-    // critical
-    () => { try { ID; } catch(e) { $$tmp = "undefined"; return true; } $$tmp = ID; return false; })(),
-    // value
-    $$tmp
-  );
-
-everything else: #non-critical
-  dbg(
-    typeof a !== "undefined" ? a : void 0
-  )
-*/
 STAGE8.ConditionalExpression = function(node, patcher) {
   if (node.magic) return;
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
   node.magic = true;
   patcher.walk(node.test, patcher, patcher.stage);
   patcher.walk(node.consequent, patcher, patcher.stage);
@@ -152,6 +169,7 @@ STAGE8.ConditionalExpression = function(node, patcher) {
     name: patcher.instance.getLink("DEBUG_TERNARY")
   };
   node.arguments = [
+    parseExpression(hash),
     node.test,
     cons,
     alt
@@ -196,61 +214,6 @@ STAGE8.Identifier = function(node) {
     Iroh.parseExpression(`"${node.name}"`),
     clone
   ];
-};
-*/
-/*
-var gg = "123";
-gg += "1";
-
-(gg = DBG_ASSIGN("+", gg, "1"));
-
-DBG_ASSIGN("+=", gg, "1", null);
-
-var a = {b:"123"};
-a.b += c;
-a.b = a.b + c;
-DBG_ASSIGN("+=", a, b, "b");
-
-"DEBUG_ASSIGN_EXPR";
-"DEBUG_UPDATE_EXPR"; argument = dbg(op, argument)
-
-DBG_UPDATE:
-  ++
-  --
-
-DBG_ASSIGN:
-  single id:
-    var a = "123";
-    var c = "4";
-    a += c;
-    (a += DBG_ASSIGN("+", a, null, c));
-  object:
-    var a = { b: "123" };
-    var c = "4";
-    a.b += c;
-    (DBG_ASSIGN("+=", a, "b", c))
-
-STAGE8.ConditionalExpression = function(node) {
-  return DBG_TERNARY(
-    $$x0 = (a === 1),
-    $$x0 ? a = 2 : b = 7
-  );
-};
-
-STAGE8.LogicalExpression = function(node) {
-  return DBG_LOGICAL(
-    op,
-    a,
-    b
-  );
-};
-
-STAGE8.BinaryExpression = function(node) {
-  return DBG_BINARY(
-    op,
-    a,
-    b
-  );
 };
 */
 
