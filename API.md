@@ -1,75 +1,78 @@
 ### Getting started
 
-The pipeline consists of three steps.
+The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code expression type.
+
+Iroh's event listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript.
+
+The pipeline of Iroh is:
 
  * Create a stage, pass in your code
- * Add listeners to the stage
- * Finally run the stage
+ * Add listeners to the stage object
+ * Evaluate the stage
 
 ##### 1. Creating a stage:
+We need a stage object to submit our code into and to attach some listeners.
+
+Syntax:
 ````js
-let code = `console.log({a:1, b:2})`;
+let stage = new Iroh.Stage(code:string)
+````
+Example:
+````js
+let code = "console.log({ a:1, b:2 })";
 let stage = new Iroh.Stage(code);
 ````
 
 ##### 2. Add listeners
+Listeners get triggered while your code is executed. Their purpose is to allow you to listen for runtime data while your script is running, but without changing your script in it's expected behaviour. They just listen and tell you anything about your running code.
+
+Syntax:
 ````js
-// Let's intercept allocations in the code
-stage.addListener(Iroh.ALLOC)
-.on("fire", (e) => {
-  console.log("Allocated", e.value);
-  // we can manipulate something here
-  e.value.a = 0;
+let listener = stage.addListener(type:number);
+listener.on(event:string, trigger:function);
+````
+Example:
+````js
+// Let's catch all object and array creations in our code
+let listener = stage.addListener(Iroh.ALLOC);
+listener.on("fire", (e) => {
+  let value = e.value; // {a:1, b:2}
+  console.log("Something got created:", value);
 });
 ````
 
 ##### 3. Running the stage
+After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, you need to run the patched version manually afterwards. You can even save the stage's code and embed it into your page just like a real script - it's completely up to you!
+
+Syntax:
 ````js
-let script = stage.script; // this is our patched code
+stage.script; // this is our patched code
+````
+Example:
+````js
+let script = stage.script;
+// we can just use eval to run the patched code we want to track
 eval(script);
 ````
 
 ### API
 
-``Iroh.Stage`` has to get initialised with a string as it's first argument which contains the code you want to intercept.
-````js
-stage = new Iroh.Stage(string)
-````
-
-``stage.addListener(type)`` attaches a new listener to the stage.
-````js
-let listener = stage.addListener(Iroh.CALL);
-listener.on("before", (e) => {
-  // what happens before a call
-});
-listener.on("after", (e) => {
-  // what happens after a call
-});
-````
-
-``listener.on`` allows to create an event listener. E.g. ``Iroh.CALL`` has two events. What happens **before** a call and what happens **after** a call.
-
-``listener.on("before")`` allows us in this case, to track and manipulate the ``arguments`` used for all calls inside our code.
-``listener.on("after")`` allows us to track and change the returned value of a call - it's final result.
-
 #### Listener API:
 
-Each listener has an ``RuntimeEvent`` argument which contains various type specific properties.
+Each listener event has an ``RuntimeEvent`` argument which contains various event  specific properties.
 
+Example:
 ````js
-stage.addListener(Iroh.ALLOC)
-  .on("fire", (e) => {
-    // e.value contains a reference to the allocated item
-    // e.g. we can log all instantiated items in our code
-    console.log(e.value); // all arrays and objects logged here
-  });
+let listener = stage.addListener(Iroh.ALLOC);
+listener.on("fire", (e) => console.log(e.value));
 ````
+``Iroh.ALLOC`` has only one event called ``fire``. This means the listener just fires as soon as the related code get's executed. In this case ``fire`` triggers when an object or array gets created. The event's property ``value`` contains a reference to the allocated object. Since ``fire`` gets triggered before the actual code gets executed, we can even modify it!
 
-All listener events have the following fixed options:
+All listener events provide you the following fixed options:
 
 ##### Properties:
 
-``hash``: Unique numeric hash which is also a link to the original AST node
+``hash``: Unique numeric hash which is also a link to the original AST node. The hash is only used once for the specific code location.
 
 ``indent``: Numeric indentation level which can be used to model the code's flow. Increases when entering a branch (e.g. ``Iroh.IF.enter``) and decreases after leaving a branch (e.g. ``Iroh.IF.leave``).
 
@@ -83,29 +86,69 @@ All listener events have the following fixed options:
 
 #### Specification:
 
-Available listeners are:
+Iroh provides the following listeners:
 ````js
 Iroh.IF
+  if () {}
+  else if () {}
 Iroh.ELSE
+  else {}
 Iroh.LOOP
+  while () {}
+  do {} while ()
+  for () {}
+  for (a in b) {}
+  for (a of b) {}
 Iroh.BREAK
+  break
 Iroh.CONTINUE
+  continue
 Iroh.SWITCH
+  switch () {}
 Iroh.CASE
+  case :
+  default :
 Iroh.CALL
+  main()
 Iroh.FUNCTION
+  function() {}
 Iroh.VAR
+  let
+  var
+  const
 Iroh.OP_NEW
+  new cls()
 Iroh.TRY
+  try {} catch(e) {}
 Iroh.ALLOC
+  {}, []
 Iroh.MEMBER
+  a.b
+  a["b"]
+  a["" + "b"]
 Iroh.THIS
+  this
 Iroh.ASSIGN
+  a = 2
+  a += 2
+  ..
 Iroh.TERNARY
+  true ? 1 : 0
 Iroh.LOGICAL
+  &&,
+  ||
 Iroh.BINARY
+  +,
+  -, *
+  ..
 Iroh.UNARY
+  +0,
+  -0,
+  !true
+  typeof a
+  ..
 Iroh.PROGRAM
+  Code enter, Code exit
 ````
 
 **``Iroh.IF``**:
@@ -203,18 +246,18 @@ Iroh.PROGRAM
     * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``scope``: The function's inner scope
-    * ``sloppy``: Got called from outside (e.g. setTimeout's parameter)
+    * ``sloppy``: Got called from outside
     * ``arguments``: The function's arguments
     * ``name``: The function's name
  * ``leave``
     * ``hash``: Unique hash
     * ``indent``: Indent level
-    * ``sloppy``: Got called from outside (e.g. setTimeout's parameter)
+    * ``sloppy``: Got called from outside
     * ``name``: The function's name
  * ``return``
     * ``hash``: Unique hash
     * ``indent``: Indent level
-    * ``sloppy``: Got called from outside (e.g. setTimeout's parameter)
+    * ``sloppy``: Got called from outside
     * ``return``: The return statement's value
     * ``name``: The function's name
 
@@ -318,3 +361,21 @@ Iroh.PROGRAM
  * ``leave``
     * ``indent``: Indent level
     * ``return``: The program's returned frame value
+
+##### Exploiting runtime behaviour: 
+
+Iroh's listener nature allows to listen for data, but also allows to change the data used in your running code.
+
+Modifying runtime data:
+````js
+let code = "console.log({ test: 666 }.test)";
+let stage = new Iroh.Stage(code);
+let listener = stage.addListener(Iroh.ALLOC)
+listener.on("fire", (e) => {
+  let obj = e.value.test;
+  obj.test = 42;
+});
+````
+Our code here now wont't ever log the expected ``666``, it will log ``42``.
+
+Most listeners allow to manipulate the original code's runtime behaviour. E.g. you can do the same for *function* ``arguments``, ``returns``, ``calls`` and an if's ``test`` which is the condition to enter the *if* block or not.
