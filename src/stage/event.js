@@ -1,6 +1,9 @@
 import { INSTR } from "../labels";
 
-import { getCategoryFromInstruction } from "../helpers";
+import {
+  generate,
+  getCategoryFromInstruction
+} from "../helpers";
 
 export default class RuntimeEvent {
   constructor(type, instance) {
@@ -19,5 +22,20 @@ export default class RuntimeEvent {
   trigger(trigger) {
     // trigger all attached listeners
     this.instance.triggerListeners(this, trigger);
+  }
+  getASTNode() {
+    if (this.hash === -1 || !this.instance.nodes[this.hash]) {
+      console.error(this, this.hash, this.instance.nodes[this.hash]);
+    }
+    return this.instance.nodes[this.hash].node;
+  }
+  getLocation() {
+    let node = this.getASTNode();
+    return node.loc;
+  }
+  getSource() {
+    let node = this.getASTNode();
+    let source = generate(node);
+    return "";
   }
 };
