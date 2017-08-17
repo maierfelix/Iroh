@@ -47,14 +47,43 @@ listener.on("after", (e) => {
 });
 ````
 
-``listener.on`` allows to create a more specific listener. E.g. ``Iroh.CALL`` has two options. What happens **before** a call and what happens **after** a call.
+``listener.on`` allows to create an event listener. E.g. ``Iroh.CALL`` has two events. What happens **before** a call and what happens **after** a call.
 
 ``listener.on("before")`` allows us in this case, to track and manipulate the ``arguments`` used for all calls inside our code.
-``listener.on("after")`` allows us here to track and change the returned value of a call - it's final result.
+``listener.on("after")`` allows us to track and change the returned value of a call - it's final result.
 
-There are different listener options for each listener type.
+#### Listener API:
 
-Available listener types are:
+Each listener has an ``RuntimeEvent`` argument which contains various type specific properties.
+
+````js
+stage.addListener(Iroh.ALLOC)
+  .on("fire", (e) => {
+    // e.value contains a reference to the allocated item
+    // e.g. we can log all instantiated items in our code
+    console.log(e.value); // all arrays and objects logged here
+  });
+````
+
+All listener events have the following fixed options:
+
+##### Properties:
+
+``hash``: Unique numeric hash which is also a link to the original AST node
+
+``indent``: Numeric indentation level which can be used to model the code's flow. Increases when entering a branch (e.g. ``Iroh.IF.enter``) and decreases after leaving a branch (e.g. ``Iroh.IF.leave``).
+
+##### Methods:
+
+``getASTNode``: Returns the original AST node
+
+``getLocation``: Returns an object with the original source location
+
+``getSource``: Returns the original source code
+
+#### Specification:
+
+Available listeners are:
 ````js
 Iroh.IF
 Iroh.ELSE
@@ -78,25 +107,6 @@ Iroh.BINARY
 Iroh.UNARY
 Iroh.PROGRAM
 ````
-
-#### Listener API:
-
-Each listener has an ``Event`` argument which contains various listener type specific properties.
-
-````js
-stage.addListener(Iroh.ALLOC)
-  .on("fire", (e) => {
-    // e.value contains a reference to the allocated item
-    // e.g. we can log all instantiated items in our code
-    console.log(e.value); // all arrays, objects logged here
-  });
-````
-
-All listener events have a numeric indent level property which can be used to model the code's flow.
-
-``enter`` and ``leave`` are related to entering a new branch (if, loops etc.).
-
-``before`` and ``after`` are related to single statements which can be intercepted in two steps. Determine what happens *before* and what happens *afterwards*, e.g. what happens before a ``Iroh.CALL`` (change it's arguments) and what the call's return value will be afterwards.
 
 **``Iroh.IF``**:
  * ``test``
