@@ -212,6 +212,7 @@ Iroh.PROGRAM
     * ``sloppy``: Got called from outside (e.g. setTimeout's parameter)
     * ``name``: The function's name
  * ``return``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``sloppy``: Got called from outside (e.g. setTimeout's parameter)
     * ``return``: The return statement's value
@@ -250,22 +251,26 @@ Iroh.PROGRAM
 
 **``Iroh.ALLOC``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``value``: The passed value (``object`` or ``array``)
 
 **``Iroh.MEMBER``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``object``: The member expression's object
     * ``property``: The member expression's property
 
 **``Iroh.THIS``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``context``: The context
 
 **``Iroh.ASSIGN``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``op``: The used operator
     * ``object``: The left value
@@ -274,6 +279,7 @@ Iroh.PROGRAM
 
 **``Iroh.TERNARY``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``test``: The tested condition
     * ``truthy``: The truth trigger
@@ -282,6 +288,7 @@ Iroh.PROGRAM
 
 **``Iroh.LOGICAL``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``op``: The used operator
     * ``left``: The left value
@@ -290,6 +297,7 @@ Iroh.PROGRAM
 
 **``Iroh.BINARY``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``op``: The used operator
     * ``left``: The left value
@@ -298,6 +306,7 @@ Iroh.PROGRAM
 
 **``Iroh.UNARY``**:
  * ``fire``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``op``: The used operator
     * ``value``: The unary's value
