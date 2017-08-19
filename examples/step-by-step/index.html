@@ -12,6 +12,8 @@
 
 <div id="container" style="width:640px; height:480px"></div>
 
+<h3>Use <button onclick="back()">←</button> <button onclick="next()">→</button> to step through the code</h3>
+
 <script>
 let code = `
 function add(a, b) {
@@ -21,7 +23,7 @@ function add(a, b) {
 function main() {
   let res = 0;
   let ii = 0;
-  for (let ii = 0; ii < 3; ++ii) {
+  for (let ii = 0; ii < 3; ii += 1) {
     res += add(ii, 2);
   };
 
@@ -62,19 +64,23 @@ main();
 
   window.addEventListener("keydown", (e) => {
     let key = e.keyCode;
-    if (key === 39) {
-      if (index < queue.length - 1) {
-        index++;
-        update();
-      }
-    }
-    else if (key === 37) {
-      if (index > 0) {
-        index--;
-        update();
-      }
-    }
+    if (key === 39) next();
+    else if (key === 37) back();
   });
+
+  function next() {
+    if (index < queue.length - 1) {
+      index++;
+      update();
+    }
+  };
+
+  function back() {
+    if (index > 0) {
+      index--;
+      update();
+    }
+  };
 
   function update() {
     resetDecorations();

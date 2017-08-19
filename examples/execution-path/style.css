@@ -1,0 +1,16 @@
+.CodeMirror {
+  border: 1px solid rgba(0,0,0,0.1);
+  height: 250px;
+}
+.container {
+  width: 50%;
+  position: absolute;
+  left: calc(50% - 300px);
+  top: 25px;
+}
+#input {
+  margin-bottom: 10px;
+}
+#output {
+  margin-top: 10px;
+}

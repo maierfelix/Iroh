@@ -1,197 +1,276 @@
-<!--
-  This example just loggs everything possible into the console
--->
-<h3>Open your console 😊</h3>
-<script>
-let code = `
-  function factorial(n) {
-    if (n === 0) return 1;
-    return n * factorial(n - 1);
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="http://esironal.github.io/cmtouch/lib/codemirror.css">
+  <script src="http://esironal.github.io/cmtouch/lib/codemirror.js"></script>
+  <script src="http://codemirror.net/mode/javascript/javascript.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <div id="input"></div>
+    <button id="run">▷ Run</button>
+    <div id="output"></div>
+  </div>
+
+  <script type="text/javascript" src="../../dist/iroh.js"></script>
+
+  <!-- LISTENERS -->
+  <!-- Just a showcase to demonstrate all possible listeners -->
+  <script>
+    function attachListeners(stage) {
+      // if
+      stage.addListener(Iroh.IF)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + "if", e.value);
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + "if end");
+      });
+
+      // else
+      stage.addListener(Iroh.ELSE)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + "else");
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + "else end");
+      });
+
+      // loop
+      stage.addListener(Iroh.LOOP)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + "loop");
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + "loop end");
+      });
+
+      // break
+      stage.addListener(Iroh.BREAK)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "break", e.label ? e.label : "");
+      });
+
+      // continue
+      stage.addListener(Iroh.CONTINUE)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "continue", e.label ? e.label : "");
+      });
+
+      // switch
+      stage.addListener(Iroh.SWITCH)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + "switch");
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + "switch end");
+      });
+
+      // case, default
+      stage.addListener(Iroh.CASE)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + (e.default ? "default" : "case"), e.value);
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + (e.default ? "default" : "case") + " end");
+      });
+
+      // function call
+      stage.addListener(Iroh.CALL)
+      .on("before", (e) => {
+        let external = e.external ? "#external" : "";
+        log(" ".repeat(e.indent) + "call", e.name, external, "(", e.arguments, ")");
+      })
+      .on("after", (e) => {
+        let external = e.external ? "#external" : "";
+        log(" ".repeat(e.indent) + "call", e.name, "end", external, "->", [e.return]);
+      });
+
+      // function
+      stage.addListener(Iroh.FUNCTION)
+      .on("enter", (e) => {
+        let sloppy = e.sloppy ? "#sloppy" : "";
+        if (e.sloppy) {
+          log(" ".repeat(e.indent) + "call", e.name, sloppy, "(", e.arguments, ")");
+        }
+      })
+      .on("leave", (e) => {
+        let sloppy = e.sloppy ? "#sloppy" : "";
+        if (e.sloppy) {
+          log(" ".repeat(e.indent) + "call", e.name, "end", sloppy, "->", [void 0]);
+        }
+      })
+      .on("return", (e) => {
+        let sloppy = e.sloppy ? "#sloppy" : "";
+        if (e.sloppy) {
+          log(" ".repeat(e.indent) + "call", e.name, "end", sloppy, "->", [e.return]);
+        }
+      });
+
+      // variable
+      stage.addListener(Iroh.VAR)
+      .on("before", (e) => {
+        log(" ".repeat(e.indent) + "declare", e.name);
+      })
+      .on("after", (e) => {
+        log(" ".repeat(e.indent) + e.name, "=>", e.value);
+      });
+
+      // new
+      stage.addListener(Iroh.OP_NEW)
+      .on("before", (e) => {
+        log(" ".repeat(e.indent) + "new", e.name);
+      })
+      .on("after", (e) => {
+        log(" ".repeat(e.indent) + "new", e.return.constructor.name, "end");
+      });
+
+      // try
+      stage.addListener(Iroh.TRY)
+      .on("before", (e) => {
+        log(" ".repeat(e.indent) + "try");
+      })
+      .on("after", (e) => {
+        log(" ".repeat(e.indent) + "try end");
+      });
+
+      // allocation
+      stage.addListener(Iroh.ALLOC)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "allocated", e.value);
+      });
+
+      // member
+      stage.addListener(Iroh.MEMBER)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "member", e.object, "[", e.property, "]");
+      });
+
+      // this
+      stage.addListener(Iroh.THIS)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "this", e.context);
+      });
+
+      // assignment
+      stage.addListener(Iroh.ASSIGN)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "assign", e.object, e.property, e.value, e.result);
+      });
+
+      // ternary
+      stage.addListener(Iroh.TERNARY)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "ternary", e.test, "=>", e.result);
+      });
+
+      // logical
+      stage.addListener(Iroh.LOGICAL)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "logical", e.left, e.op, e.right, "=>", e.result);
+      });
+
+      // binary
+      stage.addListener(Iroh.BINARY)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "binary", e.left, e.op, e.right, "=>", e.result);
+      });
+
+      // unary
+      stage.addListener(Iroh.UNARY)
+      .on("fire", (e) => {
+        log(" ".repeat(e.indent) + "unary", e.op, e.value, "=>", e.result);
+      });
+
+      // program
+      stage.addListener(Iroh.PROGRAM)
+      .on("enter", (e) => {
+        log(" ".repeat(e.indent) + "Program");
+      })
+      .on("leave", (e) => {
+        log(" ".repeat(e.indent) + "Program end", "->", e.return);
+      });
+    };
+  </script>
+
+  <script>
+
+    let value = "";
+
+    let editorin = CodeMirror(document.getElementById("input"), {
+      mode: "text/javascript",
+      lineNumbers: true,
+      value: "",
+      width: 250
+    });
+    let editorout = CodeMirror(document.getElementById("output"), {
+      mode: "text/javascript",
+      lineNumbers: true,
+      value: ""
+    });
+    let docin = editorin.getDoc();
+    let docout = editorout.getDoc();
+
+    docin.setValue(`function factorial(n) {
+  n = n | 0;
+  if (n === 0) return 1;
+  return n * factorial(n - 1);
+};
+factorial(3);`);
+
+    run.onclick = (e) => {
+      let code = docin.getValue();
+      value = "";
+      docout.setValue(value);
+
+      // initialise
+      let stage = new Iroh.Stage(code);
+      attachListeners(stage);
+      // run script
+      eval(stage.script);
+    };
+
+  run.click();
+
+  function log() {
+    let val = "";
+    for (let ii = 0; ii < arguments.length; ++ii) {
+      let arg = arguments[ii];
+      if (arg instanceof Array) {
+        arg = arg.map((value) => {
+          if (value instanceof Function) return `[function ${value.name}]`;
+          return String(value);
+        });
+      }
+      else if (arg instanceof Object) arg = String(arg);
+      val += arg;
+      if (ii < arguments.length - 1) val += " ";
+    };
+    value += val + "\n";
+    docout.setValue(value);
   };
-  factorial(3);
-`;
-</script>
 
-<script type="text/javascript" src="../../dist/iroh.js"></script>
-<script>
+  </script>
 
-  // initialise
-  let stage = new Iroh.Stage(code);
-
-  // if
-  stage.addListener(Iroh.IF)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + "if", e.value);
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + "if end");
-  });
-
-  // else
-  stage.addListener(Iroh.ELSE)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + "else");
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + "else end");
-  });
-
-  // loop
-  stage.addListener(Iroh.LOOP)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + "loop");
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + "loop end");
-  });
-
-  // break
-  stage.addListener(Iroh.BREAK)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "break", e.label ? e.label : "");
-  });
-
-  // continue
-  stage.addListener(Iroh.CONTINUE)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "continue", e.label ? e.label : "");
-  });
-
-  // switch
-  stage.addListener(Iroh.SWITCH)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + "switch");
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + "switch end");
-  });
-
-  // case, default
-  stage.addListener(Iroh.CASE)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + (e.default ? "default" : "case"), e.value);
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + (e.default ? "default" : "case") + " end");
-  });
-
-  // function call
-  stage.addListener(Iroh.CALL)
-  .on("before", (e) => {
-    let external = e.external ? "#external" : "";
-    console.log(" ".repeat(e.indent) + "call", e.name, external, "(", e.arguments, ")");
-  })
-  .on("after", (e) => {
-    let external = e.external ? "#external" : "";
-    console.log(" ".repeat(e.indent) + "call", e.name, "end", external, "->", [e.return]);
-  });
-
-  // function
-  stage.addListener(Iroh.FUNCTION)
-  .on("enter", (e) => {
-    let sloppy = e.sloppy ? "#sloppy" : "";
-    if (e.sloppy) {
-      console.log(" ".repeat(e.indent) + "call", e.name, sloppy, "(", e.arguments, ")");
+  <style>
+    .CodeMirror {
+      border: 1px solid rgba(0,0,0,0.1);
+      height: 250px;
     }
-  })
-  .on("leave", (e) => {
-    let sloppy = e.sloppy ? "#sloppy" : "";
-    if (e.sloppy) {
-      console.log(" ".repeat(e.indent) + "call", e.name, "end", sloppy, "->", [void 0]);
+    .container {
+      width: 50%;
+      position: absolute;
+      left: calc(50% - 300px);
+      top: 25px;
     }
-  })
-  .on("return", (e) => {
-    let sloppy = e.sloppy ? "#sloppy" : "";
-    if (e.sloppy) {
-      console.log(" ".repeat(e.indent) + "call", e.name, "end", sloppy, "->", [e.return]);
+    #input {
+      margin-bottom: 10px;
     }
-  });
+    #output {
+      margin-top: 10px;
+    }
+  </style>
 
-  // variable
-  stage.addListener(Iroh.VAR)
-  .on("before", (e) => {
-    console.log(" ".repeat(e.indent) + "declare", e.name);
-  })
-  .on("after", (e) => {
-    console.log(" ".repeat(e.indent) + e.name, "=>", e.value);
-  });
-
-  // new
-  stage.addListener(Iroh.OP_NEW)
-  .on("before", (e) => {
-    console.log(" ".repeat(e.indent) + "new", e.name);
-  })
-  .on("after", (e) => {
-    console.log(" ".repeat(e.indent) + "new", e.return.constructor.name, "end");
-  });
-
-  // try
-  stage.addListener(Iroh.TRY)
-  .on("before", (e) => {
-    console.log(" ".repeat(e.indent) + "try");
-  })
-  .on("after", (e) => {
-    console.log(" ".repeat(e.indent) + "try end");
-  });
-
-  // allocation
-  stage.addListener(Iroh.ALLOC)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "allocated", e.value);
-  });
-
-  // member
-  stage.addListener(Iroh.MEMBER)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "member", e.object, "[", e.property, "]");
-  });
-
-  // this
-  stage.addListener(Iroh.THIS)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "this", e.context);
-  });
-
-  // assignment
-  stage.addListener(Iroh.ASSIGN)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "assign", e.object, e.property, e.value, e.result);
-  });
-
-  // ternary
-  stage.addListener(Iroh.TERNARY)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "ternary", e.test, "=>", e.result);
-  });
-
-  // logical
-  stage.addListener(Iroh.LOGICAL)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "logical", e.left, e.op, e.right, "=>", e.result);
-  });
-
-  // binary
-  stage.addListener(Iroh.BINARY)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "binary", e.left, e.op, e.right, "=>", e.result);
-  });
-
-  // unary
-  stage.addListener(Iroh.UNARY)
-  .on("fire", (e) => {
-    console.log(" ".repeat(e.indent) + "unary", e.op, e.value, "=>", e.result);
-  });
-
-  // program
-  stage.addListener(Iroh.PROGRAM)
-  .on("enter", (e) => {
-    console.log(" ".repeat(e.indent) + "Program");
-  })
-  .on("leave", (e) => {
-    console.log(" ".repeat(e.indent) + "Program end", "->", e.return);
-  });
-
-  // run script
-  eval(stage.script);
-
-</script>
+</body>
+</html>
