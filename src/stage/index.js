@@ -25,7 +25,7 @@ import RuntimeListener from "./listener";
 import * as _debug from "./debug";
 
 export default class Stage {
-  constructor(input) {
+  constructor(input, opt = {}) {
     // validate
     if (typeof input !== "string") {
       throw new Error(`Expected input type string, but got ${typeof input}`);
@@ -36,6 +36,7 @@ export default class Stage {
     this.links = {};
     this.nodes = null;
     this.symbols = null;
+    this.options = {};
     this.indent = 0;
     this.frame = null;
     this.$$frameHash = 0;

@@ -1,7 +1,7 @@
 {
   "name": "iroh",
-  "version": "0.1.9",
-  "description": "Dynamic code analysis tool",
+  "version": "0.2.0",
+  "description": "Intercept, record and analyze JavaScript at runtime",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "Felix Maier <xilefmai@gmail.com> (https://github.com/maierfelix)"
   ],
   "bugs": {
-    "url": "https://github.com/maierfelix/iroh/issues"
+    "url": "https://github.com/maierfelix/Iroh/issues"
   },
   "scripts": {
     "build": "node build.js",

@@ -57,6 +57,10 @@ eval(script);
 
 ### API
 
+#### Stage API:
+
+``getFunctionNodeByName``: Returns the raw AST node related to the passed in name.
+
 #### Listener API:
 
 Each listener event has an ``RuntimeEvent`` argument which contains various event  specific properties.
@@ -78,9 +82,11 @@ All listener events provide you the following fixed options:
 
 ##### Methods:
 
-``getASTNode``: Returns the original AST node
+``getRelativeNode``: Returns the original AST node
 
-``getLocation``: Returns an object with the original source location
+``getPosition``: Returns an object with the original source position (``start``, ``end``)
+
+``getLocation``: Returns an object with the original source location, which is better formated than ``getPosition``. The object contains: (``start.line``, ``start.column``), (``end.line``, ``end.column``).
 
 ``getSource``: Returns the original source code
 
@@ -109,7 +115,7 @@ Iroh.CASE
   case :
   default :
 Iroh.CALL
-  main()
+  object()
 Iroh.FUNCTION
   function() {}
 Iroh.VAR
@@ -117,15 +123,15 @@ Iroh.VAR
   var
   const
 Iroh.OP_NEW
-  new cls()
+  new object()
 Iroh.TRY
   try {} catch(e) {}
 Iroh.ALLOC
-  {}, []
+  {},
+  []
 Iroh.MEMBER
   a.b
-  a["b"]
-  a["" + "b"]
+  a[b]
 Iroh.THIS
   this
 Iroh.ASSIGN
@@ -139,7 +145,8 @@ Iroh.LOGICAL
   ||
 Iroh.BINARY
   +,
-  -, *
+  -,
+  *
   ..
 Iroh.UNARY
   +0,
@@ -148,7 +155,8 @@ Iroh.UNARY
   typeof a
   ..
 Iroh.PROGRAM
-  Code enter, Code exit
+  Code enter,
+  Code exit
 ````
 
 **``Iroh.IF``**:
@@ -226,20 +234,20 @@ Iroh.PROGRAM
  * ``before``
     * ``hash``: Unique hash
     * ``indent``: Indent level
-    * ``context``: The context (e.g. ``Function``)
-    * ``callee``: The callee (e.g. ``toString``)
-    * ``name``: An auto generated name
     * ``arguments``: The call's arguments
-    * ``external``: E.g. Array.map is external
+    * ``context``: The context the call is performed in
+    * ``object``: The call's object
+    * ``callee``: String version of the called function name
+    * ``external``: E.g. ``Array.map`` and ``eval`` are external calls
  * ``after``
     * ``hash``: Unique hash
     * ``indent``: Indent level
-    * ``context``: The context (e.g. ``Function``)
-    * ``callee``: The callee (e.g. ``toString``)
-    * ``name``: An auto generated name
     * ``arguments``: The call's arguments
-    * ``return``: The call's return value
-    * ``external``: E.g. Array.map is external
+    * ``return``: The returned value after the call is performed
+    * ``context``: The context the call is performed in
+    * ``object``: The call's object
+    * ``callee``: String version of the called function name
+    * ``external``: E.g. ``Array.map`` and ``eval`` are external calls
 
 **``Iroh.FUNCTION``**:
  * ``enter``
@@ -357,25 +365,9 @@ Iroh.PROGRAM
 
 **``Iroh.PROGRAM``**:
  * ``enter``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
  * ``leave``
+    * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``return``: The program's returned frame value
-
-##### Exploiting runtime behaviour: 
-
-Iroh's listener nature allows to listen for data, but also allows to change the data used in your running code.
-
-Modifying runtime data:
-````js
-let code = "console.log({ test: 666 }.test)";
-let stage = new Iroh.Stage(code);
-let listener = stage.addListener(Iroh.ALLOC)
-listener.on("fire", (e) => {
-  let obj = e.value.test;
-  obj.test = 42;
-});
-````
-Our code here now wont't ever log the expected ``666``, it will log ``42``.
-
-Most listeners allow to manipulate the original code's runtime behaviour. E.g. you can do the same for *function* ``arguments``, ``returns``, ``calls`` and an if's ``test`` which is the condition to enter the *if* block or not.

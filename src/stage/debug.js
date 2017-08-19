@@ -276,9 +276,10 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   let before = this.createEvent(INSTR.FUNCTION_CALL);
   before.hash = hash;
   before.context = ctx;
-  before.object = object;
+  before.object = proto;
   before.callee = call;
   before.name = callee;
+  before.call = root;
   before.arguments = args;
   before.external = isSloppy;
   before.indent = this.indent;
@@ -291,51 +292,14 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   this.$$frameHash = Math.abs(hash);
   // FRAME END
 
-  /*if (isSloppy) {
-    console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "#external", "(", args, ")");
-  } else {
-    console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "(", args, ")");
-  }*/
-
   this.indent += INDENT_FACTOR; 
-
-  // intercept function.toString calls
-  // to remain code reification feature
-  let fn = null;
-  if (
-    ORIGINAL_FUNCTION_TOSTRING &&
-    before.object instanceof Function &&
-    before.callee === "toString" &&
-    // native toString
-    before.object[before.callee] === Function.toString &&
-    // function is known and patched
-    (fn = this.getFunctionNodeByName(before.object.name)) !== null
-  ) {
-    // extract original code
-    let code = this.input.substr(fn.start, fn.end - fn.start);
-    value = code;
-  // intercept require
-  // untested but could work in theory
-  } else if (
-    (Iroh.isNode) &&
-    (before.object === require ||
-      before.object[before.callee] === require)
-  ) {
-    let path = require.resolve(before.arguments[0]);
-    console.log(`Intercepting require for ${path}`);
-    let code = require("fs").readFileSync(path, "utf-8");
-    let script = this.patch(code);
-    value = script;
-  } else {
-    // evaluate function bully protected
-    try {
-      value = root.apply(proto, before.arguments);
-    } catch (e) {
-      //console.error(e);
-      // function knocked out :(
-    }
+  // evaluate function bully protected
+  try {
+    value = before.call.apply(before.object, before.arguments);
+  } catch (e) {
+    //console.error(e);
+    // function knocked out :(
   }
-
   this.indent -= INDENT_FACTOR;
 
   // API
@@ -351,12 +315,6 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   after.indent = this.indent;
   after.trigger("after");
   // API END
-
-  /*if (isSloppy) {
-    console.log(indentString(this.indent) + "call", after.callee, "end #external", "->", [after.return]);
-  } else {
-    console.log(indentString(this.indent) + "call", after.callee, "end", "->", [after.return]);
-  }*/
 
   // FRAME
   this.popFrame();
@@ -744,20 +702,22 @@ export function DEBUG_IDENTIFIER = function(id, value) {
   return value;
 };*/
 
-export function DEBUG_PROGRAM_ENTER() {
+export function DEBUG_PROGRAM_ENTER(hash) {
   //console.log(indentString(this.indent) + "Program");
   // API
   let event = this.createEvent(INSTR.PROGRAM_ENTER);
+  event.hash = hash;
   event.indent = this.indent;
   event.trigger("enter");
   // API END
   this.indent += INDENT_FACTOR;
 };
-export function DEBUG_PROGRAM_LEAVE(ret) {
+export function DEBUG_PROGRAM_LEAVE(hash, ret) {
   this.indent -= INDENT_FACTOR;
   //console.log(indentString(this.indent) + "Program end ->", ret);
   // API
   let event = this.createEvent(INSTR.PROGRAM_LEAVE);
+  event.hash = hash;
   event.indent = this.indent;
   event.return = ret;
   event.trigger("leave");

@@ -23,6 +23,10 @@ export default class RuntimeEvent {
     // trigger all attached listeners
     this.instance.triggerListeners(this, trigger);
   }
+  getRelativeNode() {
+    let node = this.instance.nodes[this.hash].node;
+    return node;
+  }
   getASTNode() {
     let source = this.getSource();
     let ast = acorn.parse(source, {
@@ -30,15 +34,19 @@ export default class RuntimeEvent {
     });
     return ast;
   }
-  getLocation() {
-    let node = this.instance.nodes[this.hash].node;
+  getPosition() {
+    let node = this.getRelativeNode();
     return {
       end: node.end,
       start: node.start
     };
   }
+  getLocation() {
+    let node = this.getRelativeNode();
+    return node.loc;
+  }
   getSource() {
-    let loc = this.getLocation();
+    let loc = this.getPosition();
     let input = this.instance.input;
     let output = input.substr(loc.start, loc.end - loc.start);
     return output;

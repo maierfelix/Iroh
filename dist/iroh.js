@@ -9116,7 +9116,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 }.call(this, this));
 
       (function() {
-        $$VERSION = "0.1.8";
+        $$VERSION = "0.2.0";
         $$HOMEPAGE = "http://maierfelix.github.io/Iroh/";
         'use strict';
 
@@ -9148,7 +9148,6 @@ var TEMP_VAR_BASE = "Iroh$$x";
 var CLEAN_DEBUG_INJECTION = false;
 
 // auto intercept Function.toString
-var ORIGINAL_FUNCTION_TOSTRING = true;
 
 var OP = {};
 var INSTR = {};
@@ -9749,6 +9748,12 @@ STAGE1.Program = function(node, patcher) {
   patcher.pushScope(node);
   patcher.stage.BlockStatement(node, patcher, patcher.stage);
   if (patcher.stage === STAGE1) {
+    var hash = uBranchHash();
+    // create node link
+    patcher.nodes[hash] = {
+      hash: hash,
+      node: cloneNode(node)
+    };
     // program frame value id
     var frameValueId = "$$frameValue";
     // patch program frame value debug
@@ -9786,7 +9791,9 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_LEAVE")
       },
-      arguments: []
+      arguments: [
+        parseExpression(hash)
+      ]
     };
     var start = {
       magic: true,
@@ -9796,7 +9803,9 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_ENTER")
       },
-      arguments: []
+      arguments: [
+        parseExpression(hash)
+      ]
     };
     var frame = parseExpressionStatement(("var " + frameValueId + " = void 0;"));
     end.arguments.push(
@@ -11430,6 +11439,10 @@ RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
   // trigger all attached listeners
   this.instance.triggerListeners(this, trigger$1);
 };
+RuntimeEvent.prototype.getRelativeNode = function getRelativeNode () {
+  var node = this.instance.nodes[this.hash].node;
+  return node;
+};
 RuntimeEvent.prototype.getASTNode = function getASTNode () {
   var source = this.getSource();
   var ast = acorn.parse(source, {
@@ -11437,15 +11450,19 @@ RuntimeEvent.prototype.getASTNode = function getASTNode () {
   });
   return ast;
 };
-RuntimeEvent.prototype.getLocation = function getLocation () {
-  var node = this.instance.nodes[this.hash].node;
+RuntimeEvent.prototype.getPosition = function getPosition () {
+  var node = this.getRelativeNode();
   return {
     end: node.end,
     start: node.start
   };
 };
+RuntimeEvent.prototype.getLocation = function getLocation () {
+  var node = this.getRelativeNode();
+  return node.loc;
+};
 RuntimeEvent.prototype.getSource = function getSource () {
-  var loc = this.getLocation();
+  var loc = this.getPosition();
   var input = this.instance.input;
   var output = input.substr(loc.start, loc.end - loc.start);
   return output;
@@ -11803,9 +11820,10 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   var before = this.createEvent(INSTR.FUNCTION_CALL);
   before.hash = hash;
   before.context = ctx;
-  before.object = object;
+  before.object = proto;
   before.callee = call;
   before.name = callee;
+  before.call = root;
   before.arguments = args;
   before.external = isSloppy;
   before.indent = this.indent;
@@ -11818,51 +11836,14 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   this.$$frameHash = Math.abs(hash);
   // FRAME END
 
-  /*if (isSloppy) {
-    console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "#external", "(", args, ")");
-  } else {
-    console.log(indentString(this.indent - INDENT_FACTOR) + "call", callee, "(", args, ")");
-  }*/
-
   this.indent += INDENT_FACTOR; 
-
-  // intercept function.toString calls
-  // to remain code reification feature
-  var fn = null;
-  if (
-    ORIGINAL_FUNCTION_TOSTRING &&
-    before.object instanceof Function &&
-    before.callee === "toString" &&
-    // native toString
-    before.object[before.callee] === Function.toString &&
-    // function is known and patched
-    (fn = this.getFunctionNodeByName(before.object.name)) !== null
-  ) {
-    // extract original code
-    var code = this.input.substr(fn.start, fn.end - fn.start);
-    value = code;
-  // intercept require
-  // untested but could work in theory
-  } else if (
-    (Iroh.isNode) &&
-    (before.object === require ||
-      before.object[before.callee] === require)
-  ) {
-    var path = require.resolve(before.arguments[0]);
-    console.log(("Intercepting require for " + path));
-    var code$1 = require("fs").readFileSync(path, "utf-8");
-    var script = this.patch(code$1);
-    value = script;
-  } else {
-    // evaluate function bully protected
-    try {
-      value = root.apply(proto, before.arguments);
-    } catch (e) {
-      //console.error(e);
-      // function knocked out :(
-    }
+  // evaluate function bully protected
+  try {
+    value = before.call.apply(before.object, before.arguments);
+  } catch (e) {
+    //console.error(e);
+    // function knocked out :(
   }
-
   this.indent -= INDENT_FACTOR;
 
   // API
@@ -11878,12 +11859,6 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   after.indent = this.indent;
   after.trigger("after");
   // API END
-
-  /*if (isSloppy) {
-    console.log(indentString(this.indent) + "call", after.callee, "end #external", "->", [after.return]);
-  } else {
-    console.log(indentString(this.indent) + "call", after.callee, "end", "->", [after.return]);
-  }*/
 
   // FRAME
   this.popFrame();
@@ -12271,20 +12246,22 @@ export function DEBUG_IDENTIFIER = function(id, value) {
   return value;
 };*/
 
-function DEBUG_PROGRAM_ENTER() {
+function DEBUG_PROGRAM_ENTER(hash) {
   //console.log(indentString(this.indent) + "Program");
   // API
   var event = this.createEvent(INSTR.PROGRAM_ENTER);
+  event.hash = hash;
   event.indent = this.indent;
   event.trigger("enter");
   // API END
   this.indent += INDENT_FACTOR;
 }
-function DEBUG_PROGRAM_LEAVE(ret) {
+function DEBUG_PROGRAM_LEAVE(hash, ret) {
   this.indent -= INDENT_FACTOR;
   //console.log(indentString(this.indent) + "Program end ->", ret);
   // API
   var event = this.createEvent(INSTR.PROGRAM_LEAVE);
+  event.hash = hash;
   event.indent = this.indent;
   event.return = ret;
   event.trigger("leave");
@@ -12342,7 +12319,9 @@ var _debug = Object.freeze({
 	DEBUG_PROGRAM_FRAME_VALUE: DEBUG_PROGRAM_FRAME_VALUE
 });
 
-var Stage = function Stage(input) {
+var Stage = function Stage(input, opt) {
+  if ( opt === void 0 ) opt = {};
+
   // validate
   if (typeof input !== "string") {
     throw new Error(("Expected input type string, but got " + (typeof input)));
@@ -12353,6 +12332,7 @@ var Stage = function Stage(input) {
   this.links = {};
   this.nodes = null;
   this.symbols = null;
+  this.options = {};
   this.indent = 0;
   this.frame = null;
   this.$$frameHash = 0;
@@ -12727,7 +12707,7 @@ var _patch = Object.freeze({
 	applyPatches: applyPatches
 });
 
-var Iroh$1 = function Iroh() {
+var Iroh = function Iroh() {
   // patch AST scope
   this.scope = null;
   // patch stage
@@ -12745,11 +12725,11 @@ var Iroh$1 = function Iroh() {
 };
 
 // link methods to main class
-extend(Iroh$1, _utils);
-extend(Iroh$1, _setup);
-extend(Iroh$1, _patch);
+extend(Iroh, _utils);
+extend(Iroh, _setup);
+extend(Iroh, _patch);
 
-var iroh = new Iroh$1();
+var iroh = new Iroh();
 
 // intercept Stage instantiations
 var _Stage = function() {

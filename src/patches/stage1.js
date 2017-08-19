@@ -16,6 +16,12 @@ STAGE1.Program = function(node, patcher) {
   patcher.pushScope(node);
   patcher.stage.BlockStatement(node, patcher, patcher.stage);
   if (patcher.stage === STAGE1) {
+    let hash = uBranchHash();
+    // create node link
+    patcher.nodes[hash] = {
+      hash: hash,
+      node: cloneNode(node)
+    };
     // program frame value id
     let frameValueId = "$$frameValue";
     // patch program frame value debug
@@ -53,7 +59,9 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_LEAVE")
       },
-      arguments: []
+      arguments: [
+        parseExpression(hash)
+      ]
     };
     let start = {
       magic: true,
@@ -63,7 +71,9 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_ENTER")
       },
-      arguments: []
+      arguments: [
+        parseExpression(hash)
+      ]
     };
     let frame = parseExpressionStatement(`var ${frameValueId} = void 0;`);
     end.arguments.push(
