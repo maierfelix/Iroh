@@ -304,6 +304,8 @@ export function getCategoryFromInstruction(type) {
       return CATEGORY.THIS | 0;
     case INSTR.UNARY:
       return CATEGORY.UNARY | 0;
+    case INSTR.UPDATE:
+      return CATEGORY.UPDATE | 0;
     case INSTR.BINARY:
       return CATEGORY.BINARY | 0;
     case INSTR.LOGICAL:

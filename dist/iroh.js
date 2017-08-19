@@ -9116,7 +9116,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 }.call(this, this));
 
       (function() {
-        $$VERSION = "0.2.0";
+        $$VERSION = "0.2.1";
         $$HOMEPAGE = "http://maierfelix.github.io/Iroh/";
         'use strict';
 
@@ -9144,10 +9144,11 @@ var DEBUG_KEY = "$";
 // temp variable start with this
 var TEMP_VAR_BASE = "Iroh$$x";
 
+// log all errors, logs also internal errors
+var LOG_ALL_ERRORS = false;
+
 // clean or minimal debug command related output
 var CLEAN_DEBUG_INJECTION = false;
-
-// auto intercept Function.toString
 
 var OP = {};
 var INSTR = {};
@@ -9192,6 +9193,7 @@ var CATEGORY = {};
   INSTR.OP_NEW_END = ii++;
 
   INSTR.UNARY = ii++;
+  INSTR.UPDATE = ii++;
 
   INSTR.SUPER = ii++;
 
@@ -9228,6 +9230,7 @@ var CATEGORY = {};
   var ii = 0;
   CATEGORY.THIS = ii++;
   CATEGORY.UNARY = ii++;
+  CATEGORY.UPDATE = ii++;
   CATEGORY.BINARY = ii++;
   CATEGORY.LOGICAL = ii++;
   CATEGORY.TERNARY = ii++;
@@ -9286,6 +9289,8 @@ var CATEGORY = {};
   OP[">="] = ii++;
   OP["<"] = ii++;
   OP["<="] = ii++;
+  OP["++"] = ii++;
+  OP["--"] = ii++;
 
 })();
 
@@ -9576,6 +9581,8 @@ function getCategoryFromInstruction(type) {
       return CATEGORY.THIS | 0;
     case INSTR.UNARY:
       return CATEGORY.UNARY | 0;
+    case INSTR.UPDATE:
+      return CATEGORY.UPDATE | 0;
     case INSTR.BINARY:
       return CATEGORY.BINARY | 0;
     case INSTR.LOGICAL:
@@ -10381,6 +10388,70 @@ STAGE1.AssignmentExpression = function(node, patcher) {
   }
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
+  for (var key in call) {
+    if (!call.hasOwnProperty(key)) { continue; }
+    node[key] = call[key];
+  }
+};
+
+STAGE1.UpdateExpression = function(node, patcher) {
+  if (node.magic) {
+    patcher.walk(node.argument, patcher, patcher.stage);
+    return;
+  }
+  node.magic = true;
+  patcher.walk(node.argument, patcher, patcher.stage);
+  var hash = uBranchHash();
+  // create node link
+  var clone = cloneNode(node);
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: clone
+  };
+  var arg = node.argument;
+  var operator = node.operator;
+  // #object assignment
+  var object = null;
+  var property = null;
+  // skip the last property and manually
+  // access it inside the debug function
+  if (arg.type === "MemberExpression") {
+    if (arg.property.type === "Identifier") {
+      if (arg.computed) {
+        property = arg.property;
+      } else {
+        property = {
+          magic: true,
+          type: "Literal",
+          value: arg.property.name
+        };
+      }
+    } else {
+      property = arg.property;
+    }
+    object = arg.object;
+  }
+  // identifier based assignment
+  // fixed up below by turning into assign expr again
+  else if (arg.type === "Identifier") {
+    object = arg;
+    property = parseExpression(null);
+  }
+  var call = {
+    magic: true,
+    type: "CallExpression",
+    callee: {
+      magic: true,
+      type: "Identifier",
+      name: patcher.instance.getLink("DEBUG_UPDATE")
+    },
+    arguments: [
+      parseExpression(hash),
+      parseExpression(OP[operator]),
+      clone,
+      parseExpression(node.prefix)
+    ]
+  };
   for (var key in call) {
     if (!call.hasOwnProperty(key)) { continue; }
     node[key] = call[key];
@@ -11324,16 +11395,8 @@ STAGE8.ConditionalExpression = function(node, patcher) {
     cons,
     alt
   ];
-
 };
 
-/*
-STAGE8.UpdateExpression = function(node) {
-  if (node.magic) return;
-  node.magic = true;
-  Iroh.walk(node.argument, Iroh.state, Iroh.stage);
-  console.log(node);
-};*/
 /*
 STAGE8.Literal = function(node) {
   if (node.magic) return;
@@ -11841,7 +11904,7 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    //console.error(e);
+    if (LOG_ALL_ERRORS) { console.error(e); }
     // function knocked out :(
   }
   this.indent -= INDENT_FACTOR;
@@ -12235,6 +12298,20 @@ function DEBUG_UNARY(hash, op, ctx, critical, value) {
   return event.result;
 }
 
+function DEBUG_UPDATE(hash, op, value, prefix) {
+  var result = value;
+  // API
+  var event = this.createEvent(INSTR.UPDATE);
+  event.op = operatorToString(op);
+  event.result = result;
+  event.hash = hash;
+  event.prefix = prefix;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.result;
+}
+
 // deprecated
 /*
 export function DEBUG_LITERAL = function(value) {
@@ -12314,6 +12391,7 @@ var _debug = Object.freeze({
 	DEBUG_LOGICAL: DEBUG_LOGICAL,
 	DEBUG_BINARY: DEBUG_BINARY,
 	DEBUG_UNARY: DEBUG_UNARY,
+	DEBUG_UPDATE: DEBUG_UPDATE,
 	DEBUG_PROGRAM_ENTER: DEBUG_PROGRAM_ENTER,
 	DEBUG_PROGRAM_LEAVE: DEBUG_PROGRAM_LEAVE,
 	DEBUG_PROGRAM_FRAME_VALUE: DEBUG_PROGRAM_FRAME_VALUE

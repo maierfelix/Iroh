@@ -1,6 +1,6 @@
 import {
   INDENT_FACTOR,
-  ORIGINAL_FUNCTION_TOSTRING
+  LOG_ALL_ERRORS
 } from "../cfg";
 
 import { OP, INSTR } from "../labels";
@@ -297,7 +297,7 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    //console.error(e);
+    if (LOG_ALL_ERRORS) console.error(e);
     // function knocked out :(
   }
   this.indent -= INDENT_FACTOR;
@@ -688,6 +688,20 @@ export function DEBUG_UNARY(hash, op, ctx, critical, value) {
   event.trigger("fire");
   // API END
   //console.log(indentString(this.indent) + operatorToString(op), value, "->", result, critical);
+  return event.result;
+};
+
+export function DEBUG_UPDATE(hash, op, value, prefix) {
+  let result = value;
+  // API
+  let event = this.createEvent(INSTR.UPDATE);
+  event.op = operatorToString(op);
+  event.result = result;
+  event.hash = hash;
+  event.prefix = prefix;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
   return event.result;
 };
 

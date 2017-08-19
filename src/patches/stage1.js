@@ -657,6 +657,70 @@ STAGE1.AssignmentExpression = function(node, patcher) {
   };
 };
 
+STAGE1.UpdateExpression = function(node, patcher) {
+  if (node.magic) {
+    patcher.walk(node.argument, patcher, patcher.stage);
+    return;
+  }
+  node.magic = true;
+  patcher.walk(node.argument, patcher, patcher.stage);
+  let hash = uBranchHash();
+  // create node link
+  let clone = cloneNode(node);
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: clone
+  };
+  let arg = node.argument;
+  let operator = node.operator;
+  // #object assignment
+  let object = null;
+  let property = null;
+  // skip the last property and manually
+  // access it inside the debug function
+  if (arg.type === "MemberExpression") {
+    if (arg.property.type === "Identifier") {
+      if (arg.computed) {
+        property = arg.property;
+      } else {
+        property = {
+          magic: true,
+          type: "Literal",
+          value: arg.property.name
+        };
+      }
+    } else {
+      property = arg.property;
+    }
+    object = arg.object;
+  }
+  // identifier based assignment
+  // fixed up below by turning into assign expr again
+  else if (arg.type === "Identifier") {
+    object = arg;
+    property = parseExpression(null);
+  }
+  let call = {
+    magic: true,
+    type: "CallExpression",
+    callee: {
+      magic: true,
+      type: "Identifier",
+      name: patcher.instance.getLink("DEBUG_UPDATE")
+    },
+    arguments: [
+      parseExpression(hash),
+      parseExpression(OP[operator]),
+      clone,
+      parseExpression(node.prefix)
+    ]
+  };
+  for (let key in call) {
+    if (!call.hasOwnProperty(key)) continue;
+    node[key] = call[key];
+  };
+};
+
 STAGE1.ArrayExpression = function(node, patcher) {
   if (node.magic) return;
   let hash = uBranchHash();

@@ -183,6 +183,12 @@
         log(" ".repeat(e.indent) + "unary", e.op, e.value, "=>", e.result);
       });
 
+      // update
+      stage.addListener(Iroh.UPDATE)
+      .on("fire", (e) => {
+        console.log(" ".repeat(e.indent) + "update", e.op, e.prefix, "=>", e.result);
+      });
+
       // program
       stage.addListener(Iroh.PROGRAM)
       .on("enter", (e) => {

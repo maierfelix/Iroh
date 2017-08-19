@@ -174,16 +174,8 @@ STAGE8.ConditionalExpression = function(node, patcher) {
     cons,
     alt
   ];
-
 };
 
-/*
-STAGE8.UpdateExpression = function(node) {
-  if (node.magic) return;
-  node.magic = true;
-  Iroh.walk(node.argument, Iroh.state, Iroh.stage);
-  console.log(node);
-};*/
 /*
 STAGE8.Literal = function(node) {
   if (node.magic) return;

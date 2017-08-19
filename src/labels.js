@@ -43,6 +43,7 @@ export let CATEGORY = {};
   INSTR.OP_NEW_END = ii++;
 
   INSTR.UNARY = ii++;
+  INSTR.UPDATE = ii++;
 
   INSTR.SUPER = ii++;
 
@@ -79,6 +80,7 @@ export let CATEGORY = {};
   let ii = 0;
   CATEGORY.THIS = ii++;
   CATEGORY.UNARY = ii++;
+  CATEGORY.UPDATE = ii++;
   CATEGORY.BINARY = ii++;
   CATEGORY.LOGICAL = ii++;
   CATEGORY.TERNARY = ii++;
@@ -137,5 +139,7 @@ export let CATEGORY = {};
   OP[">="] = ii++;
   OP["<"] = ii++;
   OP["<="] = ii++;
+  OP["++"] = ii++;
+  OP["--"] = ii++;
 
 })();

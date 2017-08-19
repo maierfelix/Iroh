@@ -7,8 +7,8 @@ export const DEBUG_KEY = `$`;
 // temp variable start with this
 export const TEMP_VAR_BASE = `Iroh$$x`;
 
+// log all errors, logs also internal errors
+export const LOG_ALL_ERRORS = false;
+
 // clean or minimal debug command related output
 export const CLEAN_DEBUG_INJECTION = false;
-
-// auto intercept Function.toString
-export const ORIGINAL_FUNCTION_TOSTRING = true;

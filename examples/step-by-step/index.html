@@ -23,10 +23,9 @@ function add(a, b) {
 function main() {
   let res = 0;
   let ii = 0;
-  for (let ii = 0; ii < 3; ii += 1) {
+  for (let ii = 0; ii < 3; ii++) {
     res += add(ii, 2);
   };
-
   return res;
 };
 
@@ -194,6 +193,10 @@ main();
 
     // unary
     stage.addListener(Iroh.UNARY)
+    .on("fire", (e) => push(e));
+
+    // update
+    stage.addListener(Iroh.UPDATE)
     .on("fire", (e) => push(e));
 
     // program

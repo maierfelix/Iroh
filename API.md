@@ -363,6 +363,14 @@ Iroh.PROGRAM
     * ``value``: The unary's value
     * ``result``: The result
 
+**``Iroh.UPDATE``**:
+ * ``fire``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+    * ``op``: The used operator
+    * ``prefix``: Prefix or postfix indicator
+    * ``result``: The result
+
 **``Iroh.PROGRAM``**:
  * ``enter``
     * ``hash``: Unique hash
