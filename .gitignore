@@ -85,3 +85,5 @@ $RECYCLE.BIN/
 *.lnk
 
 www
+
+package-lock.json
