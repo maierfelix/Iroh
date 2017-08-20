@@ -33,14 +33,14 @@ main();
 `;
 </script>
 
-<script type="text/javascript" src="../../dist/iroh.js"></script>
+<script type="text/javascript" src="../../dist/iroh-browser.js"></script>
 <script src="monaco-editor/min/vs/loader.js"></script>
 <script>
   let editor = null;
   require.config({ paths: { 'vs': 'monaco-editor/min/vs' }});
   require(['vs/editor/editor.main'], function() {
     editor = monaco.editor.create(document.getElementById("container"), {
-      value: code,
+      value: "",
       language: "javascript",
       lineNumbers: true,
       roundedSelection: false,
@@ -51,15 +51,33 @@ main();
         enabled: false
       }
     });
-    let stage = new Iroh.Stage(code);
-    addListeners(stage);
-    eval(stage.script);
-    update();
+    editor.onDidChangeModelContent(event => {
+      init(editor.getValue());
+    });
+    editor.setValue(code);
+    init(code);
   });
 
+  let stage = null;
   let index = 0;
   let queue = [];
   let decorations = [];
+
+  function init(input) {
+    reset();
+    stage = new Iroh.Stage(input);
+    addListeners(stage);
+    eval(stage.script);
+    update();
+  };
+
+  function reset() {
+    resetDecorations();
+    stage = null;
+    index = 0;
+    queue = [];
+    decorations = [];
+  };
 
   window.addEventListener("keydown", (e) => {
     let key = e.keyCode;

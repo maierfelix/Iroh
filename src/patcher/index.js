@@ -3,6 +3,8 @@ import { uid } from "../utils";
 import { INSTR } from "../labels";
 import { CLEAN_DEBUG_INJECTION } from "../cfg";
 
+import { base, recursive } from "acorn/dist/walk";
+
 import Scope from "../scope";
 
 import STAGE1 from "../patches/stage1";
@@ -33,7 +35,7 @@ export default class Patcher {
 };
 
 Patcher.prototype.walk = function(ast, state, visitors) {
-  return acorn.walk.recursive(ast, state, visitors, acorn.walk.base);
+  return recursive(ast, state, visitors, base);
 };
 
 Patcher.prototype.pushScope = function(node) {

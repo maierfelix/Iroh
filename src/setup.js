@@ -1,12 +1,7 @@
 import { CATEGORY } from "./labels";
+import { IS_BROWSER } from "./cfg";
 
 export function setup() {
-  // detect environment
-  this.isNode = (
-    (typeof module !== "undefined" && module.exports) &&
-    (typeof require !== "undefined")
-  );
-  this.isBrowser = !this.isNode;
   this.generateCategoryBits();
 };
 
@@ -19,12 +14,10 @@ export function generateCategoryBits() {
 export function greet() {
   let version = $$VERSION;
   if (
-    this.isBrowser &&
+    IS_BROWSER &&
     typeof navigator !== "undefined" &&
     navigator.userAgent.toLowerCase().indexOf("chrome") > -1
   ) {
     console.log(`%c ☕ Iroh.js - ${version} `, "background: #2e0801; color: #fff; padding:1px 0;");
-  } else {
-    console.log(`Iroh.js - ${version}`);
   }
 };

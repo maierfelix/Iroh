@@ -4,6 +4,10 @@ import {
   CATEGORY
 } from "./labels";
 
+import { parse as prs } from "acorn";
+import { full } from "acorn/dist/walk";
+import { generate as gen } from "astring";
+
 export function getInheritanceTree(cls) {
   let base = cls;
   let tree = [cls.name];
@@ -270,17 +274,17 @@ export function cloneNode(node) {
 
 export function deepMagicPatch(node) {
   // magic patch the whole ast
-  acorn.walk.full(node, function(child) {
+  full(node, function(child) {
     child.magic = true;
   });
 };
 
 export function parse() {
-  return acorn.parse.apply(null, arguments);
+  return prs.apply(null, arguments);
 };
 
 export function generate() {
-  return escodegen.generate.apply(null, arguments);
+  return gen.apply(null, arguments);
 };
 
 export function parseExpression(input) {

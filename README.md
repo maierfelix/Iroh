@@ -8,7 +8,6 @@
   <a href="http://maierfelix.github.io/Iroh/">Website</a> |
   <a href="http://maierfelix.github.io/Iroh/playground/index.html">Playground</a> |
   <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a> |
-  <a href="https://github.com/maierfelix/Iroh/releases">Download</a>
 </p>
 
 <p align="center">
@@ -19,6 +18,13 @@
 
 Iroh is a dynamic code analysis tool for JavaScript.
 Iroh allows to record your code flow in realtime, intercept runtime values and manipulate program behaviour on the fly. 
+
+### Installation:
+
+````
+npm install iroh
+````
+or alternativelly the browser distribution from [here](https://github.com/maierfelix/Iroh/blob/master/dist/iroh-browser.js).
 
 ### Example:
 *(A simple textual model is used here)*

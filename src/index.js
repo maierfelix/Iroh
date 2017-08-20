@@ -23,7 +23,7 @@ class Iroh {
     // enter setup phase
     this.setup();
     // say hello
-    this.greet();
+    //this.greet();
   }
 };
 
@@ -36,10 +36,11 @@ const iroh = new Iroh();
 
 // intercept Stage instantiations
 let _Stage = function() {
-  Stage.apply(this, arguments);
+  let stage = new Stage(...arguments);
   // register stage to iroh stages
   // so we can keep track of it
-  iroh.stages[this.key] = this;
+  iroh.stages[stage.key] = stage;
+  return stage;
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
@@ -47,8 +48,6 @@ iroh.Stage = _Stage;
 // link to outer space
 if (typeof window !== "undefined") {
   window.Iroh = iroh;
-} else if (typeof module !== "undefined") {
-  module.exports = iroh;
-} else {
-  throw new Error("Failed to initialise Iroh: Unexpected environment");
 }
+
+export default iroh;

@@ -12,3 +12,10 @@ export const LOG_ALL_ERRORS = false;
 
 // clean or minimal debug command related output
 export const CLEAN_DEBUG_INJECTION = false;
+
+// detect environment
+export const IS_NODE = (
+  (typeof module !== "undefined" && module.exports) &&
+  (typeof require !== "undefined")
+);
+export const IS_BROWSER = !IS_NODE;
