@@ -1,22 +1,44 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="http://codemirror.net/3/lib/codemirror.css">
-    <script src="http://codemirror.net/3/lib/codemirror.js"></script>
-    <script src="http://codemirror.net/3/mode/javascript/javascript.js"></script>
-    <style>
-      body {
-        background: rgba(0,0,0,0.01);
-        line-height: 1.5;
-        font-family: "Open Sans",arial,x-locale-body,sans-serif;
-        padding: 0px 6px 0px;
-      }
-      .sm-gist .gist-file .gist-data {
-        height: 256px;
-      }
-    </style>
-  </head>
+<head>
+  <title>Iroh</title>
+
+  <link rel="stylesheet" href="http://codemirror.net/3/lib/codemirror.css">
+  <script src="http://codemirror.net/3/lib/codemirror.js"></script>
+  <script src="http://codemirror.net/3/mode/javascript/javascript.js"></script>
+
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,300,700" />
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="../../style.css">
+
+  <link rel="icon" type="image/png" href="img/favicon_clear-16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="img/favicon_clear-32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="img/favicon_clear-256.png" sizes="256x256">
+
+  <style>
+    body {
+      background: rgba(0,0,0,0.01);
+      line-height: 1.5;
+      font-family: "Open Sans",arial,x-locale-body,sans-serif;
+      padding: 0px 6px 0px;
+    }
+    .sm-gist .gist-file .gist-data {
+      height: 256px;
+    }
+    .poly-argument {
+      background: rgba(255, 255, 0, 0.1);
+    }
+    .poly-return {
+      background: rgba(255, 0, 0, 0.1);
+    }
+  </style>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
   <body>
+
+  <div class="container">
     <h3>Runtime type checking with <a href="https://github.com/maierfelix/Iroh">Iroh.js</a></h3>
     <div id="input" style="border: 1px solid rgba(0,0,0,0.1);"></div>
     <small style="line-height: 10px;">
@@ -40,20 +62,22 @@
     <div class="sm-gist">
       <script src="https://gist.github.com/maierfelix/9e5d73e06b31ba27c341108141eb77a2.js"></script>
     </div>
-    <!-- include iroh -->
-    <script type="text/javascript" src="../../dist/iroh-browser.js"></script>
-    <!-- our little type check script -->
-    <script type="text/javascript" src="type-check.js"></script>
-    <!-- codemirror stuff -->
-    <script>
-    let editor = CodeMirror(document.getElementById("input"), {
-      mode: "text/javascript",
-      lineNumbers: true
-    });
-    let doc = editor.getDoc();
+  </div>
 
-    doc.setValue(`function add(a, b) {
-  return a + b;
+  <!-- include iroh -->
+  <script type="text/javascript" src="../../dist/iroh-browser.js"></script>
+  <!-- our little type check script -->
+  <script type="text/javascript" src="type-check.js"></script>
+  <!-- codemirror stuff -->
+  <script>
+  let editor = CodeMirror(document.getElementById("input"), {
+    mode: "text/javascript",
+    lineNumbers: true
+  });
+  let doc = editor.getDoc();
+
+  doc.setValue(`function add(a, b) {
+return a + b;
 };
 add(2, 4); // add is now add(a:number, b: number):number
 add("Hello", "World"); // add became add(a:string, b: number):string
@@ -62,22 +86,13 @@ add(add(1, add(1, "")), 2 * 8);
 add(666, 777);
 `);
 
-    doc.on("change", () => {
-      runStage(doc.getValue());
-    });
-    // manually trigger change event
-    doc._handlers.change[0]();
+  doc.on("change", () => {
+    runStage(doc.getValue());
+  });
+  // manually trigger change event
+  doc._handlers.change[0]();
 
-    </script>
+  </script>
 
-    <style>
-      .poly-argument {
-        background: rgba(255, 255, 0, 0.1);
-      }
-      .poly-return {
-        background: rgba(255, 0, 0, 0.1);
-      }
-    </style>
-
-  <body>
+  </body>
 </html>
