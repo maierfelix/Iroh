@@ -4,6 +4,17 @@
     <link rel="stylesheet" href="http://codemirror.net/3/lib/codemirror.css">
     <script src="http://codemirror.net/3/lib/codemirror.js"></script>
     <script src="http://codemirror.net/3/mode/javascript/javascript.js"></script>
+
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,300,700" />
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="../../style.css">
+
+    <link rel="icon" type="image/png" href="img/favicon_clear-16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="img/favicon_clear-32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="img/favicon_clear-256.png" sizes="256x256">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       body {
         background: rgba(0,0,0,0.01);
@@ -17,28 +28,34 @@
     </style>
   </head>
   <body>
-    <h3>Runtime type checking with <a href="https://github.com/maierfelix/Iroh">Iroh.js</a></h3>
-    <div id="input" style="border: 1px solid rgba(0,0,0,0.1);"></div>
-    <small style="line-height: 10px;">
-      <p>Polymorphic arguments are colored <span class="poly-argument">yellow</span></p>
-      <p>Polymorphic return values are colored <span class="poly-return">red</span></p>
-    </small>
-    <p>
-      This example is about type checking and detecting polymorphic argument and return types of functions.
-    </p>
-    <p>
-      We detect when a function's:
-      <ul>
-        <li> - argument type changes</li>
-        <li> - argument count changes</li>
-        <li> - return type changes</li>
-        <li> - argument or return value is NaN</li>
-      </ul>
-    </p>
-    <p>Code of this example</p>
-    <div class="sm-gist">
-      <script src="https://gist.github.com/maierfelix/9e5d73e06b31ba27c341108141eb77a2.js"></script>
+
+    <div class="container">
+
+      <h3>Runtime type checking with <a href="https://github.com/maierfelix/Iroh">Iroh.js</a></h3>
+      <div id="input" style="border: 1px solid rgba(0,0,0,0.1);"></div>
+      <small style="line-height: 10px; padding: 1px;">
+        <p>Polymorphic arguments are colored <span class="poly-argument">yellow</span></p>
+        <p>Polymorphic return values are colored <span class="poly-return">red</span></p>
+      </small>
+      <p>
+        This example is about type checking and detecting polymorphic argument and return types of functions.
+      </p>
+      <p>
+        We detect when a function's:
+        <ul>
+          <li> - argument type changes</li>
+          <li> - argument count changes</li>
+          <li> - return type changes</li>
+          <li> - argument or return value is NaN</li>
+        </ul>
+      </p>
+      <p>Code of this example</p>
+      <div class="sm-gist">
+        <script src="https://gist.github.com/maierfelix/9e5d73e06b31ba27c341108141eb77a2.js"></script>
+      </div>
+
     </div>
+
     <!-- include iroh -->
     <script type="text/javascript" src="../../dist/iroh-browser.js"></script>
     <!-- our little type check script -->
