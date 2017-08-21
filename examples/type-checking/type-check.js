@@ -58,6 +58,7 @@ function runStage(input) {
     // take the greatest argument count and loop it
     let argCount = Math.max(func.arguments.length, e.arguments.length);
     let node = e.getASTNode();
+    let msg = "";
     for (let ii = 0; ii < argCount; ++ii) {
       // continue if function argument type has changed
       if (func.arguments[ii] === getType(e.arguments[ii])) continue;
@@ -69,7 +70,15 @@ function runStage(input) {
         { line: loc.end.line - 1, ch: loc.end.column },
         { className: "poly-argument" }
       ));
+      msg += (`(${ii}: ${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
+      if (ii < argCount - 1) msg += ", ";
     };
+    // we got some bad argument types
+    if (msg.length > 0) {
+      let loc = node.loc;
+      msg = `Arguments ${msg}`;
+      console.warn(`${fn.name}: ${msg} in ${loc.start.line}:${loc.start.column}`);
+    }
   })
   // what happens after the call is performed
   .on("after", (e) => {
@@ -99,6 +108,7 @@ function runStage(input) {
         { className: "poly-return" }
       );
       markers.push(marker);
+      console.warn(`${fn.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });
 
