@@ -46,13 +46,39 @@ After attaching the listeners we now need to run the stage, so our code actually
 
 Syntax:
 ````js
-stage.script; // this is our patched code
+stage.script; // this contains the patched code to run
 ````
 Example:
 ````js
 let script = stage.script;
 // we can just use eval to run the patched code we want to track
 eval(script);
+````
+
+If you wonder what the patched code looks like:
+
+**Input**:
+
+````js
+function add(a, b) {
+  return a + b;
+};
+add(2, 4);
+````
+
+**Output**:
+````js
+const $$STx613 = Iroh.stages["$$STx613"];
+var $$frameValue = void 0;
+$$STx613.$45(256)
+function add(a, b) {
+  $$STx613.$4(257, this, add, arguments);
+  return $$STx613.$1(253, "add", $$STx613.$32(258, 1, a, b));
+  $$STx613.$5(257, this);
+}
+;
+$$STx613.$44($$frameValue = $$STx613.$2(254, this, add, null, [2, 4]));
+$$STx613.$46(256, $$frameValue)
 ````
 
 ### API
