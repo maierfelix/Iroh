@@ -63,7 +63,7 @@ function runStage(input) {
     let msg = "";
     for (let ii = 0; ii < argCount; ++ii) {
       if (func.arguments[ii] !== getType(e.arguments[ii])) {
-        msg += (`(${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
+        msg += (`(${ii}: ${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
         if (ii < argCount - 1) msg += ", ";
       }
     };
@@ -94,6 +94,9 @@ function runStage(input) {
       console.warn(`${func.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });
+
+  // clear the console
+  console.clear();
 
   // run our stage
   eval(stage.script);
