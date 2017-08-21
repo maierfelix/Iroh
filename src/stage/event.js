@@ -5,6 +5,8 @@ import {
   getCategoryFromInstruction
 } from "../helpers";
 
+import { parse } from "acorn";
+
 export default class RuntimeEvent {
   constructor(type, instance) {
     this.type = type;
@@ -29,7 +31,7 @@ export default class RuntimeEvent {
   }
   getASTNode() {
     let source = this.getSource();
-    let ast = acorn.parse(source, {
+    let ast = parse(source, {
       allowReturnOutsideFunction: true
     });
     return ast;

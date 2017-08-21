@@ -2404,7 +2404,7 @@ class RuntimeEvent {
   }
   getASTNode() {
     let source = this.getSource();
-    let ast = acorn.parse(source, {
+    let ast = parse(source, {
       allowReturnOutsideFunction: true
     });
     return ast;

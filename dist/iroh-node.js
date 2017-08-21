@@ -1,6 +1,6 @@
 'use strict';
 
-var acorn$1 = require('acorn');
+var acorn = require('acorn');
 var acorn_dist_walk = require('acorn/dist/walk');
 var astring = require('astring');
 
@@ -444,7 +444,7 @@ function deepMagicPatch(node) {
 }
 
 function parse$1() {
-  return acorn$1.parse.apply(null, arguments);
+  return acorn.parse.apply(null, arguments);
 }
 
 function generate$1() {
