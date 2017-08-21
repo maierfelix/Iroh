@@ -2405,6 +2405,7 @@ class RuntimeEvent {
   getASTNode() {
     let source = this.getSource();
     let ast = parse(source, {
+      locations: true,
       allowReturnOutsideFunction: true
     });
     return ast;

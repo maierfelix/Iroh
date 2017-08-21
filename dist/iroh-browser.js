@@ -7554,6 +7554,7 @@ RuntimeEvent.prototype.getRelativeNode = function getRelativeNode () {
 RuntimeEvent.prototype.getASTNode = function getASTNode () {
   var source = this.getSource();
   var ast = parse$1(source, {
+    locations: true,
     allowReturnOutsideFunction: true
   });
   return ast;
