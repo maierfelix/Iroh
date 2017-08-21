@@ -1,17 +1,14 @@
-/*
-  This example is about type checking
-  and detecting polymorphic types
-  Polymorphism slows your javascript!
-  We detect when:
-    - A function's argument type changed
-    - A function's argument count changed
-    - A function's argument or return value is NaN
-    - A function's return type changed
-*/
+let markers = [];
+
+function clearMarkers() {
+  markers.map((marker) => marker.clear());
+};
 
 // runStage gets called as soon as
 // we change the code in the editor
 function runStage(input) {
+
+  clearMarkers();
 
   // initialise
   let stage = new Iroh.Stage(input);
@@ -62,15 +59,23 @@ function runStage(input) {
     let argCount = Math.max(func.arguments.length, e.arguments.length);
     let msg = "";
     for (let ii = 0; ii < argCount; ++ii) {
-      if (func.arguments[ii] !== getType(e.arguments[ii])) {
+      /*if (func.arguments[ii] !== getType(e.arguments[ii])) {
         msg += (`(${ii}: ${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
         if (ii < argCount - 1) msg += ", ";
-      }
+      }*/
+      console.log(e.getASTNode());
     };
-    if (msg.length > 0) {
+    /*if (msg.length > 0) {
       msg = `Arguments ${msg}`;
+      // mark the bad code
+      let marker = editor.markText(
+        { line: loc.start.line - 1, ch: loc.start.column },
+        { line: loc.end.line - 1, ch: loc.end.column },
+        { className: "styled-background" }
+      );
+      markers.push(marker);
       console.warn(`${func.name}: ${msg} in ${loc.start.line}:${loc.start.column}`);
-    }
+    }*/
   })
   // what happens after the call is performed
   .on("after", (e) => {
@@ -91,6 +96,13 @@ function runStage(input) {
       func.return = typeof e.return;
     }
     if (func.return !== typeof e.return) {
+      // mark the bad code
+      let marker = editor.markText(
+        { line: loc.start.line - 1, ch: loc.start.column },
+        { line: loc.start.line - 1, ch: loc.start.column },
+        { className: "styled-background" }
+      );
+      markers.push(marker);
       console.warn(`${func.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });

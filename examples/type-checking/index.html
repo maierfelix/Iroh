@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="http://esironal.github.io/cmtouch/lib/codemirror.css">
-    <script src="http://esironal.github.io/cmtouch/lib/codemirror.js"></script>
-    <script src="http://codemirror.net/mode/javascript/javascript.js"></script>
+    <link rel="stylesheet" href="http://codemirror.net/3/lib/codemirror.css">
+    <script src="http://codemirror.net/3/lib/codemirror.js"></script>
+    <script src="http://codemirror.net/3/mode/javascript/javascript.js"></script>
     <style>
       body {
         background: rgba(0,0,0,0.01);
@@ -45,20 +45,28 @@
     let editor = CodeMirror(document.getElementById("input"), {
       mode: "text/javascript",
       lineNumbers: true
-    }).getDoc();
+    });
+    let doc = editor.getDoc();
 
-    editor.setValue(`function sum(a, b) {
+    doc.setValue(`function sum(a, b) {
   return a + b;
 };
 sum(2, 4); // sum initially called with two numbers
-sum("Hello", "World!"); // sum called with two strings, warn`);
+sum("Hello", "World!"); // sum called with two strings`);
 
-    editor.on("change", () => {
-      runStage(editor.getValue());
+    doc.on("change", () => {
+      runStage(doc.getValue());
     });
     // manually trigger change event
-    editor._handlers.change[0]();
+    doc._handlers.change[0]();
 
     </script>
+
+    <style>
+      .styled-background {
+        background: rgba(255, 255, 0, 0.1);
+      }
+    </style>
+
   <body>
 </html>
