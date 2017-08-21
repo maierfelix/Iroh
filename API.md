@@ -159,6 +159,7 @@ Iroh.UPDATE
   --object
   object++
   object--
+  ..
 Iroh.PROGRAM
   Code enter,
   Code exit
