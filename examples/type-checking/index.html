@@ -18,8 +18,11 @@
   </head>
   <body>
     <h3>Runtime type checking with <a href="https://github.com/maierfelix/Iroh">Iroh.js</a></h3>
-    <div id="input"></div>
-    <p><i><small>Open your console to see type warnings</small></i></p>
+    <div id="input" style="border: 1px solid rgba(0,0,0,0.1);"></div>
+    <small style="line-height: 10px;">
+      <p>Polymorphic arguments are colored <span class="poly-argument">yellow</span></p>
+      <p>Polymorphic return values are colored <span class="poly-return">red</span></p>
+    </small>
     <p>
       This example is about type checking and detecting polymorphic argument and return types of functions.
     </p>
@@ -48,11 +51,15 @@
     });
     let doc = editor.getDoc();
 
-    doc.setValue(`function sum(a, b) {
+    doc.setValue(`function add(a, b) {
   return a + b;
 };
-sum(2, 4); // sum initially called with two numbers
-sum("Hello", "World!"); // sum called with two strings`);
+add(2, 4); // add is now add(a:number, b: number):number
+add("", 8); // add became add(a:string, b: number):string
+add(1, 0);
+add(add(1, add(1, "")), 2 * 8);
+add(666, 777);
+`);
 
     doc.on("change", () => {
       runStage(doc.getValue());
@@ -63,8 +70,11 @@ sum("Hello", "World!"); // sum called with two strings`);
     </script>
 
     <style>
-      .styled-background {
+      .poly-argument {
         background: rgba(255, 255, 0, 0.1);
+      }
+      .poly-return {
+        background: rgba(255, 0, 0, 0.1);
       }
     </style>
 

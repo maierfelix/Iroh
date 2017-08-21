@@ -28,13 +28,13 @@ function runStage(input) {
   stage.addListener(Iroh.CALL)
   // what happens before the call gets executed
   .on("before", (e) => {
+    // dont track external calls
+    if (e.external) return;
     // take the raw function to call
     let fn = (
       e.object instanceof Function ? e.object :
       e.call
     );
-    // get the calls source code location
-    let loc = e.getLocation();
     // our function object
     let func = null;
     // the called function isn't registered yet
@@ -57,35 +57,30 @@ function runStage(input) {
     }
     // take the greatest argument count and loop it
     let argCount = Math.max(func.arguments.length, e.arguments.length);
-    let msg = "";
+    let node = e.getASTNode();
     for (let ii = 0; ii < argCount; ++ii) {
-      /*if (func.arguments[ii] !== getType(e.arguments[ii])) {
-        msg += (`(${ii}: ${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
-        if (ii < argCount - 1) msg += ", ";
-      }*/
-      console.log(e.getASTNode());
-    };
-    /*if (msg.length > 0) {
-      msg = `Arguments ${msg}`;
-      // mark the bad code
-      let marker = editor.markText(
+      // continue if function argument type has changed
+      if (func.arguments[ii] === getType(e.arguments[ii])) continue;
+      if (ii > node.arguments.length - 1) continue;
+      let loc = node.arguments[ii].loc;
+      // create a codemirror text marker
+      markers.push(editor.markText(
         { line: loc.start.line - 1, ch: loc.start.column },
         { line: loc.end.line - 1, ch: loc.end.column },
-        { className: "styled-background" }
-      );
-      markers.push(marker);
-      console.warn(`${func.name}: ${msg} in ${loc.start.line}:${loc.start.column}`);
-    }*/
+        { className: "poly-argument" }
+      ));
+    };
   })
   // what happens after the call is performed
   .on("after", (e) => {
+    if (e.external) return;
     // take the raw function to call
     let fn = (
       e.object instanceof Function ? e.object :
       e.call
     );
     // get the calls source code location
-    let loc = e.getLocation();
+    let loc = e.getASTNode().callee.loc;
     // our function object
     let func = functions[fn.name];
     // we expect that the function is already registered
@@ -93,22 +88,19 @@ function runStage(input) {
     // then register the first used return type as absolute
     if (!func.hasOwnProperty("return")) {
       // assign the initial return type here
-      func.return = typeof e.return;
+      func.return = getType(e.return);
     }
-    if (func.return !== typeof e.return) {
+    // func return type changed
+    if (func.return !== getType(e.return)) {
       // mark the bad code
       let marker = editor.markText(
         { line: loc.start.line - 1, ch: loc.start.column },
-        { line: loc.start.line - 1, ch: loc.start.column },
-        { className: "styled-background" }
+        { line: loc.end.line - 1, ch: loc.end.column },
+        { className: "poly-return" }
       );
       markers.push(marker);
-      console.warn(`${func.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });
-
-  // clear the console
-  console.clear();
 
   // run our stage
   eval(stage.script);
