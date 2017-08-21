@@ -309,6 +309,7 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   after.object = before.object;
   after.callee = before.callee;
   after.name = callee;
+  after.call = root;
   after.arguments = before.arguments;
   after.return = value;
   after.external = isSloppy;

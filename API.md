@@ -154,6 +154,11 @@ Iroh.UNARY
   !true
   typeof a
   ..
+Iroh.UPDATE
+  ++object
+  --object
+  object++
+  object--
 Iroh.PROGRAM
   Code enter,
   Code exit
@@ -237,6 +242,7 @@ Iroh.PROGRAM
     * ``arguments``: The call's arguments
     * ``context``: The context the call is performed in
     * ``object``: The call's object
+    * ``call``: Called function if object is null
     * ``callee``: String version of the called function name
     * ``external``: E.g. ``Array.map`` and ``eval`` are external calls
  * ``after``
@@ -246,6 +252,7 @@ Iroh.PROGRAM
     * ``return``: The returned value after the call is performed
     * ``context``: The context the call is performed in
     * ``object``: The call's object
+    * ``call``: Called function if object is null
     * ``callee``: String version of the called function name
     * ``external``: E.g. ``Array.map`` and ``eval`` are external calls
 

@@ -37,6 +37,7 @@ main();
 <script src="monaco-editor/min/vs/loader.js"></script>
 <script>
   let editor = null;
+  let overlay = null;
   require.config({ paths: { 'vs': 'monaco-editor/min/vs' }});
   require(['vs/editor/editor.main'], function() {
     editor = monaco.editor.create(document.getElementById("container"), {
@@ -49,16 +50,45 @@ main();
       theme: "vs-dark",
       minimap: {
         enabled: false
-      }
+      },
+      glyphMargin: true
     });
     editor.onDidChangeModelContent(event => {
       init(editor.getValue());
     });
+
+    // Add an overlay widget
+    overlay = {
+      domNode: null,
+      getId: function() {
+        return 'my.overlay.widget';
+      },
+      getDomNode: function() {
+        if (!this.domNode) {
+          let node = document.createElement("div");
+          this.domNode = node;
+          node.innerHTML = "";
+          node.style.background = 'rgba(0,0,0,0.15)';
+        }
+        return this.domNode;
+      },
+      getPosition: function() {
+        return {
+          position: {
+            lineNumber: range.startLineNumber,
+            column: range.startColumn
+          },
+          preference: [monaco.editor.ContentWidgetPositionPreference.ABOVE, monaco.editor.ContentWidgetPositionPreference.BELOW]
+        };
+      }
+    };
     editor.setValue(code);
+    editor.addContentWidget(overlay);
     init(code);
   });
 
   let stage = null;
+  let range = null;
   let index = 0;
   let queue = [];
   let decorations = [];
@@ -103,13 +133,26 @@ main();
     resetDecorations();
     let event = queue[index];
     let loc = event.getLocation();
-    let range = new monaco.Range(
+    range = new monaco.Range(
       loc.start.line, loc.start.column + 1,
       loc.end.line, loc.end.column + 1,
     );
     decorations = editor.deltaDecorations([], [
       { range: range, options: { inlineClassName: 'activeInline' }}
     ]);
+    if (event.category === Iroh.PROGRAM && overlay.domNode) {
+      overlay.domNode.innerHTML = "";
+    }
+    else if (overlay.domNode) {
+      let value = (
+        event.hasOwnProperty("value") ? event.value :
+        event.hasOwnProperty("result") ? event.result :
+        event.return || "unknown"
+      );
+      console.log(event);
+      overlay.domNode.innerHTML = value;
+    }
+    editor.layoutContentWidget(overlay);
   };
 
   function resetDecorations() {

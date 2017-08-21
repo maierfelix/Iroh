@@ -7,7 +7,11 @@
 <p align="center">
   <a href="http://maierfelix.github.io/Iroh/">Website</a> |
   <a href="http://maierfelix.github.io/Iroh/playground/index.html">Playground</a> |
-  <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a> |
+  <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a>
+</p>
+
+<p align="center">
+<a href="https://www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/v/iroh.svg?style=flat-square" alt="NPM Version" /></a> <a href="https://www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/dm/iroh.svg?style=flat-square" alt="NPM Downloads" /></a>
 </p>
 
 <p align="center">
