@@ -12,10 +12,6 @@
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="../../style.css">
 
-  <link rel="icon" type="image/png" href="img/favicon_clear-16.png" sizes="16x16">
-  <link rel="icon" type="image/png" href="img/favicon_clear-32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="img/favicon_clear-256.png" sizes="256x256">
-
   <style>
     body {
       background: rgba(0,0,0,0.01);
@@ -77,14 +73,16 @@
   let doc = editor.getDoc();
 
   doc.setValue(`function add(a, b) {
-return a + b;
+  return a + b;
 };
-add(2, 4); // add is now add(a:number, b: number):number
-add("Hello", "World"); // add became add(a:string, b: number):string
-add(2 * 2, 0);
-add(add(1, add(1, "")), 2 * 8);
-add(666, 777);
-`);
+
+setTimeout(function() {
+  add(2, 4); // add is now add(a:number, b: number):number
+  add("Hello", "World"); // add became add(a:string, b: number):string
+  add(2 * 2, false);
+  add(add(1, add(1, "")), 2 * 8);
+  add(666, 777);
+}, 1e3);`);
 
   doc.on("change", () => {
     runStage(doc.getValue());
