@@ -31,6 +31,9 @@ npm install iroh
 or alternatively the browser distribution from [here](https://github.com/maierfelix/Iroh/blob/master/dist/iroh-browser.js).
 
 ### Example:
+
+You can play with some live examples [here](http://maierfelix.github.io/Iroh/examples/) and you can clone them from [here](https://github.com/maierfelix/Iroh/tree/gh-pages/examples).
+
 *(A simple textual model is used here)*
 #### Input
 ````js
