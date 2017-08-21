@@ -7547,27 +7547,19 @@ RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
   // trigger all attached listeners
   this.instance.triggerListeners(this, trigger$1);
 };
-RuntimeEvent.prototype.getRelativeNode = function getRelativeNode () {
+RuntimeEvent.prototype.getASTNode = function getASTNode () {
   var node = this.instance.nodes[this.hash].node;
   return node;
 };
-RuntimeEvent.prototype.getASTNode = function getASTNode () {
-  var source = this.getSource();
-  var ast = parse$1(source, {
-    locations: true,
-    allowReturnOutsideFunction: true
-  });
-  return ast;
-};
 RuntimeEvent.prototype.getPosition = function getPosition () {
-  var node = this.getRelativeNode();
+  var node = this.getASTNode();
   return {
     end: node.end,
     start: node.start
   };
 };
 RuntimeEvent.prototype.getLocation = function getLocation () {
-  var node = this.getRelativeNode();
+  var node = this.getASTNode();
   return node.loc;
 };
 RuntimeEvent.prototype.getSource = function getSource () {

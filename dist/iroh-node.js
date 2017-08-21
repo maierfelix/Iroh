@@ -2400,27 +2400,19 @@ class RuntimeEvent {
     // trigger all attached listeners
     this.instance.triggerListeners(this, trigger);
   }
-  getRelativeNode() {
+  getASTNode() {
     let node = this.instance.nodes[this.hash].node;
     return node;
   }
-  getASTNode() {
-    let source = this.getSource();
-    let ast = acorn.parse(source, {
-      locations: true,
-      allowReturnOutsideFunction: true
-    });
-    return ast;
-  }
   getPosition() {
-    let node = this.getRelativeNode();
+    let node = this.getASTNode();
     return {
       end: node.end,
       start: node.start
     };
   }
   getLocation() {
-    let node = this.getRelativeNode();
+    let node = this.getASTNode();
     return node.loc;
   }
   getSource() {

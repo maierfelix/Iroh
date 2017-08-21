@@ -108,7 +108,7 @@ All listener events provide you the following fixed options:
 
 ##### Methods:
 
-``getRelativeNode``: Returns the original AST node
+``getASTNode``: Returns the original AST node
 
 ``getPosition``: Returns an object with the original source position (``start``, ``end``)
 
