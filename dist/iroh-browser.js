@@ -7553,7 +7553,7 @@ RuntimeEvent.prototype.getRelativeNode = function getRelativeNode () {
 };
 RuntimeEvent.prototype.getASTNode = function getASTNode () {
   var source = this.getSource();
-  var ast = acorn.parse(source, {
+  var ast = parse$1(source, {
     allowReturnOutsideFunction: true
   });
   return ast;
