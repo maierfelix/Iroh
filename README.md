@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="http://maierfelix.github.io/Iroh/">Website</a> |
-  <a href="http://maierfelix.github.io/Iroh/examples/index.html">Playground</a> |
+  <a href="http://maierfelix.github.io/Iroh/examples/index.html">Examples</a> |
   <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a>
 </p>
 
