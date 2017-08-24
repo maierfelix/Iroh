@@ -184,7 +184,7 @@ let CATEGORY = {};
 })();
 
 // unique temporary variable index
-let utvidx = 0;
+let utvidx = 1;
 function reserveTempVarId() {
   return (
     `${TEMP_VAR_BASE}${utvidx++}`
@@ -192,13 +192,13 @@ function reserveTempVarId() {
 }
 
 // general unique index
-let uidx = 0;
+let uidx = 1;
 function uid() {
   return uidx++;
 }
 
 // unique branch index
-let ubidx = 0;
+let ubidx = 1;
 function uBranchHash() {
   return ubidx++;
 }
@@ -2871,11 +2871,7 @@ function DEBUG_FUNCTION_LEAVE(hash, ctx) {
   }
 }
 function DEBUG_FUNCTION_RETURN(hash, name, value) {
-  // FRAME
-  let expect = this.resolveReturnFrame(this.frame);
-  this.leaveFrameUntil(expect);
-  // FRAME END
-  this.currentScope = this.previousScope;
+
   let isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
@@ -2887,6 +2883,12 @@ function DEBUG_FUNCTION_RETURN(hash, name, value) {
   event.sloppy = isSloppy;
   event.trigger("return");
   // API END
+
+  // FRAME
+  let expect = this.resolveReturnFrame(this.frame);
+  this.leaveFrameUntil(expect);
+  // FRAME END
+  this.currentScope = this.previousScope;
 
   if (isSloppy) {
     this.indent -= INDENT_FACTOR;

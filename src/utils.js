@@ -1,7 +1,7 @@
 import { TEMP_VAR_BASE } from "./cfg";
 
 // unique temporary variable index
-let utvidx = 0;
+let utvidx = 1;
 export function reserveTempVarId() {
   return (
     `${TEMP_VAR_BASE}${utvidx++}`
@@ -9,13 +9,13 @@ export function reserveTempVarId() {
 };
 
 // general unique index
-let uidx = 0;
+let uidx = 1;
 export function uid() {
   return uidx++;
 };
 
 // unique branch index
-let ubidx = 0;
+let ubidx = 1;
 export function uBranchHash() {
   return ubidx++;
 };

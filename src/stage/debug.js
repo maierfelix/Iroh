@@ -370,11 +370,7 @@ export function DEBUG_FUNCTION_LEAVE(hash, ctx) {
   }
 };
 export function DEBUG_FUNCTION_RETURN(hash, name, value) {
-  // FRAME
-  let expect = this.resolveReturnFrame(this.frame);
-  this.leaveFrameUntil(expect);
-  // FRAME END
-  this.currentScope = this.previousScope;
+
   let isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
@@ -386,6 +382,12 @@ export function DEBUG_FUNCTION_RETURN(hash, name, value) {
   event.sloppy = isSloppy;
   event.trigger("return");
   // API END
+
+  // FRAME
+  let expect = this.resolveReturnFrame(this.frame);
+  this.leaveFrameUntil(expect);
+  // FRAME END
+  this.currentScope = this.previousScope;
 
   if (isSloppy) {
     this.indent -= INDENT_FACTOR;
