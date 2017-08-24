@@ -183,7 +183,7 @@ var CATEGORY = {};
 })();
 
 // unique temporary variable index
-var utvidx = 0;
+var utvidx = 1;
 function reserveTempVarId() {
   return (
     ("" + TEMP_VAR_BASE + (utvidx++))
@@ -191,13 +191,13 @@ function reserveTempVarId() {
 }
 
 // general unique index
-var uidx = 0;
+var uidx = 1;
 function uid() {
   return uidx++;
 }
 
 // unique branch index
-var ubidx = 0;
+var ubidx = 1;
 function uBranchHash() {
   return ubidx++;
 }
@@ -8015,11 +8015,7 @@ function DEBUG_FUNCTION_LEAVE(hash, ctx) {
   }
 }
 function DEBUG_FUNCTION_RETURN(hash, name, value) {
-  // FRAME
-  var expect = this.resolveReturnFrame(this.frame);
-  this.leaveFrameUntil(expect);
-  // FRAME END
-  this.currentScope = this.previousScope;
+
   var isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
@@ -8031,6 +8027,12 @@ function DEBUG_FUNCTION_RETURN(hash, name, value) {
   event.sloppy = isSloppy;
   event.trigger("return");
   // API END
+
+  // FRAME
+  var expect = this.resolveReturnFrame(this.frame);
+  this.leaveFrameUntil(expect);
+  // FRAME END
+  this.currentScope = this.previousScope;
 
   if (isSloppy) {
     this.indent -= INDENT_FACTOR;
