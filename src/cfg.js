@@ -1,3 +1,5 @@
+import { version as VV } from "../package.json";
+
 // indent factor
 export const INDENT_FACTOR = 1;
 
@@ -19,3 +21,5 @@ export const IS_NODE = (
   (typeof require !== "undefined")
 );
 export const IS_BROWSER = !IS_NODE;
+
+export const VERSION = VV;

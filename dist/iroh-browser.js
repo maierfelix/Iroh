@@ -16,6 +16,8 @@ var extend = function(cls, prot) {
   }
 };
 
+var version = "0.2.5";
+
 // indent factor
 var INDENT_FACTOR = 1;
 
@@ -37,6 +39,8 @@ var IS_NODE = (
   (typeof require !== "undefined")
 );
 var IS_BROWSER = !IS_NODE;
+
+var VERSION = version;
 
 var OP = {};
 var INSTR = {};
@@ -223,7 +227,7 @@ var reservedWords = {
 
 var ecma5AndLessKeywords = "break case catch continue debugger default do else finally for function if return switch throw try var while with null true false instanceof typeof void delete new in this";
 
-var keywords = {
+var keywords$1 = {
   5: ecma5AndLessKeywords,
   6: ecma5AndLessKeywords + " const class extends export import super"
 };
@@ -341,14 +345,14 @@ var startsExpr = {startsExpr: true};
 
 // Map keyword names to token types.
 
-var keywords$1 = {};
+var keywords$1$1 = {};
 
 // Succinct definitions of keyword token types
 function kw(name, options) {
   if ( options === void 0 ) { options = {}; }
 
   options.keyword = name;
-  return keywords$1[name] = new TokenType(name, options)
+  return keywords$1$1[name] = new TokenType(name, options)
 }
 
 var types = {
@@ -647,7 +651,7 @@ function keywordRegexp(words) {
 var Parser = function Parser(options, input, startPos) {
   this.options = options = getOptions(options);
   this.sourceFile = options.sourceFile;
-  this.keywords = keywordRegexp(keywords[options.ecmaVersion >= 6 ? 6 : 5]);
+  this.keywords = keywordRegexp(keywords$1[options.ecmaVersion >= 6 ? 6 : 5]);
   var reserved = "";
   if (!options.allowReserved) {
     for (var v = options.ecmaVersion;; v--)
@@ -3838,7 +3842,7 @@ pp$8.readWord = function() {
   var type = types.name;
   if (this.keywords.test(word)) {
     if (this.containsEsc) { this.raiseRecoverable(this.start, "Escape sequence in keyword " + word); }
-    type = keywords$1[word];
+    type = keywords$1$1[word];
   }
   return this.finishToken(type, word)
 };
@@ -8755,13 +8759,12 @@ function generateCategoryBits() {
 }
 
 function greet() {
-  var version = $$VERSION;
   if (
     IS_BROWSER &&
     typeof navigator !== "undefined" &&
     navigator.userAgent.toLowerCase().indexOf("chrome") > -1
   ) {
-    console.log(("%c ☕ Iroh.js - " + version + " "), "background: #2e0801; color: #fff; padding:1px 0;");
+    console.log(("%c ☕ Iroh.js - " + VERSION + " "), "background: #2e0801; color: #fff; padding:1px 0;");
   }
 }
 
@@ -8832,7 +8835,7 @@ var Iroh = function Iroh() {
   // enter setup phase
   this.setup();
   // say hello
-  //this.greet();
+  this.greet();
 };
 
 // link methods to main class

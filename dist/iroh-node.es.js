@@ -17,6 +17,8 @@ var extend = function(cls, prot) {
   }
 };
 
+var version = "0.2.5";
+
 // indent factor
 const INDENT_FACTOR = 1;
 
@@ -38,6 +40,8 @@ const IS_NODE = (
   (typeof require !== "undefined")
 );
 const IS_BROWSER = !IS_NODE;
+
+const VERSION = version;
 
 let OP = {};
 let INSTR = {};
@@ -3597,13 +3601,12 @@ function generateCategoryBits() {
 }
 
 function greet() {
-  let version = $$VERSION;
   if (
     IS_BROWSER &&
     typeof navigator !== "undefined" &&
     navigator.userAgent.toLowerCase().indexOf("chrome") > -1
   ) {
-    console.log(`%c ☕ Iroh.js - ${version} `, "background: #2e0801; color: #fff; padding:1px 0;");
+    console.log(`%c ☕ Iroh.js - ${VERSION} `, "background: #2e0801; color: #fff; padding:1px 0;");
   }
 }
 
@@ -3675,7 +3678,7 @@ class Iroh {
     // enter setup phase
     this.setup();
     // say hello
-    //this.greet();
+    this.greet();
   }
 }
 

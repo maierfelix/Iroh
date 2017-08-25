@@ -23,7 +23,7 @@ class Iroh {
     // enter setup phase
     this.setup();
     // say hello
-    //this.greet();
+    this.greet();
   }
 };
 

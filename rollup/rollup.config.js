@@ -1,3 +1,5 @@
+import json from "rollup-plugin-json";
+
 export default {
   entry: "src/index.js",
   moduleName: "iroh",
@@ -5,5 +7,8 @@ export default {
     "acorn",
     "acorn/dist/walk.es",
     "astring"
+  ],
+  plugins: [
+    json()
   ]
 }
