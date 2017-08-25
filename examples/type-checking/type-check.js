@@ -1,14 +1,19 @@
 let markers = [];
 
+function clear() {
+  reports.innerHTML = "";
+  clearMarkers();
+};
+
 function clearMarkers() {
-  markers.map((marker) => marker.clear());
+  markers.map(function(marker) { marker.clear() });
 };
 
 // runStage gets called as soon as
 // we change the code in the editor
 function runStage(input) {
 
-  clearMarkers();
+  clear();
 
   // initialise
   let stage = new Iroh.Stage(input);
@@ -24,10 +29,16 @@ function runStage(input) {
     return typeof value;
   };
 
+  function warn(msg) {
+    let el = document.createElement("p");
+    el.innerHTML = msg;
+    reports.appendChild(el);
+  };
+
   // Iroh allows to intercept all calls in our code
   stage.addListener(Iroh.CALL)
   // what happens before the call gets executed
-  .on("before", (e) => {
+  .on("before", function(e) {
     // dont track external calls
     if (e.external) return;
     // take the raw function to call
@@ -77,11 +88,11 @@ function runStage(input) {
     if (msg.length > 0) {
       let loc = node.loc;
       msg = `Arguments ${msg}`;
-      console.warn(`${fn.name}: ${msg} in ${loc.start.line}:${loc.start.column}`);
+      warn(`${fn.name}: ${msg} in ${loc.start.line}:${loc.start.column}`);
     }
   })
   // what happens after the call is performed
-  .on("after", (e) => {
+  .on("after", function(e) {
     if (e.external) return;
     // take the raw function to call
     let fn = (
@@ -108,7 +119,7 @@ function runStage(input) {
         { className: "poly-return" }
       );
       markers.push(marker);
-      console.warn(`${fn.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
+      warn(`${fn.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });
 
