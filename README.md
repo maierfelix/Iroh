@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="http://maierfelix.github.io/Iroh/">
+  <a href="//maierfelix.github.io/Iroh/">
     <img alt="Iroh" src="http://i.imgur.com/q7DYXfF.png" height="175">
   </a>
 </p>
 
 <p align="center">
-  <a href="http://maierfelix.github.io/Iroh/">Website</a> |
-  <a href="http://maierfelix.github.io/Iroh/examples/index.html">Examples</a> |
-  <a href="https://github.com/maierfelix/Iroh/blob/master/API.md">API</a>
+  <a href="//maierfelix.github.io/Iroh/">Website</a> |
+  <a href="//maierfelix.github.io/Iroh/examples/index.html">Examples</a> |
+  <a href="//github.com/maierfelix/Iroh/blob/master/API.md">API</a>
 </p>
 
 <p align="center">
-<a href="https://www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/v/iroh.svg?style=flat-square" alt="NPM Version" /></a> <a href="https://www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/dm/iroh.svg?style=flat-square" alt="NPM Downloads" /></a>
+<a href="//www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/v/iroh.svg?style=flat-square" alt="NPM Version" /></a> <a href="//www.npmjs.com/package/iroh"><img src="https://img.shields.io/npm/dm/iroh.svg?style=flat-square" alt="NPM Downloads" /></a>
 </p>
 
 <p align="center">
@@ -28,11 +28,11 @@ Iroh allows to record your code flow in realtime, intercept runtime values and m
 ````
 npm install iroh
 ````
-or alternatively the browser distribution from [here](https://github.com/maierfelix/Iroh/blob/master/dist/iroh-browser.js).
+or alternatively the browser distribution from [here](//github.com/maierfelix/Iroh/blob/master/dist/iroh-browser.js).
 
 ### Example:
 
-You can play with some live examples [here](http://maierfelix.github.io/Iroh/examples/) and you can clone them from [here](https://github.com/maierfelix/Iroh/tree/gh-pages/examples).
+You can play with some live examples [here](//maierfelix.github.io/Iroh/examples/) and you can clone them from [here](//github.com/maierfelix/Iroh/tree/gh-pages/examples).
 
 *(A simple textual model is used here)*
 #### Input
