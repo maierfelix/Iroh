@@ -68,17 +68,17 @@ add(2, 4);
 
 **Output**:
 ````js
-const $$STx613 = Iroh.stages["$$STx613"];
+const $$STx1 = Iroh.stages["$$STx1"];
 var $$frameValue = void 0;
-$$STx613.$45(256)
+$$STx1.$45(5)
 function add(a, b) {
-  $$STx613.$4(257, this, add, arguments);
-  return $$STx613.$1(253, "add", $$STx613.$32(258, 1, a, b));
-  $$STx613.$5(257, this);
+  $$STx1.$4(6, this, add, arguments);
+  return $$STx1.$1(1, "add", $$STx1.$32(7, 1, a, b));
+  $$STx1.$5(6, this);
 }
 ;
-$$STx613.$44($$frameValue = $$STx613.$2(254, this, add, null, [2, 4]));
-$$STx613.$46(256, $$frameValue)
+$$STx1.$44($$frameValue = $$STx1.$2(4, this, add, null, [$$STx1.$30(2, 2), $$STx1.$30(3, 4)]));
+$$STx1.$46(5, $$frameValue)
 ````
 
 ### API
