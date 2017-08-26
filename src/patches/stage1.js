@@ -751,6 +751,35 @@ STAGE1.ArrayExpression = function(node, patcher) {
   };
 };
 
+STAGE1.Literal = function(node, patcher) {
+  if (node.magic) return;
+  let hash = uBranchHash();
+  let clone = cloneNode(node);
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: clone
+  };
+  node.magic = true;
+  let call = {
+    magic: true,
+    type: "CallExpression",
+    callee: {
+      magic: true,
+      type: "Identifier",
+      name: patcher.instance.getLink("DEBUG_LITERAL")
+    },
+    arguments: [
+      parseExpression(hash),
+      clone
+    ]
+  };
+  for (let key in call) {
+    if (!call.hasOwnProperty(key)) continue;
+    node[key] = call[key];
+  };
+};
+
 STAGE1.ForStatement = function(node, patcher) {
   if (!node.hasOwnProperty("labels")) node.labels = [];
   patcher.pushScope(node);

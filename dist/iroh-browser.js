@@ -6535,6 +6535,35 @@ STAGE1.ArrayExpression = function(node, patcher) {
   }
 };
 
+STAGE1.Literal = function(node, patcher) {
+  if (node.magic) { return; }
+  var hash = uBranchHash();
+  var clone = cloneNode(node);
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: clone
+  };
+  node.magic = true;
+  var call = {
+    magic: true,
+    type: "CallExpression",
+    callee: {
+      magic: true,
+      type: "Identifier",
+      name: patcher.instance.getLink("DEBUG_LITERAL")
+    },
+    arguments: [
+      parseExpression(hash),
+      clone
+    ]
+  };
+  for (var key in call) {
+    if (!call.hasOwnProperty(key)) { continue; }
+    node[key] = call[key];
+  }
+};
+
 STAGE1.ForStatement = function(node, patcher) {
   if (!node.hasOwnProperty("labels")) { node.labels = []; }
   patcher.pushScope(node);
@@ -7347,8 +7376,14 @@ STAGE8.LogicalExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_LOGICAL")
   };
-  var right = parseExpression("() => null");
-  right.body = node.right;
+  var right = parseExpression("(function() { }).bind(this)");
+  // enter bind expression to get the binded function
+  var fn = right.callee.object;
+  fn.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.right
+  });
   node.arguments = [
     parseExpression(hash),
     parseExpression(OP[node.operator]),
@@ -7400,7 +7435,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
     var name = argument.name;
     // heute sind wir räudig
     var critical = parseExpression(
-      ("(() => { try { " + name + "; } catch(e) { " + id + " = \"undefined\"; return true; } " + id + " = " + name + "; return false; })()")
+      ("(function() { try { " + name + "; } catch(e) { " + id + " = \"undefined\"; return true; } " + id + " = " + name + "; return false; }).bind(this)()")
     );
     node.arguments = [
       parseExpression(hash),
@@ -7425,10 +7460,18 @@ STAGE8.ConditionalExpression = function(node, patcher) {
   patcher.walk(node.consequent, patcher, patcher.stage);
   patcher.walk(node.alternate, patcher, patcher.stage);
 
-  var cons = parseExpression("() => null");
-  cons.body = node.consequent;
-  var alt = parseExpression("() => null");
-  alt.body = node.alternate;
+  var cons = parseExpression("(function() { }).bind(this)");
+  cons.callee.object.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.consequent
+  });
+  var alt = parseExpression("(function() { }).bind(this)");
+  alt.callee.object.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.alternate
+  });
 
   node.type = "CallExpression";
   node.callee = {
@@ -8239,6 +8282,18 @@ function DEBUG_THIS(hash, ctx) {
   return event.context;
 }
 
+// #LITERAL
+function DEBUG_LITERAL(hash, value) {
+  // API
+  var event = this.createEvent(INSTR.LITERAL);
+  event.hash = hash;
+  event.value = value;
+  event.indent = this.indent;
+  event.trigger("fire");
+  // API END
+  return event.value;
+}
+
 // #EXPRESSIONS
 function DEBUG_ASSIGN(hash, op, obj, prop, value) {
   var result = null;
@@ -8429,6 +8484,7 @@ var _debug = Object.freeze({
 	DEBUG_BLOCK_ENTER: DEBUG_BLOCK_ENTER,
 	DEBUG_BLOCK_LEAVE: DEBUG_BLOCK_LEAVE,
 	DEBUG_THIS: DEBUG_THIS,
+	DEBUG_LITERAL: DEBUG_LITERAL,
 	DEBUG_ASSIGN: DEBUG_ASSIGN,
 	DEBUG_TERNARY: DEBUG_TERNARY,
 	DEBUG_LOGICAL: DEBUG_LOGICAL,

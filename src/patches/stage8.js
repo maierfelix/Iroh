@@ -79,8 +79,14 @@ STAGE8.LogicalExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_LOGICAL")
   };
-  let right = parseExpression("() => null");
-  right.body = node.right;
+  let right = parseExpression("(function() { }).bind(this)");
+  // enter bind expression to get the binded function
+  let fn = right.callee.object;
+  fn.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.right
+  });
   node.arguments = [
     parseExpression(hash),
     parseExpression(OP[node.operator]),
@@ -132,7 +138,7 @@ STAGE8.UnaryExpression = function(node, patcher) {
     let name = argument.name;
     // heute sind wir räudig
     let critical = parseExpression(
-      `(() => { try { ${name}; } catch(e) { ${id} = "undefined"; return true; } ${id} = ${name}; return false; })()`
+      `(function() { try { ${name}; } catch(e) { ${id} = "undefined"; return true; } ${id} = ${name}; return false; }).bind(this)()`
     );
     node.arguments = [
       parseExpression(hash),
@@ -157,10 +163,18 @@ STAGE8.ConditionalExpression = function(node, patcher) {
   patcher.walk(node.consequent, patcher, patcher.stage);
   patcher.walk(node.alternate, patcher, patcher.stage);
 
-  let cons = parseExpression("() => null");
-  cons.body = node.consequent;
-  let alt = parseExpression("() => null");
-  alt.body = node.alternate;
+  let cons = parseExpression("(function() { }).bind(this)");
+  cons.callee.object.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.consequent
+  });
+  let alt = parseExpression("(function() { }).bind(this)");
+  alt.callee.object.body.body.push({
+    magic: true,
+    type: "ReturnStatement",
+    argument: node.alternate
+  });
 
   node.type = "CallExpression";
   node.callee = {

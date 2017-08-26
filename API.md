@@ -160,6 +160,11 @@ Iroh.MEMBER
   a[b]
 Iroh.THIS
   this
+Iroh.LITERAL
+  ""
+  1
+  true
+  ..
 Iroh.ASSIGN
   a = 2
   a += 2
@@ -352,6 +357,12 @@ Iroh.PROGRAM
     * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``context``: The context
+
+**``Iroh.LITERAL``**:
+ * ``fire``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+    * ``value``: The literal's value
 
 **``Iroh.ASSIGN``**:
  * ``fire``
