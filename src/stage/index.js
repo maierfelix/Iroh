@@ -10,6 +10,7 @@ import { uid } from "../utils";
 import {
   parse,
   generate,
+  isBreakableFrameType,
   isReturnableFrameType,
   isValidFrameInstruction,
   isInstantiationFrameType,
@@ -212,6 +213,9 @@ Stage.prototype.resolveBreakFrame = function(frm, label) {
     if (frame.isGlobal()) break;
     frame = frame.parent;
   };
+  console.assert(
+    isBreakableFrameType(frame.type)
+  );
   return frame;
 };
 

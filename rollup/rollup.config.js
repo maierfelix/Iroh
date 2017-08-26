@@ -10,5 +10,6 @@ export default {
   ],
   plugins: [
     json()
-  ]
+  ],
+  useStrict: false
 }

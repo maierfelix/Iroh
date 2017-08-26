@@ -3007,7 +3007,7 @@ function DEBUG_METHOD_LEAVE(hash, cls, isConstructor) {
 
 // #TRY
 function DEBUG_TRY_ENTER(hash) {
-  console.log(indentString(this.indent) + "try");
+  //console.log(indentString(this.indent) + "try");
 
   // API
   let event = this.createEvent(INSTR.TRY_ENTER);
@@ -3486,6 +3486,9 @@ Stage.prototype.resolveBreakFrame = function(frm, label) {
     if (frame.isGlobal()) break;
     frame = frame.parent;
   }
+  console.assert(
+    isBreakableFrameType(frame.type)
+  );
   return frame;
 };
 

@@ -502,7 +502,7 @@ export function DEBUG_METHOD_LEAVE(hash, cls, isConstructor) {
 
 // #TRY
 export function DEBUG_TRY_ENTER(hash) {
-  console.log(indentString(this.indent) + "try");
+  //console.log(indentString(this.indent) + "try");
 
   // API
   let event = this.createEvent(INSTR.TRY_ENTER);
