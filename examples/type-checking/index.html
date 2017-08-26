@@ -89,7 +89,7 @@ setTimeout(function() {
 
   doc.setValue(code.innerHTML);
 
-  doc.on("change", () => {
+  doc.on("change", function() {
     runStage(doc.getValue());
   });
   // manually trigger change event
