@@ -220,14 +220,17 @@ Iroh.PROGRAM
 **``Iroh.LOOP``**:
  * ``test``
     * ``hash``: Unique hash
-    * ``value``: The loop's condition value
     * ``indent``: Indent level
+    * ``value``: The loop's condition value
+    * ``kind``: Indicates the loop kind e.g. ``WhileStatement``
  * ``enter``
     * ``hash``: Unique hash
     * ``indent``: Indent level
+    * ``kind``: Indicates the loop kind e.g. ``DoWhileStatement``
  * ``leave``
     * ``hash``: Unique hash
     * ``indent``: Indent level
+    * ``kind``: Indicates the loop kind e.g. ``ForStatement``
 
 **``Iroh.BREAK``**:
  * ``fire``
