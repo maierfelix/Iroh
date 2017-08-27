@@ -99,11 +99,12 @@ export function DEBUG_LOOP_TEST(hash, value) {
   // API END
   return event.value;
 };
-export function DEBUG_LOOP_ENTER(hash) {
+export function DEBUG_LOOP_ENTER(hash, id, kind) {
   // API
   let event = this.createEvent(INSTR.LOOP_ENTER);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("enter");
   // API END
   //console.log(indentString(this.indent) + "loop", hash);
@@ -113,7 +114,7 @@ export function DEBUG_LOOP_ENTER(hash) {
   // FRAME END
   this.indent += INDENT_FACTOR;
 };
-export function DEBUG_LOOP_LEAVE(hash, entered) {
+export function DEBUG_LOOP_LEAVE(hash, entered, kind) {
   // loop never entered, so dont leave it
   if (entered === 0) return;
   this.indent -= INDENT_FACTOR;
@@ -121,6 +122,7 @@ export function DEBUG_LOOP_LEAVE(hash, entered) {
   let event = this.createEvent(INSTR.LOOP_LEAVE);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("leave");
   // API END
   //console.log(indentString(this.indent) + "loop end", hash);

@@ -7273,7 +7273,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             arguments: [
               parseExpression(hash),
               // set the loop enter state to fullfilled
-              parseExpression((id + " = 1"))
+              parseExpression((id + " = 1")),
+              parseExpression(("\"" + (child.type) + "\""))
             ]
           }
         }
@@ -7295,8 +7296,8 @@ STAGE7.BlockStatement = function(node, patcher) {
           },
           arguments: [
             parseExpression(hash),
-            parseExpression(id)
-          ]
+            parseExpression(id),
+            parseExpression(("\"" + (child.type) + "\"")) ]
         }
       };
       body.splice(ii + 1, 0, end$1);
@@ -7789,11 +7790,12 @@ function DEBUG_LOOP_TEST(hash, value) {
   // API END
   return event.value;
 }
-function DEBUG_LOOP_ENTER(hash) {
+function DEBUG_LOOP_ENTER(hash, id, kind) {
   // API
   var event = this.createEvent(INSTR.LOOP_ENTER);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("enter");
   // API END
   //console.log(indentString(this.indent) + "loop", hash);
@@ -7803,7 +7805,7 @@ function DEBUG_LOOP_ENTER(hash) {
   // FRAME END
   this.indent += INDENT_FACTOR;
 }
-function DEBUG_LOOP_LEAVE(hash, entered) {
+function DEBUG_LOOP_LEAVE(hash, entered, kind) {
   // loop never entered, so dont leave it
   if (entered === 0) { return; }
   this.indent -= INDENT_FACTOR;
@@ -7811,6 +7813,7 @@ function DEBUG_LOOP_LEAVE(hash, entered) {
   var event = this.createEvent(INSTR.LOOP_LEAVE);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("leave");
   // API END
   //console.log(indentString(this.indent) + "loop end", hash);

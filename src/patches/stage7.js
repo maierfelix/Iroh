@@ -137,7 +137,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             arguments: [
               parseExpression(hash),
               // set the loop enter state to fullfilled
-              parseExpression(`${id} = 1`)
+              parseExpression(`${id} = 1`),
+              parseExpression(`"${child.type}"`)
             ]
           }
         }
@@ -159,7 +160,8 @@ STAGE7.BlockStatement = function(node, patcher) {
           },
           arguments: [
             parseExpression(hash),
-            parseExpression(id)
+            parseExpression(id),
+            parseExpression(`"${child.type}"`),
           ]
         }
       };
