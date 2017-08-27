@@ -1,8 +1,8 @@
 ### Getting started
 
-The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code expression type.
+The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code types.
 
-Iroh's event listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript.
+Iroh's listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript.
 
 The pipeline of Iroh is:
 
@@ -42,7 +42,7 @@ listener.on("fire", (e) => {
 ````
 
 ##### 3. Running the stage
-After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, you need to run the patched version manually afterwards. You can even save the stage's code and embed it into your page just like a real script - it's completely up to you!
+After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, you need to run the patched version manually afterwards.
 
 Syntax:
 ````js
