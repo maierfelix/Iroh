@@ -1,0 +1,43 @@
+<!--
+ Voxel demo picked from: https://codepen.io/keerotic/pen/eBrRGK
+-->
+<div id="container"></div>
+<div class="tools" style="position:fixed;top:0;z-index:999;color:#fff;text-align:left;">
+  <a class="btn" id="bt-clear" href="javascript:"><i class="fa fa-file"></i></a>
+</div>
+
+<div class="tools" style="position:fixed;bottom:0;z-index:1000;color:#fff;">
+  <a class="btn active" id="bt-draw" href="javascript:"><i class="fa fa-pencil"></i></a>
+  <a class="btn" id="bt-erase" href="javascript:"><i class="fa fa-eraser"></i></a>
+  <a class="btn" id="bt-color" href="javascript:">&nbsp;</a>
+<!--<input class="jscolor" value="ff0000">-->
+</div>
+<div id="palette" style="position:fixed;bottom:45px;z-index:1001;padding:5px;">
+  <div style="background:rgba(128,128,128,0.5);padding:10px 5px 5px 10px;border-radius:10px 10px 10px 0;" id="palette-colors">
+  </div>
+</div>
+
+<div id="input">
+  let ii = 0;
+  while (ii++ < 5) {
+    function factorial(n) {
+      if (n === 0) return 1;
+      return n * factorial(n - 1);
+    };
+    factorial(ii + 1);
+  };
+</div>
+
+<script type="text/javascript" src="../dist/iroh-browser.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+<script type="text/javascript" src="//threejs.org/build/three.js"></script>
+<script type="text/javascript" src="//threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+</style>
