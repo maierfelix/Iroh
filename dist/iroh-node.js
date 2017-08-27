@@ -2101,7 +2101,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             child.type === "ForStatement" ?
             parseExpression(true) :
             "" // throws error
-          )
+          ),
+          parseExpression(`"${child.type}"`)
         ]
       };
       child.test = test;
@@ -2639,12 +2640,13 @@ function DEBUG_ELSE_LEAVE(hash) {
 }
 
 // #LOOPS
-function DEBUG_LOOP_TEST(hash, value) {
+function DEBUG_LOOP_TEST(hash, value, kind) {
   // API
   let event = this.createEvent(INSTR.LOOP_TEST);
   event.hash = hash;
-  event.value = value;
   event.indent = this.indent;
+  event.value = value;
+  event.kind = kind;
   event.trigger("test");
   // API END
   return event.value;

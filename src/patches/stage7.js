@@ -113,7 +113,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             child.type === "ForStatement" ?
             parseExpression(true) :
             "" // throws error
-          )
+          ),
+          parseExpression(`"${child.type}"`)
         ]
       };
       child.test = test;
