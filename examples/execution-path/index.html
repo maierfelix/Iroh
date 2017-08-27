@@ -186,7 +186,7 @@
       // update
       stage.addListener(Iroh.UPDATE)
       .on("fire", (e) => {
-        console.log(" ".repeat(e.indent) + "update", e.op, e.prefix, "=>", e.result);
+        log(" ".repeat(e.indent) + "update", e.op, e.prefix, "=>", e.result);
       });
 
       // program
