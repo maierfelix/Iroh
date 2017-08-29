@@ -265,7 +265,7 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
     proto = object;
   } else {
     root = object;
-    proto = ctx;
+    proto = null;
   };
   name = root.name;
 

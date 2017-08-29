@@ -242,11 +242,20 @@ STAGE1.CallExpression = function(node, patcher) {
         if (node.callee.type === "MemberExpression") {
           let property = node.callee.property;
           // identifier
-          if (property.type === "Identifier") return {
-            magic: true,
-            type: "Literal",
-            value: property.name
-          };
+          if (property.type === "Identifier") {
+            if (node.callee.computed) {
+              return {
+                magic: true,
+                type: "Identifier",
+                name: property.name
+              };
+            }
+            return ({
+              magic: true,
+              type: "Literal",
+              value: property.name
+            });
+          }
           return property;
         }
         return parseExpression("null");

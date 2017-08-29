@@ -14,7 +14,7 @@ var extend = function(cls, prot) {
   }
 };
 
-var version = "0.2.6";
+var version = "0.2.7";
 
 // indent factor
 var INDENT_FACTOR = 1;
@@ -6028,11 +6028,20 @@ STAGE1.CallExpression = function(node, patcher) {
         if (node.callee.type === "MemberExpression") {
           var property = node.callee.property;
           // identifier
-          if (property.type === "Identifier") { return {
-            magic: true,
-            type: "Literal",
-            value: property.name
-          }; }
+          if (property.type === "Identifier") {
+            if (node.callee.computed) {
+              return {
+                magic: true,
+                type: "Identifier",
+                name: property.name
+              };
+            }
+            return ({
+              magic: true,
+              type: "Literal",
+              value: property.name
+            });
+          }
           return property;
         }
         return parseExpression("null");
@@ -7957,7 +7966,7 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
     proto = object;
   } else {
     root = object;
-    proto = ctx;
+    proto = null;
   }
   name = root.name;
 
