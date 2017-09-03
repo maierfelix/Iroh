@@ -1,14 +1,14 @@
 ### Getting started
 
-The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code types.
+The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code.
 
 Iroh's listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript.
 
 The pipeline of Iroh is:
 
  * Create a stage, pass in your code
- * Add listeners to the stage object
- * Evaluate the stage
+ * Add listeners to the stage
+ * Run the stage
 
 ##### 1. Creating a stage:
 We need a stage object to submit our code into and to attach some listeners.
@@ -24,7 +24,7 @@ let stage = new Iroh.Stage(code);
 ````
 
 ##### 2. Add listeners
-Listeners get triggered while your code is executed. Their purpose is to allow you to listen for runtime data while your script is running, but without changing your script in it's expected behaviour. They just listen and tell you anything about your running code.
+Listeners get triggered while your code is executed. Their purpose is to allow you to listen for runtime data while your script is running, but without changing your script in it's expected behaviour. They just listen and give you insights about your running code.
 
 Syntax:
 ````js
@@ -42,7 +42,7 @@ listener.on("fire", (e) => {
 ````
 
 ##### 3. Running the stage
-After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, you need to run the patched version manually afterwards.
+After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, we need to run the patched version manually afterwards.
 
 Syntax:
 ````js
@@ -51,11 +51,10 @@ stage.script; // this contains the patched code to run
 Example:
 ````js
 let script = stage.script;
-// we can just use eval to run the patched code we want to track
-eval(script);
+eval(script); // not recommended, but we just use eval here to keep things simple
 ````
 
-If you wonder what the patched code looks like:
+If you are wondering what the patched code looks like:
 
 **Input**:
 
@@ -83,24 +82,48 @@ $$STx1.$46(5, $$frameValue)
 
 ### API
 
-#### Stage API:
+#### Iroh:
 
-``getFunctionNodeByName``: Returns the raw AST node related to the passed in name.
+``Stage``: Returns a new stage object to work with after being instantiated.
 
-#### Listener API:
+``stages``: An object which contains references to all running stages.
 
-Each listener event has an ``RuntimeEvent`` argument which contains various event  specific properties.
+``parse``: A reference to ``acorn.parse`` to turn source code into an AST.
+
+``generate``: A reference to ``astring.generate`` to turn an AST back into source code.
+
+#### Iroh.Stage:
+
+``key``: The stage's unique key.
+
+``input``: The original submitted code.
+
+``script``: The patched version of the submitted code.
+
+``nodes``: An object which contains references to all AST nodes in the code, indexed by their relative ``hash`` code.
+
+``symbols``: An object which contains references to all functions, indexed by the given function's name.
+
+``addListener``: Takes an numeric listener type as it's first parameter and returns an ``RuntimeListener`` object.
+
+``getFunctionNodeByName``: Returns the raw AST node related to the passed in function name.
+
+#### Iroh.Stage.RuntimeListener:
+
+Each ``RuntimeListener`` event has an ``RuntimeEvent`` argument which contains various event specific properties.
 
 Example:
 ````js
 let listener = stage.addListener(Iroh.ALLOC);
 listener.on("fire", (e) => console.log(e.value));
 ````
-``Iroh.ALLOC`` has only one event called ``fire``. This means the listener just fires as soon as the related code get's executed. In this case ``fire`` triggers when an object or array gets created. The event's property ``value`` contains a reference to the allocated object. Since ``fire`` gets triggered before the actual code gets executed, we can even modify it!
+``Iroh.ALLOC`` has only one event called ``fire``. This means the listener just fires as soon as the related code get's executed. In this case ``fire`` triggers when an object or array gets created. The event's property ``value`` contains a reference to the allocated object. Since ``fire`` gets triggered before the actual code gets executed, we can even modify the passed in data!
 
 All listener events provide you the following fixed options:
 
 ##### Properties:
+
+All ``RuntimeEvents`` come with the following fixed properties:
 
 ``hash``: Unique numeric hash which is also a link to the original AST node. The hash is only used once for the specific code location.
 
@@ -108,17 +131,20 @@ All listener events provide you the following fixed options:
 
 ##### Methods:
 
+All ``RuntimeEvents`` come with the following fixed methods:
+
 ``getASTNode``: Returns the original AST node
 
 ``getPosition``: Returns an object with the original source position (``start``, ``end``)
 
 ``getLocation``: Returns an object with the original source location, which is better formated than ``getPosition``. The object contains: (``start.line``, ``start.column``), (``end.line``, ``end.column``).
 
-``getSource``: Returns the original source code
+``getSource``: Returns the original (non-patched) relative source code
 
 #### Specification:
 
-Iroh provides the following listeners:
+Iroh provides the following listeners types, which can be used to listen for specific code types.
+
 ````js
 Iroh.IF
   if () {}
@@ -195,6 +221,8 @@ Iroh.PROGRAM
   Code enter,
   Code exit
 ````
+
+This list gives you an overview, which events a listener supports and which properties come along with it.
 
 **``Iroh.IF``**:
  * ``test``

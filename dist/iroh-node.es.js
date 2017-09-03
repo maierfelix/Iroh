@@ -1,6 +1,6 @@
 import { parse } from 'acorn';
-import { base, full, recursive } from 'acorn/dist/walk';
 import { generate } from 'astring';
+import { base, full, recursive } from 'acorn/dist/walk';
 
 /**
  * @param {Class} cls
@@ -17,7 +17,7 @@ var extend = function(cls, prot) {
   }
 };
 
-var version = "0.2.7";
+var version = "0.2.8";
 
 // indent factor
 const INDENT_FACTOR = 1;
@@ -207,11 +207,21 @@ function uBranchHash() {
   return ubidx++;
 }
 
+function parse$1() {
+  return parse.apply(null, arguments);
+}
+
+function generate$1() {
+  return generate.apply(null, arguments);
+}
+
 
 var _utils = Object.freeze({
 	reserveTempVarId: reserveTempVarId,
 	uid: uid,
-	uBranchHash: uBranchHash
+	uBranchHash: uBranchHash,
+	parse: parse$1,
+	generate: generate$1
 });
 
 function getInheritanceTree(cls) {
@@ -445,23 +455,23 @@ function deepMagicPatch(node) {
   });
 }
 
-function parse$1() {
+function parse$2() {
   return parse.apply(null, arguments);
 }
 
-function generate$1() {
+function generate$2() {
   return generate.apply(null, arguments);
 }
 
 function parseExpression(input) {
-  let node = parse$1(input);
+  let node = parse$2(input);
   let result = node.body[0].expression;
   deepMagicPatch(result);
   return result;
 }
 
 function parseExpressionStatement(input) {
-  let node = parse$1(input);
+  let node = parse$2(input);
   let result = node.body[0];
   deepMagicPatch(result);
   return result;
@@ -3649,13 +3659,13 @@ Stage.prototype.getFrameByHashFrom = function(frm, hash) {
 
 Stage.prototype.patch = function(input) {
   let patcher = new Patcher(this);
-  let ast = parse$1(input, { locations: true });
+  let ast = parse$2(input, { locations: true });
   this.frame = new Frame(INSTR.PROGRAM, this.$$frameHash);
   patcher.applyPatches(ast);
   // link walk things to stage
   this.nodes = patcher.nodes;
   this.symbols = patcher.symbols;
-  return generate$1(ast, {
+  return generate$2(ast, {
     format: {
       indent: {
         style: "  "
