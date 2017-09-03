@@ -3691,52 +3691,6 @@ var _setup = Object.freeze({
 	greet: greet
 });
 
-function pushScope(node) {
-  let tmp = this.scope;
-  this.scope = new Scope(node);
-  this.scope.parent = tmp;
-}
-
-function popScope(node) {
-  this.scope = this.scope.parent;
-}
-
-function forceLoopBodyBlocked$1(node) {
-  if (node.body.type !== "BlockStatement") {
-    node.body = {
-      magic: true,
-      type: "BlockStatement",
-      body: [node.body]
-    };
-  }
-}
-
-function applyStagePatch(ast, stage) {
-  this.stage = stage;
-  this.walk(ast, this.state, this.stage);
-}
-
-function applyPatches(instance, ast) {
-  this.instance = instance;
-  this.applyStagePatch(ast, STAGE2);
-  //this.applyStagePatch(ast, STAGE7);
-  //this.applyStagePatch(ast, STAGE4);
-  //this.applyStagePatch(ast, STAGE5);
-  this.applyStagePatch(ast, STAGE1);
-  //this.applyStagePatch(ast, STAGE3);
-  //this.applyStagePatch(ast, STAGE6);
-  //this.applyStagePatch(ast, STAGE8);
-}
-
-
-var _patch = Object.freeze({
-	pushScope: pushScope,
-	popScope: popScope,
-	forceLoopBodyBlocked: forceLoopBodyBlocked$1,
-	applyStagePatch: applyStagePatch,
-	applyPatches: applyPatches
-});
-
 class Iroh {
   constructor() {
     // patch AST scope
@@ -3759,7 +3713,6 @@ class Iroh {
 // link methods to main class
 extend(Iroh, _utils);
 extend(Iroh, _setup);
-extend(Iroh, _patch);
 
 const iroh = new Iroh();
 

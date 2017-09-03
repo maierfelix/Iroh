@@ -6,7 +6,6 @@ import Frame from "./frame";
 
 import * as _utils from "./utils";
 import * as _setup from "./setup";
-import * as _patch from "./patch";
 
 class Iroh {
   constructor() {
@@ -30,7 +29,6 @@ class Iroh {
 // link methods to main class
 extend(Iroh, _utils);
 extend(Iroh, _setup);
-extend(Iroh, _patch);
 
 const iroh = new Iroh();
 
