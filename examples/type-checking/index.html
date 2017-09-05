@@ -66,13 +66,13 @@
   <div id="code" style="display:none;">function add(a, b) {
   return a + b;
 };
-setTimeout(function() {
-  add(2, 4); // add is traced as add(a:number, b:number):number
-  add("Hello", "World"); // add turned polymorphic
-  add(2 * 2, 0);
-  add(add(1, add(1, "")), 2 * 8);
-  add(666, 777);
-}, 1e3);
+
+add(2, 4); // add is traced as add(a:number, b:number):number
+add("Hello", "World"); // add turned polymorphic
+add(2 * 2, 0);
+add(add(1, add(1, "")), 2 * 8);
+add(666, 777);
+add(Math.random() > .2 ? 1 : NaN, 777);
   </div>
 
   <!-- include iroh -->
