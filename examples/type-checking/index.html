@@ -87,7 +87,7 @@ add(Math.random() > .2 ? 1 : NaN, 777);
   });
   let doc = editor.getDoc();
 
-  doc.setValue(code.innerHTML);
+  doc.setValue(code.textContent);
 
   doc.on("change", function() {
     runStage(doc.getValue());
