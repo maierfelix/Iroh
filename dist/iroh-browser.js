@@ -3,11 +3,11 @@ var iroh = (function () {
  * @param {Class} cls
  * @param {Array} prot
  */
-var extend = function(cls, prot) {
+var extend = function (cls, prot) {
   for (var key in prot) {
     if (prot[key] instanceof Function) {
       if (cls.prototype[key] instanceof Function) {
-        console.log(("Warning: Overwriting " + (cls.name) + ".prototype." + key));
+        console.log("Warning: Overwriting " + cls.name + ".prototype." + key);
       }
       cls.prototype[key] = prot[key];
     }
@@ -32,10 +32,7 @@ var LOG_ALL_ERRORS = false;
 var CLEAN_DEBUG_INJECTION = false;
 
 // detect environment
-var IS_NODE = (
-  (typeof module !== "undefined" && module.exports) &&
-  (typeof require !== "undefined")
-);
+var IS_NODE = typeof module !== "undefined" && module.exports && typeof require !== "undefined";
 var IS_BROWSER = !IS_NODE;
 
 var VERSION = version;
@@ -113,7 +110,6 @@ var CATEGORY = {};
   INSTR.PROGRAM_FRAME_VALUE = ii++;
   INSTR.PROGRAM_ENTER = ii++;
   INSTR.PROGRAM_LEAVE = ii++;
-
 })();
 
 (function () {
@@ -148,7 +144,7 @@ var CATEGORY = {};
 })();
 
 (function () {
-  var ii = 0;  
+  var ii = 0;
   OP["="] = ii++;
   OP["+"] = ii++;
   OP["-"] = ii++;
@@ -181,7 +177,6 @@ var CATEGORY = {};
   OP["<="] = ii++;
   OP["++"] = ii++;
   OP["--"] = ii++;
-
 })();
 
 // Reserved word lists for various dialects of the language
@@ -294,7 +289,7 @@ function isIdentifierChar(code, astral) {
 // continue jumps to that label.
 
 var TokenType = function TokenType(label, conf) {
-  if ( conf === void 0 ) { conf = {}; }
+  if ( conf === void 0 ) conf = {};
 
   this.label = label;
   this.keyword = conf.keyword;
@@ -320,7 +315,7 @@ var keywords$1$1 = {};
 
 // Succinct definitions of keyword token types
 function kw(name, options) {
-  if ( options === void 0 ) { options = {}; }
+  if ( options === void 0 ) options = {};
 
   options.keyword = name;
   return keywords$1$1[name] = new TokenType(name, options)
@@ -1244,7 +1239,7 @@ pp$1.parseExpressionStatement = function(node, expr) {
 
 pp$1.parseBlock = function(createNewLexicalScope) {
   var this$1 = this;
-  if ( createNewLexicalScope === void 0 ) { createNewLexicalScope = true; }
+  if ( createNewLexicalScope === void 0 ) createNewLexicalScope = true;
 
   var node = this.startNode();
   node.body = [];
@@ -2419,8 +2414,8 @@ pp$3.parseTemplateElement = function(ref) {
 
 pp$3.parseTemplate = function(ref) {
   var this$1 = this;
-  if ( ref === void 0 ) { ref = {}; }
-  var isTagged = ref.isTagged; if ( isTagged === void 0 ) { isTagged = false; }
+  if ( ref === void 0 ) ref = {};
+  var isTagged = ref.isTagged; if ( isTagged === void 0 ) isTagged = false;
 
   var node = this.startNode();
   this.next();
@@ -2804,10 +2799,8 @@ var pp$5 = Parser.prototype;
 
 // Object.assign polyfill
 var assign = Object.assign || function(target) {
-  var arguments$1 = arguments;
-
   var sources = [], len = arguments.length - 1;
-  while ( len-- > 0 ) { sources[ len ] = arguments$1[ len + 1 ]; }
+  while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
 
   for (var i = 0, list = sources; i < list.length; i += 1) {
     var source = list[i];
@@ -4069,8 +4062,6 @@ var astring = createCommonjsModule(function (module, exports) {
 
   var baseGenerator = exports.baseGenerator = {
     Program: function Program(node, state) {
-      var this$1 = this;
-
       var indent = state.indent.repeat(state.indentLevel);
       var lineEnd = state.lineEnd,
           writeComments = state.writeComments;
@@ -4087,7 +4078,7 @@ var astring = createCommonjsModule(function (module, exports) {
           formatComments(state, statement.comments, indent, lineEnd);
         }
         state.write(indent);
-        this$1[statement.type](statement, state);
+        this[statement.type](statement, state);
         state.write(lineEnd);
       }
       if (writeComments && node.trailingComments != null) {
@@ -4096,8 +4087,6 @@ var astring = createCommonjsModule(function (module, exports) {
     },
 
     BlockStatement: BlockStatement = function BlockStatement(node, state) {
-      var this$1 = this;
-
       var indent = state.indent.repeat(state.indentLevel++);
       var lineEnd = state.lineEnd,
           writeComments = state.writeComments;
@@ -4118,7 +4107,7 @@ var astring = createCommonjsModule(function (module, exports) {
             formatComments(state, statement.comments, statementIndent, lineEnd);
           }
           state.write(statementIndent);
-          this$1[statement.type](statement, state);
+          this[statement.type](statement, state);
           state.write(lineEnd);
         }
         state.write(indent);
@@ -4189,8 +4178,6 @@ var astring = createCommonjsModule(function (module, exports) {
       this[node.body.type](node.body, state);
     },
     SwitchStatement: function SwitchStatement(node, state) {
-      var this$1 = this;
-
       var indent = state.indent.repeat(state.indentLevel++);
       var lineEnd = state.lineEnd,
           writeComments = state.writeComments;
@@ -4211,7 +4198,7 @@ var astring = createCommonjsModule(function (module, exports) {
         }
         if (occurence.test) {
           state.write(caseIndent + 'case ');
-          this$1[occurence.test.type](occurence.test, state);
+          this[occurence.test.type](occurence.test, state);
           state.write(':' + lineEnd);
         } else {
           state.write(caseIndent + 'default:' + lineEnd);
@@ -4225,7 +4212,7 @@ var astring = createCommonjsModule(function (module, exports) {
             formatComments(state, statement.comments, statementIndent, lineEnd);
           }
           state.write(statementIndent);
-          this$1[statement.type](statement, state);
+          this[statement.type](statement, state);
           state.write(lineEnd);
         }
       }
@@ -4519,8 +4506,6 @@ var astring = createCommonjsModule(function (module, exports) {
       }
     },
     TemplateLiteral: function TemplateLiteral(node, state) {
-      var this$1 = this;
-
       var quasis = node.quasis,
           expressions = node.expressions;
 
@@ -4531,7 +4516,7 @@ var astring = createCommonjsModule(function (module, exports) {
         var expression = expressions[i];
         state.write(quasis[i].value.raw);
         state.write('${');
-        this$1[expression.type](expression, state);
+        this[expression.type](expression, state);
         state.write('}');
       }
       state.write(quasis[quasis.length - 1].value.raw);
@@ -4543,8 +4528,6 @@ var astring = createCommonjsModule(function (module, exports) {
     },
 
     ArrayExpression: ArrayExpression = function ArrayExpression(node, state) {
-      var this$1 = this;
-
       state.write('[');
       if (node.elements.length > 0) {
         var elements = node.elements,
@@ -4553,7 +4536,7 @@ var astring = createCommonjsModule(function (module, exports) {
         for (var i = 0;;) {
           var element = elements[i];
           if (element != null) {
-            this$1[element.type](element, state);
+            this[element.type](element, state);
           }
           if (++i < length) {
             state.write(', ');
@@ -4569,8 +4552,6 @@ var astring = createCommonjsModule(function (module, exports) {
     },
     ArrayPattern: ArrayExpression,
     ObjectExpression: function ObjectExpression(node, state) {
-      var this$1 = this;
-
       var indent = state.indent.repeat(state.indentLevel++);
       var lineEnd = state.lineEnd,
           writeComments = state.writeComments;
@@ -4592,7 +4573,7 @@ var astring = createCommonjsModule(function (module, exports) {
             formatComments(state, property.comments, propertyIndent, lineEnd);
           }
           state.write(propertyIndent);
-          this$1.Property(property, state);
+          this.Property(property, state);
           if (++i < length) {
             state.write(comma);
           } else {
@@ -4643,15 +4624,13 @@ var astring = createCommonjsModule(function (module, exports) {
       }
     },
     ObjectPattern: function ObjectPattern(node, state) {
-      var this$1 = this;
-
       state.write('{');
       if (node.properties.length > 0) {
         var properties = node.properties,
             length = properties.length;
 
         for (var i = 0;;) {
-          this$1[properties[i].type](properties[i], state);
+          this[properties[i].type](properties[i], state);
           if (++i < length) {
             state.write(', ');
           } else {
@@ -4912,9 +4891,7 @@ var astring_1 = astring.generate;
 // unique temporary variable index
 var utvidx = 1;
 function reserveTempVarId() {
-  return (
-    ("" + TEMP_VAR_BASE + (utvidx++))
-  );
+  return "" + TEMP_VAR_BASE + utvidx++;
 }
 
 // general unique index
@@ -4936,7 +4913,6 @@ function parse$$1() {
 function generate$$1() {
   return astring_1.apply(null, arguments);
 }
-
 
 var _utils = Object.freeze({
 	reserveTempVarId: reserveTempVarId,
@@ -5378,12 +5354,34 @@ var walk_1 = walk.base;
 var walk_2 = walk.full;
 var walk_3 = walk.recursive;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+};
+
+
+
+
+
+
+
+
+
+
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
 function getInheritanceTree(cls) {
   var base = cls;
   var tree = [cls.name];
   while (true) {
     base = Object.getPrototypeOf(base);
-    if (base === Function.prototype) { break; }
+    if (base === Function.prototype) break;
     tree.push(base.name);
   }
   return tree;
@@ -5392,28 +5390,22 @@ function getInheritanceTree(cls) {
 function instructionToString(n) {
   for (var key in INSTR) {
     var value = INSTR[key];
-    if (value === n) { return key; }
+    if (value === n) return key;
   }
-  console.warn(("Unexpected instruction value " + n));
+  console.warn("Unexpected instruction value " + n);
   return "";
 }
 
 function injectPatchIntoNode(node, patch, end) {
   var body = null;
   var type = node.type;
-  if (type === "Program") { body = node.body; }
-  else if (type === "BlockStatement") { body = node.body; }
-  else if (type === "ForStatement") { body = node.body.body; }
-  else if (isLoopStatement(type)) { body = node.body.body; }
-  else if (isFunctionNode(type)) {
+  if (type === "Program") body = node.body;else if (type === "BlockStatement") body = node.body;else if (type === "ForStatement") body = node.body.body;else if (isLoopStatement(type)) body = node.body.body;else if (isFunctionNode(type)) {
     body = node.body.body;
-  }
-  else { console.error(("Invalid patch node type " + type)); }
+  } else console.error("Invalid patch node type " + type);
   console.assert(body instanceof Array);
   // force patches to be magic
   patch.magic = true;
-  if (end) { body.push(patch); }
-  else { body.unshift(patch); }
+  if (end) body.push(patch);else body.unshift(patch);
 }
 
 function resolveCallee(node) {
@@ -5425,64 +5417,29 @@ function resolveCallee(node) {
 }
 
 function isFunctionNode(type) {
-  return (
-    type === "FunctionExpression" ||
-    type === "FunctionDeclaration" ||
-    type === "ArrowFunctionExpression"
-  );
+  return type === "FunctionExpression" || type === "FunctionDeclaration" || type === "ArrowFunctionExpression";
 }
 
 
 
 function isStatement(type) {
-  return (
-    type === "BlockStatement" ||
-    type === "BreakStatement" ||
-    type === "ContinueStatement" ||
-    type === "DebuggerStatement" ||
-    type === "DoWhileStatement" ||
-    type === "EmptyStatement" ||
-    type === "ExpressionStatement" ||
-    type === "ForInStatement" ||
-    type === "ForStatement" ||
-    type === "IfStatement" ||
-    type === "LabeledStatement" ||
-    type === "ReturnStatement" ||
-    type === "SwitchStatement" ||
-    type === "ThrowStatement" ||
-    type === "TryStatement" ||
-    type === "VariableDeclaration" ||
-    type === "WhileStatement" ||
-    type === "WithStatement"
-  );
+  return type === "BlockStatement" || type === "BreakStatement" || type === "ContinueStatement" || type === "DebuggerStatement" || type === "DoWhileStatement" || type === "EmptyStatement" || type === "ExpressionStatement" || type === "ForInStatement" || type === "ForStatement" || type === "IfStatement" || type === "LabeledStatement" || type === "ReturnStatement" || type === "SwitchStatement" || type === "ThrowStatement" || type === "TryStatement" || type === "VariableDeclaration" || type === "WhileStatement" || type === "WithStatement";
 }
 
 function isLoopStatement(type) {
-  return (
-    type === "ForStatement" ||
-    type === "ForInStatement" ||
-    type === "ForOfStatement" ||
-    type === "WhileStatement" ||
-    type === "DoWhileStatement"
-  );
+  return type === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement";
 }
 
 function isSwitchStatement(type) {
-  return (
-    type === "SwitchStatement"
-  );
+  return type === "SwitchStatement";
 }
 
 function isTryStatement(type) {
-  return (
-    type === "TryStatement"
-  );
+  return type === "TryStatement";
 }
 
 function isLabeledStatement(type) {
-  return (
-    type === "LabeledStatement"
-  );
+  return type === "LabeledStatement";
 }
 
 
@@ -5492,78 +5449,54 @@ function isLabeledStatement(type) {
 
 
 function isLoopFrameType(type) {
-  return (
-    type === INSTR.LOOP_ENTER
-  );
+  return type === INSTR.LOOP_ENTER;
 }
 
 function isSwitchFrameType(type) {
-  return (
-    type === INSTR.SWITCH_ENTER
-  );
+  return type === INSTR.SWITCH_ENTER;
 }
 
 function isSwitchCaseFrameType(type) {
-  return (
-    type === INSTR.CASE_ENTER
-  );
+  return type === INSTR.CASE_ENTER;
 }
 
 function isFunctionFrameType(type) {
-  return (
-    type === INSTR.FUNCTION_CALL
-  );
+  return type === INSTR.FUNCTION_CALL;
 }
 
 function isMethodFrameType(type) {
-  return (
-    type === INSTR.METHOD_ENTER
-  );
+  return type === INSTR.METHOD_ENTER;
 }
 
 function isReturnableFrameType(type) {
-  return (
-    isMethodFrameType(type) ||
-    isFunctionFrameType(type)
-  );
+  return isMethodFrameType(type) || isFunctionFrameType(type);
 }
 
 function isBreakableFrameType(type) {
-  return (
-    isLoopFrameType(type) ||
-    isSwitchFrameType(type)
-  );
+  return isLoopFrameType(type) || isSwitchFrameType(type);
 }
 
 function isContinuableFrameType(type) {
-  return (
-    isLoopFrameType(type)
-  );
+  return isLoopFrameType(type);
 }
 
 function isTryStatementFrameType(type) {
-  return (
-    type === INSTR.TRY_ENTER
-  );
+  return type === INSTR.TRY_ENTER;
 }
 
 function isInstantiationFrameType(type) {
-  return (
-    type === INSTR.OP_NEW
-  );
+  return type === INSTR.OP_NEW;
 }
 
 function isValidFrameInstruction(frame) {
   console.assert(typeof frame.cleanType === "string");
   var type = frame.cleanType;
-  return (
-    INSTR[type] >= 0
-  );
+  return INSTR[type] >= 0;
 }
 
 function operatorToString(op) {
   for (var key in OP) {
-    if (OP[key] === op) { return key; }
+    if (OP[key] === op) return key;
   }
   return "undefined";
 }
@@ -5604,7 +5537,7 @@ function cloneNode(node) {
 
 function deepMagicPatch(node) {
   // magic patch the whole ast
-  walk_2(node, function(child) {
+  walk_2(node, function (child) {
     child.magic = true;
   });
 }
@@ -5722,91 +5655,103 @@ function forceLoopBodyBlocked(node) {
   }
 }
 
-var Frame = function Frame(type, hash) {
-  this.uid = uid();
-  this.hash = hash;
-  this.type = type;
-  this.isSloppy = false;
-  this.isBreakable = false;
-  this.isReturnable = false;
-  this.isTryStatement = false;
-  this.isSwitchDefault = false;
-  this.isInstantiation = false;
-  this.cleanType = instructionToString(type);
-  this.parent = null;
-  this.values = [];
-  this.children = [];
-  // apply frame flow kinds
-  this.isBreakable = isBreakableFrameType(type);
-  this.isSwitchCase = isSwitchCaseFrameType(type);
-  this.isReturnable = isReturnableFrameType(type);
-  this.isContinuable = isContinuableFrameType(type);
-  this.isTryStatement = isTryStatementFrameType(type);
-  this.isInstantiation = isInstantiationFrameType(type);
-};
-Frame.prototype.isGlobal = function isGlobal () {
-  return (
-    this.parent === null &&
-    this.type === INSTR.PROGRAM
-  );
-};
-Frame.prototype.getGlobal = function getGlobal () {
-  var frame = this;
-  while (true) {
-    if (frame.isGlobal()) { break; }
-    frame = frame.parent;
-  }
-  return frame;
-};
-Frame.prototype.getDepth = function getDepth () {
-  var depth = 0;
-  var frame = this;
-  while (true) {
-    if (frame.isGlobal()) { break; }
-    frame = frame.parent;
-    depth++;
-  }
-  return depth;
-};
-Frame.prototype.equals = function equals (frame) {
-  return (
-    this.uid === frame.uid
-  );
-};
+var Frame = function () {
+  function Frame(type, hash) {
+    classCallCheck(this, Frame);
 
-var Scope = function Scope(node) {
-  this.uid = uid();
-  this.isLoop = false;
-  this.isReturnable = false;
-  if (isFunctionNode(node.type)) {
-    this.isReturnable = true;
+    this.uid = uid();
+    this.hash = hash;
+    this.type = type;
+    this.isSloppy = false;
+    this.isBreakable = false;
+    this.isReturnable = false;
+    this.isTryStatement = false;
+    this.isSwitchDefault = false;
+    this.isInstantiation = false;
+    this.cleanType = instructionToString(type);
+    this.parent = null;
+    this.values = [];
+    this.children = [];
+    // apply frame flow kinds
+    this.isBreakable = isBreakableFrameType(type);
+    this.isSwitchCase = isSwitchCaseFrameType(type);
+    this.isReturnable = isReturnableFrameType(type);
+    this.isContinuable = isContinuableFrameType(type);
+    this.isTryStatement = isTryStatementFrameType(type);
+    this.isInstantiation = isInstantiationFrameType(type);
   }
-  else if (isLoopStatement(node.type)) {
-    this.isLoop = true;
+
+  Frame.prototype.isGlobal = function isGlobal() {
+    return this.parent === null && this.type === INSTR.PROGRAM;
+  };
+
+  Frame.prototype.getGlobal = function getGlobal() {
+    var frame = this;
+    while (true) {
+      if (frame.isGlobal()) break;
+      frame = frame.parent;
+    }
+    return frame;
+  };
+
+  Frame.prototype.getDepth = function getDepth() {
+    var depth = 0;
+    var frame = this;
+    while (true) {
+      if (frame.isGlobal()) break;
+      frame = frame.parent;
+      depth++;
+    }
+    return depth;
+  };
+
+  Frame.prototype.equals = function equals(frame) {
+    return this.uid === frame.uid;
+  };
+
+  return Frame;
+}();
+
+var Scope = function () {
+  function Scope(node) {
+    classCallCheck(this, Scope);
+
+    this.uid = uid();
+    this.isLoop = false;
+    this.isReturnable = false;
+    if (isFunctionNode(node.type)) {
+      this.isReturnable = true;
+    } else if (isLoopStatement(node.type)) {
+      this.isLoop = true;
+    }
+    this.node = node;
+    this.parent = null;
   }
-  this.node = node;
-  this.parent = null;
-};
-Scope.prototype.getReturnContext = function getReturnContext () {
-  var ctx = this;
-  while (true) {
-    if (ctx.isReturnable) { break; }
-    ctx = ctx.parent;
-  }
-  return ctx;
-};
-Scope.prototype.getLoopContext = function getLoopContext () {
-  var ctx = this;
-  while (true) {
-    if (ctx.isLoop) { break; }
-    ctx = ctx.parent;
-  }
-  return ctx;
-};
+
+  Scope.prototype.getReturnContext = function getReturnContext() {
+    var ctx = this;
+    while (true) {
+      if (ctx.isReturnable) break;
+      ctx = ctx.parent;
+    }
+    return ctx;
+  };
+
+  Scope.prototype.getLoopContext = function getLoopContext() {
+    var ctx = this;
+    while (true) {
+      if (ctx.isLoop) break;
+      ctx = ctx.parent;
+    }
+    return ctx;
+  };
+
+  return Scope;
+}();
 
 var STAGE1 = {};
 
-STAGE1.Program = function(node, patcher) {
+STAGE1.Program = function (node, patcher) {
   //if (node.magic) return;
   node.magic = true;
   patcher.pushScope(node);
@@ -5824,7 +5769,7 @@ STAGE1.Program = function(node, patcher) {
     var last = null;
     for (var ii = 0; ii < node.body.length; ++ii) {
       var child = node.body[ii];
-      if (child.type === "ExpressionStatement" && !child.magic) { last = child; }
+      if (child.type === "ExpressionStatement" && !child.magic) last = child;
     }
     // only patch the very last expr statement
     if (last !== null) {
@@ -5836,15 +5781,13 @@ STAGE1.Program = function(node, patcher) {
           type: "Identifier",
           name: patcher.instance.getLink("DEBUG_PROGRAM_FRAME_VALUE")
         },
-        arguments: [
-          {
-            magic: true,
-            type: "AssignmentExpression",
-            operator: "=",
-            left: parseExpression(frameValueId),
-            right: last.expression
-          }
-        ]
+        arguments: [{
+          magic: true,
+          type: "AssignmentExpression",
+          operator: "=",
+          left: parseExpression(frameValueId),
+          right: last.expression
+        }]
       };
     }
     var end = {
@@ -5855,9 +5798,7 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_LEAVE")
       },
-      arguments: [
-        parseExpression(hash)
-      ]
+      arguments: [parseExpression(hash)]
     };
     var start = {
       magic: true,
@@ -5867,25 +5808,19 @@ STAGE1.Program = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_PROGRAM_ENTER")
       },
-      arguments: [
-        parseExpression(hash)
-      ]
+      arguments: [parseExpression(hash)]
     };
-    var frame = parseExpressionStatement(("var " + frameValueId + " = void 0;"));
-    end.arguments.push(
-      parseExpression(frameValueId)
-    );
+    var frame = parseExpressionStatement("var " + frameValueId + " = void 0;");
+    end.arguments.push(parseExpression(frameValueId));
     node.body.push(end);
     node.body.unshift(start);
     node.body.unshift(frame);
-    node.body.unshift(parseExpressionStatement(
-      ("const " + (patcher.instance.key) + " = Iroh.stages[\"" + (patcher.instance.key) + "\"];")
-    ));
+    node.body.unshift(parseExpressionStatement("const " + patcher.instance.key + " = Iroh.stages[\"" + patcher.instance.key + "\"];"));
   }
   patcher.popScope();
 };
 
-STAGE1.BlockStatement = function(node, patcher) {
+STAGE1.BlockStatement = function (node, patcher) {
   var body = node.body;
   for (var ii = 0; ii < body.length; ++ii) {
     var child = body[ii];
@@ -5894,20 +5829,22 @@ STAGE1.BlockStatement = function(node, patcher) {
   }
 };
 
-STAGE1.MethodDefinition = function(node, patcher) {
+STAGE1.MethodDefinition = function (node, patcher) {
   patcher.pushScope(node);
   patcher.walk(node.key, patcher, patcher.stage);
   patcher.walk(node.value, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.FunctionDeclaration = function(node, patcher) {
+STAGE1.FunctionDeclaration = function (node, patcher) {
   // dont touch
   if (node.magic) {
     patcher.pushScope(node);
     // just walk
     patcher.walk(node.id, patcher, patcher.stage);
-    node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+    node.params.map(function (param) {
+      patcher.walk(param, patcher, patcher.stage);
+    });
     patcher.walk(node.body, patcher, patcher.stage);
     patcher.popScope();
     return;
@@ -5917,18 +5854,22 @@ STAGE1.FunctionDeclaration = function(node, patcher) {
   var name = node.id.name;
   patcher.symbols[name] = cloneNode(node);
   patcher.walk(node.id, patcher, patcher.stage);
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.FunctionExpression = function(node, patcher) {
+STAGE1.FunctionExpression = function (node, patcher) {
   // dont touch
   if (node.magic) {
     patcher.pushScope(node);
     // just walk
-    if (node.id !== null) { patcher.walk(node.id, patcher, patcher.stage); }
-    node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+    if (node.id !== null) patcher.walk(node.id, patcher, patcher.stage);
+    node.params.map(function (param) {
+      patcher.walk(param, patcher, patcher.stage);
+    });
     patcher.walk(node.body, patcher, patcher.stage);
     patcher.popScope();
     return;
@@ -5946,17 +5887,21 @@ STAGE1.FunctionExpression = function(node, patcher) {
   name = node.id.name;
   patcher.symbols[name] = cloneNode(node);
   patcher.walk(node.id, patcher, patcher.stage);
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.ArrowFunctionExpression = function(node, patcher) {
+STAGE1.ArrowFunctionExpression = function (node, patcher) {
   // dont touch
   if (node.magic) {
     // just walk
     patcher.pushScope(node);
-    node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+    node.params.map(function (param) {
+      patcher.walk(param, patcher, patcher.stage);
+    });
     patcher.walk(node.body, patcher, patcher.stage);
     patcher.popScope();
     return;
@@ -5980,10 +5925,7 @@ STAGE1.ArrowFunctionExpression = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_FUNCTION_RETURN")
       },
-      arguments: [
-        parseExpression(("\"" + (node.id) + "\"")),
-        node.body
-      ]
+      arguments: [parseExpression("\"" + node.id + "\""), node.body]
     };
     node.argument = call;
   }
@@ -5996,12 +5938,14 @@ STAGE1.ArrowFunctionExpression = function(node, patcher) {
       body: [node.body]
     };
   }
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.CallExpression = function(node, patcher) {
+STAGE1.CallExpression = function (node, patcher) {
   // patched in node, ignore
   if (node.magic) {
     patcher.walk(node.callee, patcher, patcher.stage);
@@ -6030,47 +5974,41 @@ STAGE1.CallExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_FUNCTION_CALL")
     },
-    arguments: [
-      parseExpression(hash),
-      parseExpression("this"),
-      callee,
-      (function () {
-        if (node.callee.type === "MemberExpression") {
-          var property = node.callee.property;
-          // identifier
-          if (property.type === "Identifier") {
-            if (node.callee.computed) {
-              return {
-                magic: true,
-                type: "Identifier",
-                name: property.name
-              };
-            }
-            return ({
+    arguments: [parseExpression(hash), parseExpression("this"), callee, function () {
+      if (node.callee.type === "MemberExpression") {
+        var property = node.callee.property;
+        // identifier
+        if (property.type === "Identifier") {
+          if (node.callee.computed) {
+            return {
               magic: true,
-              type: "Literal",
-              value: property.name
-            });
+              type: "Identifier",
+              name: property.name
+            };
           }
-          return property;
+          return {
+            magic: true,
+            type: "Literal",
+            value: property.name
+          };
         }
-        return parseExpression("null");
-      })(),
-      {
-        magic: true,
-        type: "ArrayExpression",
-        elements: [].concat( node.arguments )
+        return property;
       }
-    ]
+      return parseExpression("null");
+    }(), {
+      magic: true,
+      type: "ArrayExpression",
+      elements: [].concat(node.arguments)
+    }]
   };
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.ReturnStatement = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.ReturnStatement = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -6079,9 +6017,9 @@ STAGE1.ReturnStatement = function(node, patcher) {
   };
   node.magic = true;
   var arg = cloneNode(node.argument);
-  if (arg !== null) { patcher.walk(arg, patcher, patcher.stage); }
+  if (arg !== null) patcher.walk(arg, patcher, patcher.stage);
   var scope = patcher.scope.getReturnContext();
-  var name = parseExpression(("\"" + (scope.node.id.name) + "\""));
+  var name = parseExpression("\"" + scope.node.id.name + "\"");
   node.argument = {
     magic: true,
     type: "CallExpression",
@@ -6090,27 +6028,22 @@ STAGE1.ReturnStatement = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_FUNCTION_RETURN")
     },
-    arguments: [
-      parseExpression(hash),
-      name
-    ]
+    arguments: [parseExpression(hash), name]
   };
   if (arg !== null) {
     node.argument.arguments.push(arg);
   }
 };
 
-STAGE1.BreakStatement = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.BreakStatement = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
     hash: hash,
     node: cloneNode(node)
   };
-  var label = parseExpression(
-    node.label ? ("\"" + (node.label.name) + "\"") : "null"
-  );
+  var label = parseExpression(node.label ? "\"" + node.label.name + "\"" : "null");
   var expr = {
     magic: true,
     start: 0, end: 0,
@@ -6123,11 +6056,7 @@ STAGE1.BreakStatement = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_BREAK")
       },
-      arguments: [
-        parseExpression(hash),
-        label,
-        parseExpression("this")
-      ]
+      arguments: [parseExpression(hash), label, parseExpression("this")]
     },
     consequent: {
       magic: true,
@@ -6137,24 +6066,22 @@ STAGE1.BreakStatement = function(node, patcher) {
     alternate: null
   };
   for (var key in expr) {
-    if (!expr.hasOwnProperty(key)) { continue; }
+    if (!expr.hasOwnProperty(key)) continue;
     node[key] = expr[key];
   }
   node.magic = true;
 };
 
-STAGE1.ContinueStatement = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.ContinueStatement = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
     hash: hash,
     node: cloneNode(node)
   };
-  if (node.label) { patcher.walk(node.label, patcher, patcher.stage); }
-  var label = parseExpression(
-    node.label ? ("\"" + (node.label.name) + "\"") : "null"
-  );
+  if (node.label) patcher.walk(node.label, patcher, patcher.stage);
+  var label = parseExpression(node.label ? "\"" + node.label.name + "\"" : "null");
   var expr = {
     magic: true,
     start: 0, end: 0,
@@ -6166,11 +6093,7 @@ STAGE1.ContinueStatement = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_CONTINUE")
       },
-      arguments: [
-        parseExpression(hash),
-        label,
-        parseExpression("this")
-      ]
+      arguments: [parseExpression(hash), label, parseExpression("this")]
     },
     consequent: {
       magic: true,
@@ -6180,14 +6103,14 @@ STAGE1.ContinueStatement = function(node, patcher) {
     alternate: null
   };
   for (var key in expr) {
-    if (!expr.hasOwnProperty(key)) { continue; }
+    if (!expr.hasOwnProperty(key)) continue;
     node[key] = expr[key];
   }
   node.magic = true;
 };
 
-STAGE1.VariableDeclaration = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.VariableDeclaration = function (node, patcher) {
+  if (node.magic) return;
   var ihash = uBranchHash();
   // create node link
   var clone = cloneNode(node);
@@ -6202,10 +6125,10 @@ STAGE1.VariableDeclaration = function(node, patcher) {
     patcher.walk(decls[ii], patcher, patcher.stage);
   }
   // patch
-  for (var ii$1 = 0; ii$1 < decls.length; ++ii$1) {
-    var decl = decls[ii$1];
-    var declClone = clone.declarations[ii$1];
-    if (decl.magic) { continue; }
+  for (var _ii = 0; _ii < decls.length; ++_ii) {
+    var decl = decls[_ii];
+    var declClone = clone.declarations[_ii];
+    if (decl.magic) continue;
     var init = decl.init;
     decl.magic = true;
     var dhash = uBranchHash();
@@ -6222,50 +6145,42 @@ STAGE1.VariableDeclaration = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_VAR_INIT")
       },
-      arguments: [
-        parseExpression(ihash),
-        // fire declaration instant by placing a call wrapper around
-        // then assign its value afterwards
-        {
+      arguments: [parseExpression(ihash),
+      // fire declaration instant by placing a call wrapper around
+      // then assign its value afterwards
+      {
+        magic: true,
+        type: "CallExpression",
+        callee: {
           magic: true,
-          type: "CallExpression",
-          callee: {
-            magic: true,
-            type: "Identifier",
-            name: patcher.instance.getLink("DEBUG_VAR_DECLARE")
-          },
-          arguments: [
-            parseExpression(dhash),
-            {
-              magic: true,
-              type: "Literal",
-              value: decl.id.name,
-              raw: ("\"" + (decl.id.name) + "\"")
-            }
-          ]
-        }
-      ]
+          type: "Identifier",
+          name: patcher.instance.getLink("DEBUG_VAR_DECLARE")
+        },
+        arguments: [parseExpression(dhash), {
+          magic: true,
+          type: "Literal",
+          value: decl.id.name,
+          raw: "\"" + decl.id.name + "\""
+        }]
+      }]
     };
-    if (init !== null) { decl.init.arguments.push(init); }
+    if (init !== null) decl.init.arguments.push(init);
   }
 };
 
-STAGE1.NewExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.NewExpression = function (node, patcher) {
+  if (node.magic) return;
   node.magic = true;
   patcher.walk(node.callee, patcher, patcher.stage);
   node.arguments.map(function (arg) {
     patcher.walk(arg, patcher, patcher.stage);
   });
   var callee = cloneNode(node.callee);
-  var args = [
-    callee,
-    {
-      magic: true,
-      type: "ArrayExpression",
-      elements: [].concat( node.arguments )
-    }
-  ];
+  var args = [callee, {
+    magic: true,
+    type: "ArrayExpression",
+    elements: [].concat(node.arguments)
+  }];
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -6278,25 +6193,20 @@ STAGE1.NewExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_OP_NEW_END")
   };
-  node.arguments = [
-    parseExpression(hash),
-    parseExpression(patcher.instance.key),
-    {
+  node.arguments = [parseExpression(hash), parseExpression(patcher.instance.key), {
+    magic: true,
+    type: "CallExpression",
+    callee: {
       magic: true,
-      type: "CallExpression",
-      callee: {
-        magic: true,
-        type: "Identifier",
-        name: patcher.instance.getLink("DEBUG_OP_NEW")
-      },
-      arguments: [
-        parseExpression(hash) ].concat( args
-      )
-    } ];
+      type: "Identifier",
+      name: patcher.instance.getLink("DEBUG_OP_NEW")
+    },
+    arguments: [parseExpression(hash)].concat(args)
+  }];
 };
 
-STAGE1.ObjectExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.ObjectExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -6304,7 +6214,9 @@ STAGE1.ObjectExpression = function(node, patcher) {
     node: cloneNode(node)
   };
   node.magic = true;
-  node.properties.map(function (prop) { patcher.walk(prop, patcher, patcher.stage); });
+  node.properties.map(function (prop) {
+    patcher.walk(prop, patcher, patcher.stage);
+  });
   var call = {
     magic: true,
     type: "CallExpression",
@@ -6313,19 +6225,16 @@ STAGE1.ObjectExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [
-      parseExpression(hash),
-      cloneNode(node)
-    ]
+    arguments: [parseExpression(hash), cloneNode(node)]
   };
   delete node.properties;
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.MemberExpression = function(node, patcher) {
+STAGE1.MemberExpression = function (node, patcher) {
   if (node.magic) {
     patcher.walk(node.object, patcher, patcher.stage);
     patcher.walk(node.property, patcher, patcher.stage);
@@ -6356,11 +6265,7 @@ STAGE1.MemberExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_MEMBER_EXPR")
     },
-    arguments: [
-      parseExpression(hash),
-      node.object,
-      property
-    ]
+    arguments: [parseExpression(hash), node.object, property]
   };
   call = {
     magic: true,
@@ -6369,12 +6274,12 @@ STAGE1.MemberExpression = function(node, patcher) {
     property: node.property
   };
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.AssignmentExpression = function(node, patcher) {
+STAGE1.AssignmentExpression = function (node, patcher) {
   if (node.magic) {
     node.left.magic = true;
     patcher.walk(node.left, patcher, patcher.stage);
@@ -6419,9 +6324,9 @@ STAGE1.AssignmentExpression = function(node, patcher) {
   // identifier based assignment
   // fixed up below by turning into assign expr again
   else if (left.type === "Identifier") {
-    object = left;
-    property = parseExpression(null);
-  }
+      object = left;
+      property = parseExpression(null);
+    }
   var call = {
     magic: true,
     type: "CallExpression",
@@ -6430,17 +6335,7 @@ STAGE1.AssignmentExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ASSIGN")
     },
-    arguments: [
-      parseExpression(hash),
-      parseExpression(OP[operator]),
-      (
-        left.type === "Identifier" ?
-        parseExpression(("\"" + (left.name) + "\"")) :
-        object
-      ),
-      property,
-      right
-    ]
+    arguments: [parseExpression(hash), parseExpression(OP[operator]), left.type === "Identifier" ? parseExpression("\"" + left.name + "\"") : object, property, right]
   };
   // #identifier assignment
   if (left.type === "Identifier") {
@@ -6455,12 +6350,12 @@ STAGE1.AssignmentExpression = function(node, patcher) {
   patcher.walk(node.left, patcher, patcher.stage);
   patcher.walk(node.right, patcher, patcher.stage);
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.UpdateExpression = function(node, patcher) {
+STAGE1.UpdateExpression = function (node, patcher) {
   if (node.magic) {
     patcher.walk(node.argument, patcher, patcher.stage);
     return;
@@ -6500,9 +6395,9 @@ STAGE1.UpdateExpression = function(node, patcher) {
   // identifier based assignment
   // fixed up below by turning into assign expr again
   else if (arg.type === "Identifier") {
-    object = arg;
-    property = parseExpression(null);
-  }
+      object = arg;
+      property = parseExpression(null);
+    }
   var call = {
     magic: true,
     type: "CallExpression",
@@ -6511,21 +6406,16 @@ STAGE1.UpdateExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_UPDATE")
     },
-    arguments: [
-      parseExpression(hash),
-      parseExpression(OP[operator]),
-      clone,
-      parseExpression(node.prefix)
-    ]
+    arguments: [parseExpression(hash), parseExpression(OP[operator]), clone, parseExpression(node.prefix)]
   };
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.ArrayExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.ArrayExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -6533,7 +6423,9 @@ STAGE1.ArrayExpression = function(node, patcher) {
     node: cloneNode(node)
   };
   node.magic = true;
-  node.elements.map(function (el) { if (el !== null) { patcher.walk(el, patcher, patcher.stage); } });
+  node.elements.map(function (el) {
+    if (el !== null) patcher.walk(el, patcher, patcher.stage);
+  });
   var call = {
     magic: true,
     type: "CallExpression",
@@ -6542,20 +6434,17 @@ STAGE1.ArrayExpression = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_ALLOC")
     },
-    arguments: [
-      parseExpression(hash),
-      cloneNode(node)
-    ]
+    arguments: [parseExpression(hash), cloneNode(node)]
   };
   delete node.elements;
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.Literal = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE1.Literal = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   var clone = cloneNode(node);
   // create node link
@@ -6572,28 +6461,25 @@ STAGE1.Literal = function(node, patcher) {
       type: "Identifier",
       name: patcher.instance.getLink("DEBUG_LITERAL")
     },
-    arguments: [
-      parseExpression(hash),
-      clone
-    ]
+    arguments: [parseExpression(hash), clone]
   };
   for (var key in call) {
-    if (!call.hasOwnProperty(key)) { continue; }
+    if (!call.hasOwnProperty(key)) continue;
     node[key] = call[key];
   }
 };
 
-STAGE1.ForStatement = function(node, patcher) {
-  if (!node.hasOwnProperty("labels")) { node.labels = []; }
+STAGE1.ForStatement = function (node, patcher) {
+  if (!node.hasOwnProperty("labels")) node.labels = [];
   patcher.pushScope(node);
-  if (node.test) { patcher.walk(node.test, patcher, patcher.stage); }
-  if (node.init) { patcher.walk(node.init, patcher, patcher.stage); }
-  if (node.update) { patcher.walk(node.update, patcher, patcher.stage); }
+  if (node.test) patcher.walk(node.test, patcher, patcher.stage);
+  if (node.init) patcher.walk(node.init, patcher, patcher.stage);
+  if (node.update) patcher.walk(node.update, patcher, patcher.stage);
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.ForInStatement = function(node, patcher) {
+STAGE1.ForInStatement = function (node, patcher) {
   node.left.magic = true;
   patcher.pushScope(node);
   patcher.walk(node.left, patcher, patcher.stage);
@@ -6602,7 +6488,7 @@ STAGE1.ForInStatement = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE1.ForOfStatement = function(node, patcher) {
+STAGE1.ForOfStatement = function (node, patcher) {
   node.left.magic = true;
   patcher.pushScope(node);
   patcher.walk(node.left, patcher, patcher.stage);
@@ -6611,27 +6497,27 @@ STAGE1.ForOfStatement = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE1.WhileStatement = function(node, patcher) {
+STAGE1.WhileStatement = function (node, patcher) {
   patcher.pushScope(node);
-  if (node.test) { patcher.walk(node.test, patcher, patcher.stage); }
+  if (node.test) patcher.walk(node.test, patcher, patcher.stage);
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE1.DoWhileStatement = function(node, patcher) {
+STAGE1.DoWhileStatement = function (node, patcher) {
   patcher.pushScope(node);
-  if (node.test) { patcher.walk(node.test, patcher, patcher.stage); }
+  if (node.test) patcher.walk(node.test, patcher, patcher.stage);
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
 var STAGE2 = {};
 
-STAGE2.IfStatement = function(node, patcher) {
+STAGE2.IfStatement = function (node, patcher) {
   if (node.magic) {
     patcher.walk(node.test, patcher, patcher.stage);
     patcher.walk(node.consequent, patcher, patcher.stage);
-    if (node.alternate) { patcher.walk(node.alternate, patcher, patcher.stage); }
+    if (node.alternate) patcher.walk(node.alternate, patcher, patcher.stage);
     return;
   }
   node.magic = true;
@@ -6639,14 +6525,8 @@ STAGE2.IfStatement = function(node, patcher) {
   var test = cloneNode(node.test);
   // branch hash
   var elseHash = uBranchHash();
-  var isElse = (
-    node.alternate &&
-    node.alternate.type !== "IfStatement"
-  );
-  var isBlockedElse = (
-    isElse &&
-    node.alternate.body === "BlockStatement"
-  );
+  var isElse = node.alternate && node.alternate.type !== "IfStatement";
+  var isBlockedElse = isElse && node.alternate.body === "BlockStatement";
 
   if (isElse) {
     // create node link
@@ -6674,10 +6554,10 @@ STAGE2.IfStatement = function(node, patcher) {
 
   patcher.walk(node.test, patcher, patcher.stage);
   patcher.walk(node.consequent, patcher, patcher.stage);
-  if (node.alternate) { patcher.walk(node.alternate, patcher, patcher.stage); }
+  if (node.alternate) patcher.walk(node.alternate, patcher, patcher.stage);
 
   var id = reserveTempVarId();
-  var patch = parseExpressionStatement(("var " + id + ";"));
+  var patch = parseExpressionStatement("var " + id + ";");
   injectPatchIntoNode(patcher.scope.node, patch);
 
   // debug if test
@@ -6694,38 +6574,27 @@ STAGE2.IfStatement = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_IF_TEST")
       },
-      arguments: [
-        parseExpression(ifHash),
-        node.test
-      ]
+      arguments: [parseExpression(ifHash), node.test]
     }
   };
 
   // patch else enter, leave
   if (isElse) {
-    var end$1 = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_ELSE_LEAVE"));
-    var start$1 = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_ELSE_ENTER"));
-    end$1.expression.arguments.push(
-      parseExpression(elseHash)
-    );
-    start$1.expression.arguments.push(
-      parseExpression(elseHash)
-    );
-    node.alternate.body.unshift(start$1);
-    node.alternate.body.push(end$1);
+    var _end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_ELSE_LEAVE"));
+    var _start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_ELSE_ENTER"));
+    _end.expression.arguments.push(parseExpression(elseHash));
+    _start.expression.arguments.push(parseExpression(elseHash));
+    node.alternate.body.unshift(_start);
+    node.alternate.body.push(_end);
   }
 
   // debug if body enter, leave
   var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_IF_LEAVE"));
   var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_IF_ENTER"));
   // branch hash
-  end.expression.arguments.push(
-    parseExpression(ifHash)
-  );
+  end.expression.arguments.push(parseExpression(ifHash));
   // branch hash
-  start.expression.arguments.push(
-    parseExpression(ifHash)
-  );
+  start.expression.arguments.push(parseExpression(ifHash));
   // pass in condition result into if enter
   start.expression.arguments.push(parseExpression(id));
   if (node.consequent.type === "BlockStatement") {
@@ -6737,7 +6606,6 @@ STAGE2.IfStatement = function(node, patcher) {
       body: [start, node.consequent, end]
     };
   }
-
 };
 
 STAGE2.Program = STAGE1.Program;
@@ -6749,7 +6617,7 @@ STAGE2.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var STAGE3 = {};
 
-STAGE3.BlockStatement = function(node, patcher) {
+STAGE3.BlockStatement = function (node, patcher) {
   var body = node.body;
   // transform try, switch and labels here
   for (var ii = 0; ii < body.length; ++ii) {
@@ -6763,27 +6631,19 @@ STAGE3.BlockStatement = function(node, patcher) {
     var isTryStmt = isTryStatement(child.type);
     var isSwitchStmt = isSwitchStatement(child.type);
     var hash = -1;
-    var isHashBranch = (
-      isTryStmt ||
-      isSwitchStmt
-    );
+    var isHashBranch = isTryStmt || isSwitchStmt;
     // only generate hash if necessary
-    if (isHashBranch) { hash = uBranchHash(); }
+    if (isHashBranch) hash = uBranchHash();
     // #ENTER
     if (isHashBranch) {
-      var link = patcher.instance.getLinkCall(
-        isTryStmt ? "DEBUG_TRY_ENTER" :
-        isSwitchStmt ? "DEBUG_SWITCH_ENTER" :
-        "" // throws error
+      var link = patcher.instance.getLinkCall(isTryStmt ? "DEBUG_TRY_ENTER" : isSwitchStmt ? "DEBUG_SWITCH_ENTER" : "" // throws error
       );
       var start = parseExpressionStatement(link);
       patcher.nodes[hash] = {
         hash: hash,
         node: cloneNode(child)
       };
-      start.expression.arguments.push(
-        parseExpression(hash)
-      );
+      start.expression.arguments.push(parseExpression(hash));
       body.splice(ii, 0, start);
       ii++;
     }
@@ -6797,25 +6657,17 @@ STAGE3.BlockStatement = function(node, patcher) {
           type: "Identifier",
           name: patcher.instance.getLink("DEBUG_SWITCH_TEST")
         },
-        arguments: [
-          parseExpression(hash),
-          child.discriminant
-        ]
+        arguments: [parseExpression(hash), child.discriminant]
       };
       child.discriminant = test;
     }
     patcher.walk(child, patcher, patcher.stage);
     // #LEAVE
     if (isHashBranch) {
-      var link$1 = patcher.instance.getLinkCall(
-        isTryStmt ? "DEBUG_TRY_LEAVE" :
-        isSwitchStmt ? "DEBUG_SWITCH_LEAVE" :
-        "" // throws error
+      var _link = patcher.instance.getLinkCall(isTryStmt ? "DEBUG_TRY_LEAVE" : isSwitchStmt ? "DEBUG_SWITCH_LEAVE" : "" // throws error
       );
-      var end = parseExpressionStatement(link$1);
-      end.expression.arguments.push(
-        parseExpression(hash)
-      );
+      var end = parseExpressionStatement(_link);
+      end.expression.arguments.push(parseExpression(hash));
       body.splice(ii + 1, 0, end);
       ii++;
     }
@@ -6830,7 +6682,7 @@ STAGE3.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var STAGE4 = {};
 
-STAGE4.SwitchStatement = function(node, patcher) {
+STAGE4.SwitchStatement = function (node, patcher) {
   if (node.magic) {
     patcher.walk(node.discriminant, patcher, patcher.stage);
     node.cases.map(function (cs) {
@@ -6852,7 +6704,7 @@ STAGE4.SwitchStatement = function(node, patcher) {
   });
 
   var id = reserveTempVarId();
-  var patch = parseExpressionStatement(("var " + id + ";"));
+  var patch = parseExpressionStatement("var " + id + ";");
   injectPatchIntoNode(patcher.scope.node, patch);
 
   // debug if test
@@ -6863,12 +6715,11 @@ STAGE4.SwitchStatement = function(node, patcher) {
     left: parseExpression(id),
     right: node.discriminant
   };
-
 };
 
-STAGE4.SwitchCase = function(node, patcher) {
+STAGE4.SwitchCase = function (node, patcher) {
   if (node.magic) {
-    if (node.test) { patcher.walk(node.test, patcher, patcher.stage); }
+    if (node.test) patcher.walk(node.test, patcher, patcher.stage);
     node.consequent.map(function (cons) {
       patcher.walk(cons, patcher, patcher.stage);
     });
@@ -6886,7 +6737,7 @@ STAGE4.SwitchCase = function(node, patcher) {
   var test = null;
   if (node.test) {
     var id = reserveTempVarId();
-    var patch = parseExpressionStatement(("var " + id + ";"));
+    var patch = parseExpressionStatement("var " + id + ";");
     injectPatchIntoNode(patcher.scope.node, patch);
     test = parseExpression(id);
     // debug if test
@@ -6905,41 +6756,25 @@ STAGE4.SwitchCase = function(node, patcher) {
         type: "Identifier",
         name: patcher.instance.getLink("DEBUG_CASE_TEST")
       },
-      arguments: [
-        parseExpression(hash),
-        node.test
-      ]
+      arguments: [parseExpression(hash), node.test]
     };
   }
 
   // default or case
-  var type = (
-    test !== null ? test : parseExpression("null")
-  );
+  var type = test !== null ? test : parseExpression("null");
 
-  var start = parseExpressionStatement(
-    patcher.instance.getLinkCall("DEBUG_CASE_ENTER")
-  );
+  var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CASE_ENTER"));
   // pass case test result
-  start.expression.arguments.push(
-    parseExpression(hash)
-  );
+  start.expression.arguments.push(parseExpression(hash));
   // pass case value
   start.expression.arguments.push(test || parseExpression(null));
   // trace default case
-  start.expression.arguments.push(
-    parseExpression(test === null)
-  );
+  start.expression.arguments.push(parseExpression(test === null));
   node.consequent.splice(0, 0, start);
 
-  var end = parseExpressionStatement(
-    patcher.instance.getLinkCall("DEBUG_CASE_LEAVE")
-  );
-  end.expression.arguments.push(
-    parseExpression(hash)
-  );
+  var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CASE_LEAVE"));
+  end.expression.arguments.push(parseExpression(hash));
   node.consequent.splice(node.consequent.length, 0, end);
-
 };
 
 STAGE4.Program = STAGE1.Program;
@@ -6951,14 +6786,14 @@ STAGE4.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var STAGE5 = {};
 
-STAGE5.ClassDeclaration = function(node, patcher) {
+STAGE5.ClassDeclaration = function (node, patcher) {
   patcher.pushScope(node);
   patcher.walk(node.id, patcher, patcher.stage);
   patcher.walk(node.body, patcher, patcher.stage);
   patcher.popScope();
 };
 
-STAGE5.MethodDefinition = function(node, patcher) {
+STAGE5.MethodDefinition = function (node, patcher) {
   if (node.magic) {
     patcher.pushScope(node);
     patcher.walk(node.key, patcher, patcher.stage);
@@ -7026,8 +6861,8 @@ STAGE5.MethodDefinition = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE5.CallExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE5.CallExpression = function (node, patcher) {
+  if (node.magic) return;
   // dont patch super class calls
   if (node.callee && node.callee.type === "Super") {
     var scope = patcher.scope.node;
@@ -7044,30 +6879,26 @@ STAGE5.CallExpression = function(node, patcher) {
     scope.superNode = node;
 
     // patch debug super
-    node.arguments = [
-      {
+    node.arguments = [{
+      magic: true,
+      type: "CallExpression",
+      callee: {
         magic: true,
-        type: "CallExpression",
-        callee: {
+        type: "Identifier",
+        name: patcher.instance.getLink("DEBUG_SUPER")
+      },
+      arguments: [
+      // class ctor
+      patcher.scope.parent.parent.node.id, {
+        magic: true,
+        type: "SpreadElement",
+        argument: {
           magic: true,
-          type: "Identifier",
-          name: patcher.instance.getLink("DEBUG_SUPER")
-        },
-        arguments: [
-          // class ctor
-          patcher.scope.parent.parent.node.id,
-          {
-            magic: true,
-            type: "SpreadElement",
-            argument: {
-              magic: true,
-              type: "ArrayExpression",
-              elements: node.arguments
-            }
-          }
-        ]
-      }
-    ];
+          type: "ArrayExpression",
+          elements: node.arguments
+        }
+      }]
+    }];
   }
 };
 
@@ -7079,10 +6910,12 @@ STAGE5.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var STAGE6 = {};
 
-STAGE6.FunctionDeclaration = function(node, patcher) {
+STAGE6.FunctionDeclaration = function (node, patcher) {
   patcher.pushScope(node);
   patcher.walk(node.id, patcher, patcher.stage);
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
 
   var hash = uBranchHash();
@@ -7106,11 +6939,13 @@ STAGE6.FunctionDeclaration = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE6.FunctionExpression = function(node, patcher) {
-  if (patcher.scope.node.type === "MethodDefinition") { return; }
+STAGE6.FunctionExpression = function (node, patcher) {
+  if (patcher.scope.node.type === "MethodDefinition") return;
   patcher.pushScope(node);
   patcher.walk(node.id, patcher, patcher.stage);
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
 
   var hash = uBranchHash();
@@ -7134,9 +6969,11 @@ STAGE6.FunctionExpression = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE6.ArrowFunctionExpression = function(node, patcher) {
+STAGE6.ArrowFunctionExpression = function (node, patcher) {
   patcher.pushScope(node);
-  node.params.map(function (param) { patcher.walk(param, patcher, patcher.stage); });
+  node.params.map(function (param) {
+    patcher.walk(param, patcher, patcher.stage);
+  });
   patcher.walk(node.body, patcher, patcher.stage);
 
   var hash = uBranchHash();
@@ -7174,7 +7011,7 @@ STAGE6.MethodDefinition = STAGE1.MethodDefinition;
 
 var STAGE7 = {};
 
-STAGE7.BlockStatement = function(node, patcher) {
+STAGE7.BlockStatement = function (node, patcher) {
   var body = node.body;
   for (var ii = 0; ii < body.length; ++ii) {
     var child = body[ii];
@@ -7187,15 +7024,10 @@ STAGE7.BlockStatement = function(node, patcher) {
       child = processLabels(child);
     }
 
-    var isLazyBlock = (
-      child.type === "BlockStatement"
-    );
+    var isLazyBlock = child.type === "BlockStatement";
     var isLoopStmt = isLoopStatement(child.type);
     var isSwitchStmt = isSwitchStatement(child.type);
-    var isHashBranch = (
-      isLoopStmt ||
-      isLazyBlock
-    );
+    var isHashBranch = isLoopStmt || isLazyBlock;
     var hash = -1;
     var id = null;
     if (isHashBranch) {
@@ -7220,9 +7052,7 @@ STAGE7.BlockStatement = function(node, patcher) {
             type: "Identifier",
             name: patcher.instance.getLink("DEBUG_BLOCK_ENTER")
           },
-          arguments: [
-            parseExpression(hash)
-          ]
+          arguments: [parseExpression(hash)]
         }
       };
       var end = {
@@ -7236,7 +7066,7 @@ STAGE7.BlockStatement = function(node, patcher) {
             type: "Identifier",
             name: patcher.instance.getLink("DEBUG_BLOCK_LEAVE")
           },
-          arguments: [ parseExpression(hash) ]
+          arguments: [parseExpression(hash)]
         }
       };
       child.body.unshift(start);
@@ -7249,7 +7079,7 @@ STAGE7.BlockStatement = function(node, patcher) {
       forceLoopBodyBlocked(child);
       console.assert(child.body.type === "BlockStatement");
 
-      var patch = parseExpressionStatement(("var " + id + " = 0;"));
+      var patch = parseExpressionStatement("var " + id + " = 0;");
       body.splice(ii, 0, patch);
       ii++;
 
@@ -7261,23 +7091,17 @@ STAGE7.BlockStatement = function(node, patcher) {
           type: "Identifier",
           name: patcher.instance.getLink("DEBUG_LOOP_TEST")
         },
-        arguments: [
-          parseExpression(hash),
-          child.test ? child.test : (
-            // empty for test means infinite
-            child.type === "ForStatement" ?
-            parseExpression(true) :
-            "" // throws error
-          ),
-          parseExpression(("\"" + (child.type) + "\""))
-        ]
+        arguments: [parseExpression(hash), child.test ? child.test :
+        // empty for test means infinite
+        child.type === "ForStatement" ? parseExpression(true) : "" // throws error
+        , parseExpression("\"" + child.type + "\"")]
       };
       child.test = test;
 
-      var start$1 = {
+      var _start = {
         magic: true,
         type: "IfStatement",
-        test: parseExpression((id + " === 0")),
+        test: parseExpression(id + " === 0"),
         alternate: null,
         consequent: {
           magic: true,
@@ -7290,20 +7114,17 @@ STAGE7.BlockStatement = function(node, patcher) {
               type: "Identifier",
               name: patcher.instance.getLink("DEBUG_LOOP_ENTER")
             },
-            arguments: [
-              parseExpression(hash),
-              // set the loop enter state to fullfilled
-              parseExpression((id + " = 1")),
-              parseExpression(("\"" + (child.type) + "\""))
-            ]
+            arguments: [parseExpression(hash),
+            // set the loop enter state to fullfilled
+            parseExpression(id + " = 1"), parseExpression("\"" + child.type + "\"")]
           }
         }
       };
-      child.body.body.unshift(start$1);
+      child.body.body.unshift(_start);
     }
     patcher.walk(child, patcher, patcher.stage);
     if (isLoopStmt) {
-      var end$1 = {
+      var _end = {
         magic: true,
         type: "ExpressionStatement",
         expression: {
@@ -7314,13 +7135,10 @@ STAGE7.BlockStatement = function(node, patcher) {
             type: "Identifier",
             name: patcher.instance.getLink("DEBUG_LOOP_LEAVE")
           },
-          arguments: [
-            parseExpression(hash),
-            parseExpression(id),
-            parseExpression(("\"" + (child.type) + "\"")) ]
+          arguments: [parseExpression(hash), parseExpression(id), parseExpression("\"" + child.type + "\"")]
         }
       };
-      body.splice(ii + 1, 0, end$1);
+      body.splice(ii + 1, 0, _end);
       ii++;
     }
   }
@@ -7334,8 +7152,8 @@ STAGE7.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var STAGE8 = {};
 
-STAGE8.ThisExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE8.ThisExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -7349,14 +7167,11 @@ STAGE8.ThisExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_THIS")
   };
-  node.arguments = [
-    parseExpression(hash),
-    parseExpression("this")
-  ];
+  node.arguments = [parseExpression(hash), parseExpression("this")];
 };
 
-STAGE8.BinaryExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE8.BinaryExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -7372,16 +7187,11 @@ STAGE8.BinaryExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_BINARY")
   };
-  node.arguments = [
-    parseExpression(hash),
-    parseExpression(OP[node.operator]),
-    node.left,
-    node.right
-  ];
+  node.arguments = [parseExpression(hash), parseExpression(OP[node.operator]), node.left, node.right];
 };
 
-STAGE8.LogicalExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE8.LogicalExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -7405,16 +7215,11 @@ STAGE8.LogicalExpression = function(node, patcher) {
     type: "ReturnStatement",
     argument: node.right
   });
-  node.arguments = [
-    parseExpression(hash),
-    parseExpression(OP[node.operator]),
-    node.left,
-    right
-  ];
+  node.arguments = [parseExpression(hash), parseExpression(OP[node.operator]), node.left, right];
 };
 
-STAGE8.UnaryExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE8.UnaryExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -7440,36 +7245,22 @@ STAGE8.UnaryExpression = function(node, patcher) {
       argument: argument
     };
   }
-  node.arguments = [
-    parseExpression(hash),
-    parseExpression(OP[node.operator]),
-    parseExpression("this"),
-    parseExpression(false),
-    argument
-  ];
+  node.arguments = [parseExpression(hash), parseExpression(OP[node.operator]), parseExpression("this"), parseExpression(false), argument];
   // typeof fixup
   // typeof is a weirdo
   if (node.operator === "typeof" && argument.type === "Identifier") {
     var id = reserveTempVarId();
-    var patch = parseExpressionStatement(("var " + id + ";"));
+    var patch = parseExpressionStatement("var " + id + ";");
     injectPatchIntoNode(patcher.scope.node, patch);
     var name = argument.name;
     // heute sind wir räudig
-    var critical = parseExpression(
-      ("(function() { try { " + name + "; } catch(e) { " + id + " = \"undefined\"; return true; } " + id + " = " + name + "; return false; }).bind(this)()")
-    );
-    node.arguments = [
-      parseExpression(hash),
-      parseExpression(OP[node.operator]),
-      parseExpression("this"),
-      critical,
-      parseExpression(id)
-    ];
+    var critical = parseExpression("(function() { try { " + name + "; } catch(e) { " + id + " = \"undefined\"; return true; } " + id + " = " + name + "; return false; }).bind(this)()");
+    node.arguments = [parseExpression(hash), parseExpression(OP[node.operator]), parseExpression("this"), critical, parseExpression(id)];
   }
 };
 
-STAGE8.ConditionalExpression = function(node, patcher) {
-  if (node.magic) { return; }
+STAGE8.ConditionalExpression = function (node, patcher) {
+  if (node.magic) return;
   var hash = uBranchHash();
   // create node link
   patcher.nodes[hash] = {
@@ -7500,12 +7291,7 @@ STAGE8.ConditionalExpression = function(node, patcher) {
     type: "Identifier",
     name: patcher.instance.getLink("DEBUG_TERNARY")
   };
-  node.arguments = [
-    parseExpression(hash),
-    node.test,
-    cons,
-    alt
-  ];
+  node.arguments = [parseExpression(hash), node.test, cons, alt];
 };
 
 /*
@@ -7549,6 +7335,8 @@ STAGE8.FunctionExpression = STAGE1.FunctionExpression;
 STAGE8.ArrowFunctionExpression = STAGE1.ArrowFunctionExpression;
 
 var Patcher = function Patcher(instance) {
+  classCallCheck(this, Patcher);
+
   this.uid = uid();
   // patch AST scope
   this.scope = null;
@@ -7566,26 +7354,26 @@ var Patcher = function Patcher(instance) {
 
 
 
-Patcher.prototype.walk = function(ast, state, visitors) {
+Patcher.prototype.walk = function (ast, state, visitors) {
   return walk_3(ast, state, visitors, walk_1);
 };
 
-Patcher.prototype.pushScope = function(node) {
+Patcher.prototype.pushScope = function (node) {
   var tmp = this.scope;
   this.scope = new Scope(node);
   this.scope.parent = tmp;
 };
 
-Patcher.prototype.popScope = function(node) {
+Patcher.prototype.popScope = function (node) {
   this.scope = this.scope.parent;
 };
 
-Patcher.prototype.applyStagePatch = function(ast, stage) {
+Patcher.prototype.applyStagePatch = function (ast, stage) {
   this.stage = stage;
   this.walk(ast, this, this.stage);
 };
 
-Patcher.prototype.applyPatches = function(ast) {
+Patcher.prototype.applyPatches = function (ast) {
   this.applyStagePatch(ast, STAGE2);
   this.applyStagePatch(ast, STAGE7);
   this.applyStagePatch(ast, STAGE4);
@@ -7596,137 +7384,204 @@ Patcher.prototype.applyPatches = function(ast) {
   this.applyStagePatch(ast, STAGE8);
 };
 
-var RuntimeEvent = function RuntimeEvent(type, instance) {
-  this.type = type;
-  this.category = getCategoryFromInstruction(type);
-  // base properties
-  this.hash = -1;
-  this.indent = -1;
-  this.node = null;
-  this.location = null;
-  this.instance = instance;
-  // TODO
-  // turn all events into seperate classes
-  // so we can save a lot memory
-};
-RuntimeEvent.prototype.trigger = function trigger (trigger$1) {
-  // trigger all attached listeners
-  this.instance.triggerListeners(this, trigger$1);
-};
-RuntimeEvent.prototype.getASTNode = function getASTNode () {
-  var node = this.instance.nodes[this.hash].node;
-  return node;
-};
-RuntimeEvent.prototype.getPosition = function getPosition () {
-  var node = this.getASTNode();
-  return {
-    end: node.end,
-    start: node.start
+var RuntimeEvent = function () {
+  function RuntimeEvent(type, instance) {
+    classCallCheck(this, RuntimeEvent);
+
+    this.type = type;
+    this.category = getCategoryFromInstruction(type);
+    // base properties
+    this.hash = -1;
+    this.indent = -1;
+    this.node = null;
+    this.location = null;
+    this.instance = instance;
+    // TODO
+    // turn all events into seperate classes
+    // so we can save a lot memory
+  }
+
+  RuntimeEvent.prototype.trigger = function trigger(_trigger) {
+    // trigger all attached listeners
+    this.instance.triggerListeners(this, _trigger);
   };
-};
-RuntimeEvent.prototype.getLocation = function getLocation () {
-  var node = this.getASTNode();
-  return node.loc;
-};
-RuntimeEvent.prototype.getSource = function getSource () {
-  var loc = this.getPosition();
-  var input = this.instance.input;
-  var output = input.substr(loc.start, loc.end - loc.start);
-  return output;
-};
+
+  RuntimeEvent.prototype.getASTNode = function getASTNode() {
+    var node = this.instance.nodes[this.hash].node;
+    return node;
+  };
+
+  RuntimeEvent.prototype.getPosition = function getPosition() {
+    var node = this.getASTNode();
+    return {
+      end: node.end,
+      start: node.start
+    };
+  };
+
+  RuntimeEvent.prototype.getLocation = function getLocation() {
+    var node = this.getASTNode();
+    return node.loc;
+  };
+
+  RuntimeEvent.prototype.getSource = function getSource() {
+    var loc = this.getPosition();
+    var input = this.instance.input;
+    var output = input.substr(loc.start, loc.end - loc.start);
+    return output;
+  };
+
+  return RuntimeEvent;
+}();
 
 var RuntimeListenerEvent = function RuntimeListenerEvent(type, callback) {
+  classCallCheck(this, RuntimeListenerEvent);
+
   this.type = type;
   this.callback = callback;
 };
 
-var RuntimeListener = function RuntimeListener(category) {
-  this.category = category;
-  this.triggers = {};
-};
-RuntimeListener.prototype.on = function on (type, callback) {
-  var event = new RuntimeListenerEvent(type, callback);
-  // not registered yet
-  if (this.triggers[type] === void 0) {
-    this.triggers[type] = [];
+
+
+var RuntimeListener = function () {
+  function RuntimeListener(category) {
+    classCallCheck(this, RuntimeListener);
+
+    this.category = category;
+    this.triggers = {};
   }
-  this.triggers[type].push(event);
-  // allow stream calls
-  return this;
-};
-RuntimeListener.prototype.trigger = function trigger (event, trigger$1) {
-  // any triggers registered?
-  if (!this.triggers.hasOwnProperty(trigger$1)) { return; }
-  var triggers = this.triggers[trigger$1];
-  for (var ii = 0; ii < triggers.length; ++ii) {
-    triggers[ii].callback(event);
-  }
-};
+
+  RuntimeListener.prototype.on = function on(type, callback) {
+    var event = new RuntimeListenerEvent(type, callback);
+    // not registered yet
+    if (this.triggers[type] === void 0) {
+      this.triggers[type] = [];
+    }
+    this.triggers[type].push(event);
+    // allow stream calls
+    return this;
+  };
+
+  RuntimeListener.prototype.trigger = function trigger(event, _trigger) {
+    // any triggers registered?
+    if (!this.triggers.hasOwnProperty(_trigger)) return;
+    var triggers = this.triggers[_trigger];
+    for (var ii = 0; ii < triggers.length; ++ii) {
+      triggers[ii].callback(event);
+    }
+  };
+
+  return RuntimeListener;
+}();
 
 function evalUnaryExpression(op, ctx, a) {
   switch (op) {
-    case OP["+"]:      return +a;
-    case OP["-"]:      return -a;
-    case OP["!"]:      return !a;
-    case OP["~"]:      return ~a;
-    case OP["void"]:   return void a;
-    case OP["typeof"]: return typeof a;
+    case OP["+"]:
+      return +a;
+    case OP["-"]:
+      return -a;
+    case OP["!"]:
+      return !a;
+    case OP["~"]:
+      return ~a;
+    case OP["void"]:
+      return void a;
+    case OP["typeof"]:
+      return typeof a === "undefined" ? "undefined" : _typeof(a);
     // handled outside
-    case OP["delete"]: return a;
+    case OP["delete"]:
+      return a;
     default:
-      throw new Error(("Invalid operator " + op));
-    break;
+      throw new Error("Invalid operator " + op);
+      break;
   }
 }
 
 function evalBinaryExpression(op, a, b) {
   switch (op) {
-    case OP["+"]:          return a + b;
-    case OP["-"]:          return a - b;
-    case OP["*"]:          return a * b;
-    case OP["/"]:          return a / b;
-    case OP["%"]:          return a % b;
-    case OP["**"]:         return Math.pow( a, b );
-    case OP["<<"]:         return a << b;
-    case OP[">>"]:         return a >> b;
-    case OP[">>>"]:        return a >>> b;
-    case OP["&"]:          return a & b;
-    case OP["^"]:          return a ^ b;
-    case OP["|"]:          return a | b;
-    case OP["in"]:         return a in b;
-    case OP["=="]:         return a == b;
-    case OP["==="]:        return a === b;
-    case OP["!="]:         return a != b;
-    case OP["!=="]:        return a !== b;
-    case OP[">"]:          return a > b;
-    case OP[">="]:         return a >= b;
-    case OP["<"]:          return a < b;
-    case OP["<="]:         return a <= b;
-    case OP["instanceof"]: return a instanceof b;
+    case OP["+"]:
+      return a + b;
+    case OP["-"]:
+      return a - b;
+    case OP["*"]:
+      return a * b;
+    case OP["/"]:
+      return a / b;
+    case OP["%"]:
+      return a % b;
+    case OP["**"]:
+      return Math.pow(a, b);
+    case OP["<<"]:
+      return a << b;
+    case OP[">>"]:
+      return a >> b;
+    case OP[">>>"]:
+      return a >>> b;
+    case OP["&"]:
+      return a & b;
+    case OP["^"]:
+      return a ^ b;
+    case OP["|"]:
+      return a | b;
+    case OP["in"]:
+      return a in b;
+    case OP["=="]:
+      return a == b;
+    case OP["==="]:
+      return a === b;
+    case OP["!="]:
+      return a != b;
+    case OP["!=="]:
+      return a !== b;
+    case OP[">"]:
+      return a > b;
+    case OP[">="]:
+      return a >= b;
+    case OP["<"]:
+      return a < b;
+    case OP["<="]:
+      return a <= b;
+    case OP["instanceof"]:
+      return a instanceof b;
     default:
-      throw new Error(("Invalid operator " + op));
-    break;
+      throw new Error("Invalid operator " + op);
+      break;
   }
 }
 
 function evalObjectAssignmentExpression(op, obj, prop, value) {
+  var _prop;
+
   switch (op) {
-    case OP["="]:   return obj[prop] =    value;
-    case OP["+"]:   return obj[prop] +=   value;
-    case OP["-"]:   return obj[prop] -=   value;
-    case OP["*"]:   return obj[prop] *=   value;
-    case OP["/"]:   return obj[prop] /=   value;
-    case OP["%"]:   return obj[prop] %=   value;
-    case OP["**"]:  return obj[prop] =  Math.pow( obj[prop], value );
-    case OP["<<"]:  return obj[prop] <<=  value;
-    case OP[">>"]:  return obj[prop] >>=  value;
-    case OP[">>>"]: return obj[prop] >>>= value;
-    case OP["&"]:   return obj[prop] &=   value;
-    case OP["^"]:   return obj[prop] ^=   value;
-    case OP["|"]:   return obj[prop] |=   value;
+    case OP["="]:
+      return obj[prop] = value;
+    case OP["+"]:
+      return obj[prop] += value;
+    case OP["-"]:
+      return obj[prop] -= value;
+    case OP["*"]:
+      return obj[prop] *= value;
+    case OP["/"]:
+      return obj[prop] /= value;
+    case OP["%"]:
+      return obj[prop] %= value;
+    case OP["**"]:
+      return _prop = prop, obj[_prop] = Math.pow(obj[_prop], value);
+    case OP["<<"]:
+      return obj[prop] <<= value;
+    case OP[">>"]:
+      return obj[prop] >>= value;
+    case OP[">>>"]:
+      return obj[prop] >>>= value;
+    case OP["&"]:
+      return obj[prop] &= value;
+    case OP["^"]:
+      return obj[prop] ^= value;
+    case OP["|"]:
+      return obj[prop] |= value;
     default:
-      throw new Error(("Invalid operator " + op));
-    break;
+      throw new Error("Invalid operator " + op);
+      break;
   }
 }
 
@@ -7828,7 +7683,7 @@ function DEBUG_LOOP_ENTER(hash, id, kind) {
 }
 function DEBUG_LOOP_LEAVE(hash, entered, kind) {
   // loop never entered, so dont leave it
-  if (entered === 0) { return; }
+  if (entered === 0) return;
   this.indent -= INDENT_FACTOR;
   // API
   var event = this.createEvent(INSTR.LOOP_LEAVE);
@@ -8006,12 +7861,12 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   this.$$frameHash = Math.abs(hash);
   // FRAME END
 
-  this.indent += INDENT_FACTOR; 
+  this.indent += INDENT_FACTOR;
   // evaluate function bully protected
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    if (LOG_ALL_ERRORS) { console.error(e); }
+    if (LOG_ALL_ERRORS) console.error(e);
     // function knocked out :(
   }
   this.indent -= INDENT_FACTOR;
@@ -8044,10 +7899,7 @@ function DEBUG_FUNCTION_ENTER(hash, ctx, scope, args) {
   this.previousScope = this.currentScope;
   this.currentScope = scope;
   // function sloppy since called with invalid call hash
-  var isSloppy = (
-    (this.$$frameHash <= 0) ||
-    this.nodes[this.$$frameHash].node.isSloppy
-  );
+  var isSloppy = this.$$frameHash <= 0 || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
   var event = this.createEvent(INSTR.FUNCTION_ENTER);
@@ -8067,7 +7919,7 @@ function DEBUG_FUNCTION_ENTER(hash, ctx, scope, args) {
 }
 function DEBUG_FUNCTION_LEAVE(hash, ctx) {
   this.currentScope = this.previousScope;
-  var isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
+  var isSloppy = this.$$frameHash <= 0 || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
   var event = this.createEvent(INSTR.FUNCTION_LEAVE);
@@ -8085,7 +7937,7 @@ function DEBUG_FUNCTION_LEAVE(hash, ctx) {
 }
 function DEBUG_FUNCTION_RETURN(hash, name, value) {
 
-  var isSloppy = (this.$$frameHash <= 0) || this.nodes[this.$$frameHash].node.isSloppy;
+  var isSloppy = this.$$frameHash <= 0 || this.nodes[this.$$frameHash].node.isSloppy;
 
   // API
   var event = this.createEvent(INSTR.FUNCTION_RETURN);
@@ -8161,7 +8013,7 @@ function DEBUG_OP_NEW(hash, ctor, args) {
   frame.values = [hash, event.ctor, event.arguments];
   // FRAME END
 
-  return new (Function.prototype.bind.apply( event.ctor, [ null ].concat( event.arguments) ));
+  return new (Function.prototype.bind.apply(event.ctor, [null].concat(event.arguments)))();
 }
 function DEBUG_OP_NEW_END(hash, self, ret) {
   self.indent -= INDENT_FACTOR;
@@ -8323,8 +8175,7 @@ function DEBUG_ASSIGN(hash, op, obj, prop, value) {
   var result = null;
   // API: add before, after
   if (prop === null) {
-    if (op === OP["="]) { result = value; }
-    else { result = value; }
+    if (op === OP["="]) result = value;else result = value;
   } else {
     result = evalObjectAssignmentExpression(op, obj, prop, value);
   }
@@ -8345,8 +8196,7 @@ function DEBUG_ASSIGN(hash, op, obj, prop, value) {
 function DEBUG_TERNARY(hash, test, truthy, falsy) {
   var result = null;
   // API: add before, after
-  if (test) { result = truthy(); }
-  else { result = falsy(); }
+  if (test) result = truthy();else result = falsy();
   // API
   var event = this.createEvent(INSTR.TERNARY);
   event.hash = hash;
@@ -8366,10 +8216,10 @@ function DEBUG_LOGICAL(hash, op, a, b) {
   switch (op) {
     case OP["&&"]:
       result = a ? b() : a;
-    break;
+      break;
     case OP["||"]:
       result = a ? a : b();
-    break;
+      break;
   }
   // API
   var event = this.createEvent(INSTR.LOGICAL);
@@ -8471,7 +8321,6 @@ function DEBUG_PROGRAM_FRAME_VALUE(value) {
   //console.log(value);
 }
 
-
 var _debug = Object.freeze({
 	DEBUG_IF_TEST: DEBUG_IF_TEST,
 	DEBUG_IF_ENTER: DEBUG_IF_ENTER,
@@ -8520,16 +8369,17 @@ var _debug = Object.freeze({
 	DEBUG_PROGRAM_FRAME_VALUE: DEBUG_PROGRAM_FRAME_VALUE
 });
 
-var Stage = function Stage(input, opt) {
-  if ( opt === void 0 ) opt = {};
+var Stage = function Stage(input) {
+  var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  classCallCheck(this, Stage);
 
   // validate
   if (typeof input !== "string") {
-    throw new Error(("Expected input type string, but got " + (typeof input)));
+    throw new Error("Expected input type string, but got " + (typeof input === "undefined" ? "undefined" : _typeof(input)));
   }
   this.input = input;
   // unique session key
-  this.key = "$$STx" + (uid());
+  this.key = "$$STx" + uid();
   this.links = {};
   this.nodes = null;
   this.symbols = null;
@@ -8549,29 +8399,29 @@ var Stage = function Stage(input, opt) {
 
 extend(Stage, _debug);
 
-Stage.prototype.triggerListeners = function(event, trigger) {
+Stage.prototype.triggerListeners = function (event, trigger) {
   var type = event.type;
   var category = event.category;
   // invalid listener
   if (!this.listeners.hasOwnProperty(category)) {
-    console.error(("Unexpected trigger category " + category));
+    console.error("Unexpected trigger category " + category);
     return;
   }
   var listeners = this.listeners[category];
   // no listeners are attached
-  if (listeners.length <= 0) { return; }
+  if (listeners.length <= 0) return;
   for (var ii = 0; ii < listeners.length; ++ii) {
     var listener = listeners[ii];
     listener.trigger(event, trigger);
   }
 };
 
-Stage.prototype.createEvent = function(type) {
+Stage.prototype.createEvent = function (type) {
   var event = new RuntimeEvent(type, this);
   return event;
 };
 
-Stage.prototype.addListener = function(category) {
+Stage.prototype.addListener = function (category) {
   // validate
   if (!this.listeners.hasOwnProperty(category)) {
     console.error("Unexpected listener category");
@@ -8582,77 +8432,81 @@ Stage.prototype.addListener = function(category) {
   return listener;
 };
 
-Stage.prototype.generateListeners = function() {
-  var this$1 = this;
-
+Stage.prototype.generateListeners = function () {
   for (var key in CATEGORY) {
     var bit = CATEGORY[key];
-    this$1.listeners[bit] = [];
+    this.listeners[bit] = [];
   }
 };
 
-Stage.prototype.generateLinks = function() {
-  var this$1 = this;
-
+Stage.prototype.generateLinks = function () {
   var ihdx = 0;
   for (var callee in INSTR) {
-    if (!INSTR.hasOwnProperty(callee)) { continue; }
+    if (!INSTR.hasOwnProperty(callee)) continue;
     var name = "$DEBUG_" + callee;
     var key = DEBUG_KEY + ihdx++;
-    this$1.links[name] = {
+    this.links[name] = {
       // link function, escape dollar sign
-      fn: this$1[name.substr(1, name.length)],
+      fn: this[name.substr(1, name.length)],
       key: key
     };
     if (CLEAN_DEBUG_INJECTION) {
-      this$1[name] = this$1.links[name].fn;
+      this[name] = this.links[name].fn;
     } else {
-      this$1[key] = this$1.links[name].fn;
+      this[key] = this.links[name].fn;
     }
   }
 };
 
-Stage.prototype.getLink = function(name) {
+Stage.prototype.getLink = function (name) {
   name = "$" + name;
   if (CLEAN_DEBUG_INJECTION) {
-    return ((this.key) + "." + name);
+    return this.key + "." + name;
   }
   var key = this.links[name].key;
-  return ((this.key) + "." + key);
+  return this.key + "." + key;
 };
 
-Stage.prototype.getLinkCall = function(name) {
+Stage.prototype.getLinkCall = function (name) {
   return this.getLink(name) + "()";
 };
 
-Stage.prototype.getFunctionNodeByName = function(name) {
-  return (
-    this.symbols[name] || null
-  );
+Stage.prototype.getFunctionNodeByName = function (name) {
+  return this.symbols[name] || null;
 };
 
-Stage.prototype.getInverseInstruction = function(frame) {
+Stage.prototype.getInverseInstruction = function (frame) {
   var type = frame.type;
   var links = this.links;
   switch (type) {
-    case INSTR.FUNCTION_ENTER: return links.$DEBUG_FUNCTION_LEAVE.fn;
-    case INSTR.IF_ENTER:       return links.$DEBUG_IF_LEAVE.fn;
-    case INSTR.ELSE_ENTER:     return links.$DEBUG_ELSE_LEAVE.fn;
-    case INSTR.LOOP_ENTER:     return links.$DEBUG_LOOP_LEAVE.fn;
-    case INSTR.SWITCH_ENTER:   return links.$DEBUG_SWITCH_LEAVE.fn;
-    case INSTR.CASE_ENTER:     return links.$DEBUG_CASE_LEAVE.fn;
-    case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
-    case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
-    case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
-    case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
+    case INSTR.FUNCTION_ENTER:
+      return links.$DEBUG_FUNCTION_LEAVE.fn;
+    case INSTR.IF_ENTER:
+      return links.$DEBUG_IF_LEAVE.fn;
+    case INSTR.ELSE_ENTER:
+      return links.$DEBUG_ELSE_LEAVE.fn;
+    case INSTR.LOOP_ENTER:
+      return links.$DEBUG_LOOP_LEAVE.fn;
+    case INSTR.SWITCH_ENTER:
+      return links.$DEBUG_SWITCH_LEAVE.fn;
+    case INSTR.CASE_ENTER:
+      return links.$DEBUG_CASE_LEAVE.fn;
+    case INSTR.METHOD_ENTER:
+      return links.$DEBUG_METHOD_LEAVE.fn;
+    case INSTR.OP_NEW:
+      return links.$DEBUG_OP_NEW_END.fn;
+    case INSTR.TRY_ENTER:
+      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.BLOCK_ENTER:
+      return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
-      throw new Error(("Unexpected frame type " + (frame.cleanType)));
-    break;
+      throw new Error("Unexpected frame type " + frame.cleanType);
+      break;
   }
   return null;
 };
 
-Stage.prototype.manuallyLeaveFrame = function(frame) {
+Stage.prototype.manuallyLeaveFrame = function (frame) {
   console.assert(isValidFrameInstruction(frame));
   var args = frame.values;
   //console.log("Manually leaving", frame.cleanType);
@@ -8660,25 +8514,21 @@ Stage.prototype.manuallyLeaveFrame = function(frame) {
   inverse.apply(this, args);
 };
 
-Stage.prototype.leaveFrameUntil = function(target) {
-  var this$1 = this;
-
+Stage.prototype.leaveFrameUntil = function (target) {
   while (true) {
-    if (this$1.frame.equals(target)) { break; }
-    this$1.manuallyLeaveFrame(this$1.frame);
+    if (this.frame.equals(target)) break;
+    this.manuallyLeaveFrame(this.frame);
   }
 };
 
-Stage.prototype.leaveFrameUntilHash = function(hash) {
-  var this$1 = this;
-
+Stage.prototype.leaveFrameUntilHash = function (hash) {
   while (true) {
-    if (this$1.frame.hash === hash) { break; }
-    this$1.manuallyLeaveFrame(this$1.frame);
+    if (this.frame.hash === hash) break;
+    this.manuallyLeaveFrame(this.frame);
   }
 };
 
-Stage.prototype.pushFrame = function(type, hash) {
+Stage.prototype.pushFrame = function (type, hash) {
   var parent = this.frame;
   var frame = new Frame(type, hash);
   frame.parent = parent;
@@ -8688,58 +8538,45 @@ Stage.prototype.pushFrame = function(type, hash) {
   return frame;
 };
 
-Stage.prototype.popFrame = function() {
+Stage.prototype.popFrame = function () {
   // out of bounds check
   console.assert(this.frame !== null);
   this.frame = this.frame.parent;
 };
 
-Stage.prototype.resolveBreakFrame = function(frm, label) {
-  var this$1 = this;
-
+Stage.prototype.resolveBreakFrame = function (frm, label) {
   var frame = frm;
   while (true) {
     // TODO: isContinuable stable?
     if (frame.isBreakable || frame.isContinuable) {
       if (label !== null) {
-        var node = this$1.nodes[frame.hash].node;
-        if (
-          node.labels !== void 0 &&
-          node.labels.indexOf(label) > -1
-        ) { break; }
+        var node = this.nodes[frame.hash].node;
+        if (node.labels !== void 0 && node.labels.indexOf(label) > -1) break;
       } else {
         break;
       }
     } else if (label !== null) {
-      var node$1 = this$1.nodes[frame.hash].node;
-      if (
-        node$1.labels !== void 0 &&
-        node$1.labels.indexOf(label) > -1
-      ) { break; }
+      var _node = this.nodes[frame.hash].node;
+      if (_node.labels !== void 0 && _node.labels.indexOf(label) > -1) break;
     }
-    if (frame.isGlobal()) { break; }
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
-  console.assert(
-    isBreakableFrameType(frame.type)
-  );
+  console.assert(isBreakableFrameType(frame.type));
   return frame;
 };
 
-Stage.prototype.resolveReturnFrame = function(frm) {
+Stage.prototype.resolveReturnFrame = function (frm) {
   var frame = frm;
   while (true) {
     // break on instantiation calls
-    if (frame.isInstantiation) { break; }
+    if (frame.isInstantiation) break;
     // break on function call frames
-    if (frame.isReturnable) { break; }
-    if (frame.isGlobal()) { break; }
+    if (frame.isReturnable) break;
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
-  if (
-    !isReturnableFrameType(frame.type) &&
-    !isInstantiationFrameType(frame.type)
-  ) {
+  if (!isReturnableFrameType(frame.type) && !isInstantiationFrameType(frame.type)) {
     // only beef if frame hashes doesn't match
     if (frame.hash !== this.$$frameHash) {
       console.error(frame);
@@ -8748,69 +8585,63 @@ Stage.prototype.resolveReturnFrame = function(frm) {
   return frame;
 };
 
-Stage.prototype.resolveCaseFrame = function(frm) {
+Stage.prototype.resolveCaseFrame = function (frm) {
   var frame = frm;
   while (true) {
-    if (frame.isSwitchCase) { break; }
-    if (frame.isGlobal()) { break; }
+    if (frame.isSwitchCase) break;
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
-  console.assert(
-    frame.type === INSTR.CASE_ENTER
-  );
+  console.assert(frame.type === INSTR.CASE_ENTER);
   return frame;
 };
 
-Stage.prototype.resolveTryFrame = function(frm) {
+Stage.prototype.resolveTryFrame = function (frm) {
   var frame = frm;
   while (true) {
-    if (frame.isTryStatement) { break; }
-    if (frame.isGlobal()) { break; }
+    if (frame.isTryStatement) break;
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
-  console.assert(
-    frame.type === INSTR.TRY_ENTER
-  );
+  console.assert(frame.type === INSTR.TRY_ENTER);
   return frame;
 };
 
-Stage.prototype.resolveProgramFrame = function(frm) {
+Stage.prototype.resolveProgramFrame = function (frm) {
   var frame = frm;
   while (true) {
-    if (frame.isGlobal()) { break; }
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
-  console.assert(
-    frame.type === INSTR.PROGRAM
-  );
+  console.assert(frame.type === INSTR.PROGRAM);
   return frame;
 };
 
-Stage.prototype.resolveLeftFrames = function(frm) {
+Stage.prototype.resolveLeftFrames = function (frm) {
   var frame = frm;
   while (true) {
     // break on instantiation calls
-    if (frame.isInstantiation) { break; }
+    if (frame.isInstantiation) break;
     // break on function call frames
-    if (frame.isReturnable) { break; }
+    if (frame.isReturnable) break;
     // frame is super sloppy (possibly async), break out of everything
-    if (frame.isGlobal()) { break; }
+    if (frame.isGlobal()) break;
     frame = frame.parent;
   }
   return frame;
 };
 
-Stage.prototype.getFrameByHashFrom = function(frm, hash) {
+Stage.prototype.getFrameByHashFrom = function (frm, hash) {
   var frame = frm;
   while (true) {
-    if (frame.hash === hash) { break; }
-    if (frame.isGlobal()) { return null; }
+    if (frame.hash === hash) break;
+    if (frame.isGlobal()) return null;
     frame = frame.parent;
   }
   return frame;
 };
 
-Stage.prototype.patch = function(input) {
+Stage.prototype.patch = function (input) {
   var patcher = new Patcher(this);
   var ast = parse$2(input, { locations: true });
   this.frame = new Frame(INSTR.PROGRAM, this.$$frameHash);
@@ -8832,23 +8663,16 @@ function setup() {
 }
 
 function generateCategoryBits() {
-  var this$1 = this;
-
   for (var key in CATEGORY) {
-    this$1[key] = CATEGORY[key] | 0;
+    this[key] = CATEGORY[key] | 0;
   }
 }
 
 function greet() {
-  if (
-    IS_BROWSER &&
-    typeof navigator !== "undefined" &&
-    navigator.userAgent.toLowerCase().indexOf("chrome") > -1
-  ) {
-    console.log(("%c ☕ Iroh.js - " + VERSION + " "), "background: #2e0801; color: #fff; padding:1px 0;");
+  if (IS_BROWSER && typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().indexOf("chrome") > -1) {
+    console.log("%c \u2615 Iroh.js - " + VERSION + " ", "background: #2e0801; color: #fff; padding:1px 0;");
   }
 }
-
 
 var _setup = Object.freeze({
 	setup: setup,
@@ -8857,6 +8681,8 @@ var _setup = Object.freeze({
 });
 
 var Iroh = function Iroh() {
+  classCallCheck(this, Iroh);
+
   // patch AST scope
   this.scope = null;
   // patch stage
@@ -8873,6 +8699,8 @@ var Iroh = function Iroh() {
   this.greet();
 };
 
+
+
 // link methods to main class
 extend(Iroh, _utils);
 extend(Iroh, _setup);
@@ -8880,11 +8708,8 @@ extend(Iroh, _setup);
 var iroh = new Iroh();
 
 // intercept Stage instantiations
-var _Stage = function() {
-  var i = arguments.length, argsArray = Array(i);
-  while ( i-- ) argsArray[i] = arguments[i];
-
-  var stage = new (Function.prototype.bind.apply( Stage, [ null ].concat( argsArray) ));
+var _Stage = function _Stage() {
+  var stage = new (Function.prototype.bind.apply(Stage, [null].concat(Array.prototype.slice.call(arguments))))();
   // register stage to iroh stages
   // so we can keep track of it
   iroh.stages[stage.key] = stage;

@@ -1,7 +1,7 @@
 const pkg = require("../package.json");
 import config from "./rollup.config";
 import json from "rollup-plugin-json";
-import buble from "rollup-plugin-buble";
+import babel from "rollup-plugin-babel";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 
@@ -13,7 +13,9 @@ config.dest = pkg.browser;
 config.external = [];
 config.plugins = [
   json(),
-  buble(),
+  babel({
+    exclude: "node_modules/**"
+  }),
   resolve({
     jsnext: true,
     browser: true

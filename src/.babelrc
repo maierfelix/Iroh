@@ -1,0 +1,22 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "browsers": [
+            "last 2 versions",
+          ]
+        },
+        "modules": false,
+        "loose": true,
+        "debug": false
+      }
+    ]
+  ],
+  "plugins": [
+    "external-helpers",// recommended by `rollup-plugin-babel`
+    // "transform-class-properties"
+    // "transform-decorators-legacy"
+  ]
+}
