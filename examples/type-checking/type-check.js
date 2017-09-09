@@ -81,7 +81,7 @@ function runStage(input) {
         { line: loc.end.line - 1, ch: loc.end.column },
         { className: "poly-argument" }
       ));
-      msg += (`(${ii}: ${func.arguments[ii]}!=${getType(e.arguments[ii])})`);
+      msg += (`(${ii}: ${getType(e.arguments[ii])}!=${func.arguments[ii]})`);
       if (ii < argCount - 1) msg += ", ";
     };
     // we got some bad argument types
@@ -119,7 +119,7 @@ function runStage(input) {
         { className: "poly-return" }
       );
       markers.push(marker);
-      warn(`${fn.name}: Return (${func.return}!=${typeof e.return}) in ${loc.start.line}:${loc.start.column}`);
+      warn(`${fn.name}: Return (${typeof e.return}!=${func.return}) in ${loc.start.line}:${loc.start.column}`);
     }
   });
 
