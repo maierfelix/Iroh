@@ -5,6 +5,8 @@ import babel from "rollup-plugin-babel";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 
+process.env.NODE_ENV = "browser";
+
 config.format = "iife";
 config.dest = pkg.browser;
 /*config.paths = { 

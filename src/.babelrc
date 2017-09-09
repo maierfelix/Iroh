@@ -1,11 +1,26 @@
 {
+  "env": {
+    "test": {
+      "presets": [
+        [
+          "env",
+          {
+            "modules": "commonjs"
+          }
+        ]
+      ]
+    },
+    "browser": {
+      "plugins": ["external-helpers"]
+    }
+  },
   "presets": [
     [
       "env",
       {
         "targets": {
           "browsers": [
-            "last 2 versions",
+            "last 2 versions"
           ]
         },
         "modules": false,
@@ -15,8 +30,5 @@
     ]
   ],
   "plugins": [
-    "external-helpers",// recommended by `rollup-plugin-babel`
-    // "transform-class-properties"
-    // "transform-decorators-legacy"
   ]
 }

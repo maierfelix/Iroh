@@ -34,17 +34,24 @@
     "dist": "npm run build && npm run browser",
     "build": "rollup -c rollup/rollup.config.cjs.js && rollup -c rollup/rollup.config.es.js",
     "browser": "rollup -c rollup/rollup.config.iife.js",
-    "test": "node tests/index.js"
+    "test": "node tests/index.js",
+    "test:babylon": "mocha --opts tests/babylon/mocha.opts tests/babylon"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.1",
+    "env-test": "^1.0.0",
+    "lodash.flatten": "^4.4.0",
+    "mocha": "^3.5.0",
     "rollup": "^0.47.2",
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.1.0",
     "rollup-plugin-json": "^2.3.0",
-    "rollup-plugin-node-resolve": "^3.0.0"
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "sinon": "^3.2.1"
   },
   "dependencies": {
     "acorn": "^5.1.1",
