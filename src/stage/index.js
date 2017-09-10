@@ -46,7 +46,11 @@ export default class Stage {
     this.listeners = {};
     this.generateLinks();
     this.generateListeners();
-    this.script = this.patch(input);
+    this.initScript();
+  }
+
+  initScript() {
+    this.script = this.patch(this.input);
   }
 };
 

@@ -52,7 +52,7 @@ describe('babylon parser tests', function () {
     function loadFixtures(testContext) {
         const fixturePath = getFixturesPath(testContext.currentTest),
             fixtureSource = fs.readFileSync(fixturePath, {encoding: 'utf8'}),
-            stage = new Iroh.Stage(fixtureSource);
+            stage = new Iroh.StageBabel(fixtureSource);
         return stage;
     }
 

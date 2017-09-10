@@ -1,6 +1,7 @@
 import extend from "./extend";
 
 import Stage from "./stage/index";
+import StageBabel from "./stage/StageBabel";
 import Scope from "./scope";
 import Frame from "./frame";
 
@@ -42,6 +43,13 @@ let _Stage = function() {
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
+
+iroh.StageBabel = class _StageBabel extends StageBabel {
+  constructor(...args) {
+    super(...args);
+    iroh.stages[this.key] = this;
+  }
+};
 
 // link to outer space
 if (typeof window !== "undefined") {

@@ -5402,6 +5402,21 @@ var createClass = function () {
 
 
 
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
 
 
 
@@ -5413,8 +5428,13 @@ var createClass = function () {
 
 
 
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
 
-
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
 
 
 
@@ -8456,31 +8476,41 @@ var _debug = Object.freeze({
 	DEBUG_PROGRAM_FRAME_VALUE: DEBUG_PROGRAM_FRAME_VALUE
 });
 
-var Stage = function Stage(input) {
-  var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  classCallCheck(this, Stage);
+var Stage = function () {
+  function Stage(input) {
+    var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    classCallCheck(this, Stage);
 
-  // validate
-  if (typeof input !== "string") {
-    throw new Error("Expected input type string, but got " + (typeof input === "undefined" ? "undefined" : _typeof(input)));
+    // validate
+    if (typeof input !== "string") {
+      throw new Error("Expected input type string, but got " + (typeof input === "undefined" ? "undefined" : _typeof(input)));
+    }
+    this.input = input;
+    // unique session key
+    this.key = "$$STx" + uid();
+    this.links = {};
+    this.nodes = null;
+    this.symbols = null;
+    this.options = {};
+    this.indent = 0;
+    this.frame = null;
+    this.$$frameHash = 0;
+    this.currentScope = null;
+    this.previousScope = null;
+    this.listeners = {};
+    this.generateLinks();
+    this.generateListeners();
+    this.initScript();
   }
-  this.input = input;
-  // unique session key
-  this.key = "$$STx" + uid();
-  this.links = {};
-  this.nodes = null;
-  this.symbols = null;
-  this.options = {};
-  this.indent = 0;
-  this.frame = null;
-  this.$$frameHash = 0;
-  this.currentScope = null;
-  this.previousScope = null;
-  this.listeners = {};
-  this.generateLinks();
-  this.generateListeners();
-  this.script = this.patch(input);
-};
+
+  createClass(Stage, [{
+    key: "initScript",
+    value: function initScript() {
+      this.script = this.patch(this.input);
+    }
+  }]);
+  return Stage;
+}();
 
 
 
@@ -8745,6 +8775,33 @@ Stage.prototype.patch = function (input) {
   });
 };
 
+var StageBabel = function (_Stage) {
+  inherits(StageBabel, _Stage);
+
+  function StageBabel() {
+    var _ref;
+
+    classCallCheck(this, StageBabel);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return possibleConstructorReturn(this, (_ref = StageBabel.__proto__ || Object.getPrototypeOf(StageBabel)).call.apply(_ref, [this].concat(args)));
+  }
+
+  createClass(StageBabel, [{
+    key: "initScript",
+    value: function initScript() {}
+  }, {
+    key: "script",
+    get: function get$$1() {
+      return this.patch(this.input);
+    }
+  }]);
+  return StageBabel;
+}(Stage);
+
 function setup() {
   this.generateCategoryBits();
 }
@@ -8804,6 +8861,27 @@ var _Stage = function _Stage() {
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
+
+iroh.StageBabel = function (_StageBabel2) {
+  inherits(_StageBabel, _StageBabel2);
+
+  function _StageBabel() {
+    var _ref;
+
+    classCallCheck(this, _StageBabel);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var _this = possibleConstructorReturn(this, (_ref = _StageBabel.__proto__ || Object.getPrototypeOf(_StageBabel)).call.apply(_ref, [this].concat(args)));
+
+    iroh.stages[_this.key] = _this;
+    return _this;
+  }
+
+  return _StageBabel;
+}(StageBabel);
 
 // link to outer space
 if (typeof window !== "undefined") {
