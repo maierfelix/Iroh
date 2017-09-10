@@ -110,11 +110,11 @@
 
             <li><p>Iroh supports <code><i>strict mode</i></code>.</p></li>
 
-            <li><p>Since Iroh allows to intercept all calls in your code, even <code><i>Function.toString</i></code> calls can be intercepted, which allows to remain JavaScript's original code reification feature. You can do the same for any other ways like <code><i>String(ƒ)</i></code> or <code><i>ƒ + ""</i></code></p></li>
+            <li><p>Since Iroh allows to intercept all calls in your code, even <code><i>Function.toString</i></code> calls can be intercepted, which allows to remain JavaScript's original code reification feature. You can do the same for any other ways like <code><i>String(ƒ)</i></code> or <code><i>ƒ + ""</i></code>.</p></li>
 
-            <li><p>External (<i>non-trackable</i>) calls get detected and traced as <code><i><b>external</b></i></code>.</p></li>
+            <li><p>External (<i>non-trackable</i>) calls (e.g. <code><i>eval</i></code>, <code><i>Math.random</i></code>) get traced as <code><i><b>external</b></i></code>.</p></li>
 
-            <li><p>Patched functions which get called from outside (e.g. <code><i>setTimeout(ƒ)</i></code>) are traced as <code><i><b>sloppy</b></i></code>.</p></li>
+            <li><p>Patched functions which get called from outside (e.g. <code><i>setTimeout(<b>ƒ</b>)</i></code>) get traced as <code><i><b>sloppy</b></i></code>.</p></li>
 
             <li><p>The API exposes listeners for most AST node types. For example you can intercept all <code><i>Calls</i></code> in your code and determine what happens before (<i>e.g. track it's arguments</i>) and after it's called (<i>e.g. change it's return value based on the called function's name</i>).</p></li>
           </ul>
@@ -153,6 +153,7 @@
           <p><script src="https://gist.github.com/maierfelix/7700bf214d078a55c25915fdce91a121.js"></script><script src="https://gist.github.com/maierfelix/56925d2b241b730c00d7f9de7d5e1385.js"></script></p>
 
           <h3>Function.toString</h3>
+          <p>Since Iroh modifies your code heavily, <code>Function.toString</code> calls would return the modified code instead of the original. See <a href="https://jsfiddle.net/g958L3w8/2/">this</a> example how this can be bypassed in <b>just 3 lines of code</b>.</p>
           <p><script src="https://gist.github.com/maierfelix/17b1a7ae04429a6f6273ae979b4c739e.js"></script><script src="https://gist.github.com/maierfelix/367d1bf0578ccfdfae345482cda49de9.js"></script></p>
 
           <h3><a href="https://github.com/maierfelix/mini-js">mini-js</a></h3>
