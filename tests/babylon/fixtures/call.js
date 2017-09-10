@@ -1,8 +1,6 @@
 function square(a) {
     return a * a;
 }
-
-result = [
-    square(2),
-    square(3)
-];
+var a = square(2);
+var b = square(3);
+result = [a, b];

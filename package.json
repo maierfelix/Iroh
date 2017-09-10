@@ -38,7 +38,6 @@
     "test:babylon": "mocha --opts tests/babylon/mocha.opts tests/babylon"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.0",
     "babel-register": "^6.26.0",
@@ -55,6 +54,8 @@
   },
   "dependencies": {
     "acorn": "^5.1.1",
-    "astring": "^1.0.5"
+    "astring": "^1.0.5",
+    "babel-core": "^6.26.0",
+    "lodash.uniq": "^4.5.0"
   }
 }

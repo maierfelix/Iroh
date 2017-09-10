@@ -205,7 +205,7 @@ STAGE1.ArrowFunctionExpression = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE1.CallExpression = function(node, patcher) {
+STAGE1.CallExpression = function(node, patcher) {//MOVED to ../visitors/call.js
   // patched in node, ignore
   if (node.magic) {
     patcher.walk(node.callee, patcher, patcher.stage);

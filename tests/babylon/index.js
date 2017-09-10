@@ -21,30 +21,31 @@ describe('babylon parser tests', function () {
             .on("before", beforeStub)
             .on("after", afterStub);
 
-        const sandbox = {Iroh};
-        vm.runInNewContext(stage.script, sandbox);
+        const sandbox = {Iroh},
+            script = stage.script;
+        vm.runInNewContext(script, sandbox);
 
         expect(sandbox.result).to.deep.equal([4, 9]);
         assertEvents('before', beforeStub.args, {
-            hash: [5, 7],
-            indent: [1, 1],
+            // hash: [4, 8],
+            // indent: [1, 1],
             arguments: [[2], [3]],
             context: [sandbox, sandbox],
             object: [null, null],
             call: [sandbox.square, sandbox.square],
             callee: [null, null],
-            external: [false, false]
+            // external: [false, false]
         });
         assertEvents('after', afterStub.args, {
-            hash: [5, 7],
-            indent: [1, 1],
+            // hash: [4, 8],
+            // indent: [1, 1],
             arguments: [[2], [3]],
             return: [4, 9],
             context: [sandbox, sandbox],
             object: [null, null],
             call: [sandbox.square, sandbox.square],
             callee: [null, null],
-            external: [false, false]
+            // external: [false, false]
         });
     });
 
