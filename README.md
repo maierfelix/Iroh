@@ -28,7 +28,7 @@ Iroh allows to record your code flow in realtime, intercept runtime values and m
 ````
 npm install iroh
 ````
-or alternatively the browser distribution from [here](//github.com/maierfelix/Iroh/blob/master/dist/iroh-browser.js).
+or alternatively the browser distribution from [here](//cdn.rawgit.com/maierfelix/Iroh/b84dde46/dist/iroh-browser.js).
 
 ### Example:
 
