@@ -300,8 +300,21 @@ export function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    if (LOG_ALL_ERRORS) console.error(e);
-    // function knocked out :(
+    let tryFrame = this.resolveTryFrame(this.frame, true);
+    // error isn't try-catch wrapped
+    if (tryFrame === null) {
+      this.reset();
+      throw e;
+    // error is try-catch wrapped
+    } else {
+      let catchFrame = this.resolveCatchClauseFrame(this.frame, true);
+      let finalFrame = this.resolveFinalClauseFrame(this.frame, true);
+      // something failed inside the catch frame
+      if (catchFrame !== null || finalFrame !== null) {
+        this.reset();
+        throw e;
+      }
+    }
   }
   this.indent -= INDENT_FACTOR;
 
@@ -521,14 +534,6 @@ export function DEBUG_TRY_ENTER(hash) {
   // FRAME END
 };
 export function DEBUG_TRY_LEAVE(hash) {
-  this.indent -= INDENT_FACTOR;
-
-  // API
-  let event = this.createEvent(INSTR.TRY_LEAVE);
-  event.hash = hash;
-  event.indent = this.indent;
-  event.trigger("leave");
-  // API END
 
   // FRAME
   // fix up missing left frames until try_leave
@@ -540,7 +545,76 @@ export function DEBUG_TRY_LEAVE(hash) {
   this.popFrame();
   // FRAME END
 
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  let event = this.createEvent(INSTR.TRY_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
   //console.log(indentString(this.indent) + "try end");
+};
+
+// #CATCH
+export function DEBUG_CATCH_ENTER(hash) {
+
+  // API
+  let event = this.createEvent(INSTR.CATCH_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  let frame = this.pushFrame(INSTR.CATCH_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+};
+export function DEBUG_CATCH_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  let event = this.createEvent(INSTR.CATCH_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
+};
+
+// #FINALLY
+export function DEBUG_FINAL_ENTER(hash) {
+
+  // API
+  let event = this.createEvent(INSTR.FINAL_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  let frame = this.pushFrame(INSTR.FINAL_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+};
+export function DEBUG_FINAL_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  let event = this.createEvent(INSTR.FINAL_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
 };
 
 // #ALLOC

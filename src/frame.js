@@ -7,6 +7,8 @@ import {
   isBreakableFrameType,
   isSwitchCaseFrameType,
   isReturnableFrameType,
+  isCatchClauseFrameType,
+  isFinalClauseFrameType,
   isContinuableFrameType,
   isTryStatementFrameType,
   isInstantiationFrameType
@@ -20,6 +22,8 @@ export default class Frame {
     this.isSloppy = false;
     this.isBreakable = false;
     this.isReturnable = false;
+    this.isCatchClause = false;
+    this.isFinalClause = false;
     this.isTryStatement = false;
     this.isSwitchDefault = false;
     this.isInstantiation = false;
@@ -31,6 +35,8 @@ export default class Frame {
     this.isBreakable = isBreakableFrameType(type);
     this.isSwitchCase = isSwitchCaseFrameType(type);
     this.isReturnable = isReturnableFrameType(type);
+    this.isCatchClause = isCatchClauseFrameType(type);
+    this.isFinalClause = isFinalClauseFrameType(type);
     this.isContinuable = isContinuableFrameType(type);
     this.isTryStatement = isTryStatementFrameType(type);
     this.isInstantiation = isInstantiationFrameType(type);

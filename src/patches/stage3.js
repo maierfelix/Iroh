@@ -85,8 +85,56 @@ STAGE3.BlockStatement = function(node, patcher) {
       );
       body.splice(ii + 1, 0, end);
       ii++;
+      if (isTryStmt) {
+        if (child.finalizer) STAGE3.FinalClause(child.finalizer, patcher);
+      }
     }
   };
+};
+
+STAGE3.CatchClause = function(node, patcher) {
+  if (node.magic) return;
+  patcher.pushScope(node);
+  patcher.walk(node.param, patcher, patcher.stage);
+  patcher.walk(node.body, patcher, patcher.stage);
+
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  let hashExpr = parseExpression(hash);
+  let end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_LEAVE"));
+  let start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.body.unshift(start);
+  node.body.body.push(end);
+
+  patcher.popScope();
+};
+
+STAGE3.FinalClause = function(node, patcher) {
+  if (node.magic) return;
+  patcher.pushScope(node);
+  patcher.walk(node, patcher, patcher.stage);
+
+  let hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  let hashExpr = parseExpression(hash);
+  let end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_LEAVE"));
+  let start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.unshift(start);
+  node.body.push(end);
+
+  patcher.popScope();
 };
 
 STAGE3.Program = STAGE1.Program;

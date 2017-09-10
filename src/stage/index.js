@@ -52,6 +52,10 @@ export default class Stage {
 
 extend(Stage, _debug);
 
+Stage.prototype.reset = function() {
+  this.indent = 0;
+};
+
 Stage.prototype.triggerListeners = function(event, trigger) {
   let type = event.type;
   let category = event.category;
@@ -143,6 +147,8 @@ Stage.prototype.getInverseInstruction = function(frame) {
     case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
     case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
     case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.CATCH_ENTER:    return links.$DEBUG_CATCH_LEAVE.fn;
+    case INSTR.FINAL_ENTER:    return links.$DEBUG_FINAL_LEAVE.fn;
     case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
       throw new Error(`Unexpected frame type ${frame.cleanType}`);
@@ -254,15 +260,44 @@ Stage.prototype.resolveCaseFrame = function(frm) {
   return frame;
 };
 
-Stage.prototype.resolveTryFrame = function(frm) {
+Stage.prototype.resolveTryFrame = function(frm, silent) {
   let frame = frm;
   while (true) {
     if (frame.isTryStatement) break;
     if (frame.isGlobal()) break;
     frame = frame.parent;
   };
+  if (silent) return (frame.type === INSTR.TRY_ENTER ? frame : null);
   console.assert(
     frame.type === INSTR.TRY_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveCatchClauseFrame = function(frm, silent) {
+  let frame = frm;
+  while (true) {
+    if (frame.isCatchClause) break;
+    if (frame.isGlobal()) break;
+    frame = frame.parent;
+  };
+  if (silent) return (frame.type === INSTR.CATCH_ENTER ? frame : null);
+  console.assert(
+    frame.type === INSTR.CATCH_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveFinalClauseFrame = function(frm, silent) {
+  let frame = frm;
+  while (true) {
+    if (frame.isFinalClause) break;
+    if (frame.isGlobal()) break;
+    frame = frame.parent;
+  };
+  if (silent) return (frame.type === INSTR.FINAL_ENTER ? frame : null);
+  console.assert(
+    frame.type === INSTR.FINAL_ENTER
   );
   return frame;
 };

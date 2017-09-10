@@ -177,7 +177,11 @@ Iroh.VAR
 Iroh.OP_NEW
   new object()
 Iroh.TRY
-  try {} catch(e) {}
+  try {}
+Iroh.CATCH
+  catch(e) {}
+Iroh.FINALLY
+  finally() {}
 Iroh.ALLOC
   {},
   []
@@ -363,6 +367,22 @@ This list gives you an overview, which events a listener supports and which prop
     * ``return``: The new's returned value
 
 **``Iroh.TRY``**:
+ * ``enter``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+ * ``leave``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+
+**``Iroh.CATCH``**:
+ * ``enter``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+ * ``leave``
+    * ``hash``: Unique hash
+    * ``indent``: Indent level
+
+**``Iroh.FINALLY``**:
  * ``enter``
     * ``hash``: Unique hash
     * ``indent``: Indent level

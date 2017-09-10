@@ -211,6 +211,18 @@ export function isTryStatementFrameType(type) {
   );
 };
 
+export function isCatchClauseFrameType(type) {
+  return (
+    type === INSTR.CATCH_ENTER
+  );
+};
+
+export function isFinalClauseFrameType(type) {
+  return (
+    type === INSTR.FINAL_ENTER
+  );
+};
+
 export function isInstantiationFrameType(type) {
   return (
     type === INSTR.OP_NEW
@@ -329,6 +341,12 @@ export function getCategoryFromInstruction(type) {
     case INSTR.TRY_ENTER:
     case INSTR.TRY_LEAVE:
       return CATEGORY.TRY | 0;
+    case INSTR.CATCH_ENTER:
+    case INSTR.CATCH_LEAVE:
+      return CATEGORY.CATCH | 0;
+    case INSTR.FINAL_ENTER:
+    case INSTR.FINAL_LEAVE:
+      return CATEGORY.FINALLY | 0;
     case INSTR.OP_NEW:
     case INSTR.OP_NEW_END:
       return CATEGORY.OP_NEW | 0;

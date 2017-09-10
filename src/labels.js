@@ -63,6 +63,12 @@ export let CATEGORY = {};
   INSTR.TRY_ENTER = ii++;
   INSTR.TRY_LEAVE = ii++;
 
+  INSTR.CATCH_ENTER = ii++;
+  INSTR.CATCH_LEAVE = ii++;
+
+  INSTR.FINAL_ENTER = ii++;
+  INSTR.FINAL_LEAVE = ii++;
+
   INSTR.ALLOC = ii++;
 
   INSTR.MEMBER_EXPR = ii++;
@@ -90,6 +96,8 @@ export let CATEGORY = {};
   CATEGORY.LITERAL = ii++;
   CATEGORY.IDENTIFIER = ii++;
   CATEGORY.TRY = ii++;
+  CATEGORY.CATCH = ii++;
+  CATEGORY.FINALLY = ii++;
   CATEGORY.OP_NEW = ii++;
   CATEGORY.VAR = ii++;
   CATEGORY.IF = ii++;

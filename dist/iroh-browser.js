@@ -26,7 +26,7 @@ var DEBUG_KEY = "$";
 var TEMP_VAR_BASE = "Iroh$$x";
 
 // log all errors, logs also internal errors
-var LOG_ALL_ERRORS = false;
+
 
 // clean or minimal debug command related output
 var CLEAN_DEBUG_INJECTION = false;
@@ -103,6 +103,12 @@ var CATEGORY = {};
   INSTR.TRY_ENTER = ii++;
   INSTR.TRY_LEAVE = ii++;
 
+  INSTR.CATCH_ENTER = ii++;
+  INSTR.CATCH_LEAVE = ii++;
+
+  INSTR.FINAL_ENTER = ii++;
+  INSTR.FINAL_LEAVE = ii++;
+
   INSTR.ALLOC = ii++;
 
   INSTR.MEMBER_EXPR = ii++;
@@ -130,6 +136,8 @@ var CATEGORY = {};
   CATEGORY.LITERAL = ii++;
   CATEGORY.IDENTIFIER = ii++;
   CATEGORY.TRY = ii++;
+  CATEGORY.CATCH = ii++;
+  CATEGORY.FINALLY = ii++;
   CATEGORY.OP_NEW = ii++;
   CATEGORY.VAR = ii++;
   CATEGORY.IF = ii++;
@@ -5547,6 +5555,18 @@ function isTryStatementFrameType(type) {
   );
 }
 
+function isCatchClauseFrameType(type) {
+  return (
+    type === INSTR.CATCH_ENTER
+  );
+}
+
+function isFinalClauseFrameType(type) {
+  return (
+    type === INSTR.FINAL_ENTER
+  );
+}
+
 function isInstantiationFrameType(type) {
   return (
     type === INSTR.OP_NEW
@@ -5659,6 +5679,12 @@ function getCategoryFromInstruction(type) {
     case INSTR.TRY_ENTER:
     case INSTR.TRY_LEAVE:
       return CATEGORY.TRY | 0;
+    case INSTR.CATCH_ENTER:
+    case INSTR.CATCH_LEAVE:
+      return CATEGORY.CATCH | 0;
+    case INSTR.FINAL_ENTER:
+    case INSTR.FINAL_LEAVE:
+      return CATEGORY.FINALLY | 0;
     case INSTR.OP_NEW:
     case INSTR.OP_NEW_END:
       return CATEGORY.OP_NEW | 0;
@@ -5729,6 +5755,8 @@ var Frame = function Frame(type, hash) {
   this.isSloppy = false;
   this.isBreakable = false;
   this.isReturnable = false;
+  this.isCatchClause = false;
+  this.isFinalClause = false;
   this.isTryStatement = false;
   this.isSwitchDefault = false;
   this.isInstantiation = false;
@@ -5740,6 +5768,8 @@ var Frame = function Frame(type, hash) {
   this.isBreakable = isBreakableFrameType(type);
   this.isSwitchCase = isSwitchCaseFrameType(type);
   this.isReturnable = isReturnableFrameType(type);
+  this.isCatchClause = isCatchClauseFrameType(type);
+  this.isFinalClause = isFinalClauseFrameType(type);
   this.isContinuable = isContinuableFrameType(type);
   this.isTryStatement = isTryStatementFrameType(type);
   this.isInstantiation = isInstantiationFrameType(type);
@@ -6818,8 +6848,56 @@ STAGE3.BlockStatement = function(node, patcher) {
       );
       body.splice(ii + 1, 0, end);
       ii++;
+      if (isTryStmt) {
+        if (child.finalizer) { STAGE3.FinalClause(child.finalizer, patcher); }
+      }
     }
   }
+};
+
+STAGE3.CatchClause = function(node, patcher) {
+  if (node.magic) { return; }
+  patcher.pushScope(node);
+  patcher.walk(node.param, patcher, patcher.stage);
+  patcher.walk(node.body, patcher, patcher.stage);
+
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  var hashExpr = parseExpression(hash);
+  var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_LEAVE"));
+  var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.body.unshift(start);
+  node.body.body.push(end);
+
+  patcher.popScope();
+};
+
+STAGE3.FinalClause = function(node, patcher) {
+  if (node.magic) { return; }
+  patcher.pushScope(node);
+  patcher.walk(node, patcher, patcher.stage);
+
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  var hashExpr = parseExpression(hash);
+  var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_LEAVE"));
+  var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.unshift(start);
+  node.body.push(end);
+
+  patcher.popScope();
 };
 
 STAGE3.Program = STAGE1.Program;
@@ -8011,8 +8089,21 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    if (LOG_ALL_ERRORS) { console.error(e); }
-    // function knocked out :(
+    var tryFrame = this.resolveTryFrame(this.frame, true);
+    // error isn't try-catch wrapped
+    if (tryFrame === null) {
+      this.reset();
+      throw e;
+    // error is try-catch wrapped
+    } else {
+      var catchFrame = this.resolveCatchClauseFrame(this.frame, true);
+      var finalFrame = this.resolveFinalClauseFrame(this.frame, true);
+      // something failed inside the catch frame
+      if (catchFrame !== null || finalFrame !== null) {
+        this.reset();
+        throw e;
+      }
+    }
   }
   this.indent -= INDENT_FACTOR;
 
@@ -8232,14 +8323,6 @@ function DEBUG_TRY_ENTER(hash) {
   // FRAME END
 }
 function DEBUG_TRY_LEAVE(hash) {
-  this.indent -= INDENT_FACTOR;
-
-  // API
-  var event = this.createEvent(INSTR.TRY_LEAVE);
-  event.hash = hash;
-  event.indent = this.indent;
-  event.trigger("leave");
-  // API END
 
   // FRAME
   // fix up missing left frames until try_leave
@@ -8251,7 +8334,76 @@ function DEBUG_TRY_LEAVE(hash) {
   this.popFrame();
   // FRAME END
 
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.TRY_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
   //console.log(indentString(this.indent) + "try end");
+}
+
+// #CATCH
+function DEBUG_CATCH_ENTER(hash) {
+
+  // API
+  var event = this.createEvent(INSTR.CATCH_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  var frame = this.pushFrame(INSTR.CATCH_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+}
+function DEBUG_CATCH_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.CATCH_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
+}
+
+// #FINALLY
+function DEBUG_FINAL_ENTER(hash) {
+
+  // API
+  var event = this.createEvent(INSTR.FINAL_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  var frame = this.pushFrame(INSTR.FINAL_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+}
+function DEBUG_FINAL_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.FINAL_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
 }
 
 // #ALLOC
@@ -8503,6 +8655,10 @@ var _debug = Object.freeze({
 	DEBUG_METHOD_LEAVE: DEBUG_METHOD_LEAVE,
 	DEBUG_TRY_ENTER: DEBUG_TRY_ENTER,
 	DEBUG_TRY_LEAVE: DEBUG_TRY_LEAVE,
+	DEBUG_CATCH_ENTER: DEBUG_CATCH_ENTER,
+	DEBUG_CATCH_LEAVE: DEBUG_CATCH_LEAVE,
+	DEBUG_FINAL_ENTER: DEBUG_FINAL_ENTER,
+	DEBUG_FINAL_LEAVE: DEBUG_FINAL_LEAVE,
 	DEBUG_ALLOC: DEBUG_ALLOC,
 	DEBUG_MEMBER_EXPR: DEBUG_MEMBER_EXPR,
 	DEBUG_BLOCK_ENTER: DEBUG_BLOCK_ENTER,
@@ -8548,6 +8704,10 @@ var Stage = function Stage(input, opt) {
 
 
 extend(Stage, _debug);
+
+Stage.prototype.reset = function() {
+  this.indent = 0;
+};
 
 Stage.prototype.triggerListeners = function(event, trigger) {
   var type = event.type;
@@ -8644,6 +8804,8 @@ Stage.prototype.getInverseInstruction = function(frame) {
     case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
     case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
     case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.CATCH_ENTER:    return links.$DEBUG_CATCH_LEAVE.fn;
+    case INSTR.FINAL_ENTER:    return links.$DEBUG_FINAL_LEAVE.fn;
     case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
       throw new Error(("Unexpected frame type " + (frame.cleanType)));
@@ -8761,15 +8923,44 @@ Stage.prototype.resolveCaseFrame = function(frm) {
   return frame;
 };
 
-Stage.prototype.resolveTryFrame = function(frm) {
+Stage.prototype.resolveTryFrame = function(frm, silent) {
   var frame = frm;
   while (true) {
     if (frame.isTryStatement) { break; }
     if (frame.isGlobal()) { break; }
     frame = frame.parent;
   }
+  if (silent) { return (frame.type === INSTR.TRY_ENTER ? frame : null); }
   console.assert(
     frame.type === INSTR.TRY_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveCatchClauseFrame = function(frm, silent) {
+  var frame = frm;
+  while (true) {
+    if (frame.isCatchClause) { break; }
+    if (frame.isGlobal()) { break; }
+    frame = frame.parent;
+  }
+  if (silent) { return (frame.type === INSTR.CATCH_ENTER ? frame : null); }
+  console.assert(
+    frame.type === INSTR.CATCH_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveFinalClauseFrame = function(frm, silent) {
+  var frame = frm;
+  while (true) {
+    if (frame.isFinalClause) { break; }
+    if (frame.isGlobal()) { break; }
+    frame = frame.parent;
+  }
+  if (silent) { return (frame.type === INSTR.FINAL_ENTER ? frame : null); }
+  console.assert(
+    frame.type === INSTR.FINAL_ENTER
   );
   return frame;
 };
