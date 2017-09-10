@@ -5376,6 +5376,74 @@ var classCallCheck = function (instance, Constructor) {
   }
 };
 
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
+};
+
 function getInheritanceTree(cls) {
   var base = cls;
   var tree = [cls.name];
@@ -5681,34 +5749,39 @@ var Frame = function () {
     this.isInstantiation = isInstantiationFrameType(type);
   }
 
-  Frame.prototype.isGlobal = function isGlobal() {
-    return this.parent === null && this.type === INSTR.PROGRAM;
-  };
-
-  Frame.prototype.getGlobal = function getGlobal() {
-    var frame = this;
-    while (true) {
-      if (frame.isGlobal()) break;
-      frame = frame.parent;
+  createClass(Frame, [{
+    key: "isGlobal",
+    value: function isGlobal() {
+      return this.parent === null && this.type === INSTR.PROGRAM;
     }
-    return frame;
-  };
-
-  Frame.prototype.getDepth = function getDepth() {
-    var depth = 0;
-    var frame = this;
-    while (true) {
-      if (frame.isGlobal()) break;
-      frame = frame.parent;
-      depth++;
+  }, {
+    key: "getGlobal",
+    value: function getGlobal() {
+      var frame = this;
+      while (true) {
+        if (frame.isGlobal()) break;
+        frame = frame.parent;
+      }
+      return frame;
     }
-    return depth;
-  };
-
-  Frame.prototype.equals = function equals(frame) {
-    return this.uid === frame.uid;
-  };
-
+  }, {
+    key: "getDepth",
+    value: function getDepth() {
+      var depth = 0;
+      var frame = this;
+      while (true) {
+        if (frame.isGlobal()) break;
+        frame = frame.parent;
+        depth++;
+      }
+      return depth;
+    }
+  }, {
+    key: "equals",
+    value: function equals(frame) {
+      return this.uid === frame.uid;
+    }
+  }]);
   return Frame;
 }();
 
@@ -5728,24 +5801,27 @@ var Scope = function () {
     this.parent = null;
   }
 
-  Scope.prototype.getReturnContext = function getReturnContext() {
-    var ctx = this;
-    while (true) {
-      if (ctx.isReturnable) break;
-      ctx = ctx.parent;
+  createClass(Scope, [{
+    key: "getReturnContext",
+    value: function getReturnContext() {
+      var ctx = this;
+      while (true) {
+        if (ctx.isReturnable) break;
+        ctx = ctx.parent;
+      }
+      return ctx;
     }
-    return ctx;
-  };
-
-  Scope.prototype.getLoopContext = function getLoopContext() {
-    var ctx = this;
-    while (true) {
-      if (ctx.isLoop) break;
-      ctx = ctx.parent;
+  }, {
+    key: "getLoopContext",
+    value: function getLoopContext() {
+      var ctx = this;
+      while (true) {
+        if (ctx.isLoop) break;
+        ctx = ctx.parent;
+      }
+      return ctx;
     }
-    return ctx;
-  };
-
+  }]);
   return Scope;
 }();
 
@@ -5998,7 +6074,7 @@ STAGE1.CallExpression = function (node, patcher) {
     }(), {
       magic: true,
       type: "ArrayExpression",
-      elements: [].concat(node.arguments)
+      elements: [].concat(toConsumableArray(node.arguments))
     }]
   };
   for (var key in call) {
@@ -6179,7 +6255,7 @@ STAGE1.NewExpression = function (node, patcher) {
   var args = [callee, {
     magic: true,
     type: "ArrayExpression",
-    elements: [].concat(node.arguments)
+    elements: [].concat(toConsumableArray(node.arguments))
   }];
   var hash = uBranchHash();
   // create node link
@@ -7401,36 +7477,42 @@ var RuntimeEvent = function () {
     // so we can save a lot memory
   }
 
-  RuntimeEvent.prototype.trigger = function trigger(_trigger) {
-    // trigger all attached listeners
-    this.instance.triggerListeners(this, _trigger);
-  };
-
-  RuntimeEvent.prototype.getASTNode = function getASTNode() {
-    var node = this.instance.nodes[this.hash].node;
-    return node;
-  };
-
-  RuntimeEvent.prototype.getPosition = function getPosition() {
-    var node = this.getASTNode();
-    return {
-      end: node.end,
-      start: node.start
-    };
-  };
-
-  RuntimeEvent.prototype.getLocation = function getLocation() {
-    var node = this.getASTNode();
-    return node.loc;
-  };
-
-  RuntimeEvent.prototype.getSource = function getSource() {
-    var loc = this.getPosition();
-    var input = this.instance.input;
-    var output = input.substr(loc.start, loc.end - loc.start);
-    return output;
-  };
-
+  createClass(RuntimeEvent, [{
+    key: "trigger",
+    value: function trigger(_trigger) {
+      // trigger all attached listeners
+      this.instance.triggerListeners(this, _trigger);
+    }
+  }, {
+    key: "getASTNode",
+    value: function getASTNode() {
+      var node = this.instance.nodes[this.hash].node;
+      return node;
+    }
+  }, {
+    key: "getPosition",
+    value: function getPosition() {
+      var node = this.getASTNode();
+      return {
+        end: node.end,
+        start: node.start
+      };
+    }
+  }, {
+    key: "getLocation",
+    value: function getLocation() {
+      var node = this.getASTNode();
+      return node.loc;
+    }
+  }, {
+    key: "getSource",
+    value: function getSource() {
+      var loc = this.getPosition();
+      var input = this.instance.input;
+      var output = input.substr(loc.start, loc.end - loc.start);
+      return output;
+    }
+  }]);
   return RuntimeEvent;
 }();
 
@@ -7451,26 +7533,29 @@ var RuntimeListener = function () {
     this.triggers = {};
   }
 
-  RuntimeListener.prototype.on = function on(type, callback) {
-    var event = new RuntimeListenerEvent(type, callback);
-    // not registered yet
-    if (this.triggers[type] === void 0) {
-      this.triggers[type] = [];
+  createClass(RuntimeListener, [{
+    key: "on",
+    value: function on(type, callback) {
+      var event = new RuntimeListenerEvent(type, callback);
+      // not registered yet
+      if (this.triggers[type] === void 0) {
+        this.triggers[type] = [];
+      }
+      this.triggers[type].push(event);
+      // allow stream calls
+      return this;
     }
-    this.triggers[type].push(event);
-    // allow stream calls
-    return this;
-  };
-
-  RuntimeListener.prototype.trigger = function trigger(event, _trigger) {
-    // any triggers registered?
-    if (!this.triggers.hasOwnProperty(_trigger)) return;
-    var triggers = this.triggers[_trigger];
-    for (var ii = 0; ii < triggers.length; ++ii) {
-      triggers[ii].callback(event);
+  }, {
+    key: "trigger",
+    value: function trigger(event, _trigger) {
+      // any triggers registered?
+      if (!this.triggers.hasOwnProperty(_trigger)) return;
+      var triggers = this.triggers[_trigger];
+      for (var ii = 0; ii < triggers.length; ++ii) {
+        triggers[ii].callback(event);
+      }
     }
-  };
-
+  }]);
   return RuntimeListener;
 }();
 
@@ -8013,7 +8098,7 @@ function DEBUG_OP_NEW(hash, ctor, args) {
   frame.values = [hash, event.ctor, event.arguments];
   // FRAME END
 
-  return new (Function.prototype.bind.apply(event.ctor, [null].concat(event.arguments)))();
+  return new (Function.prototype.bind.apply(event.ctor, [null].concat(toConsumableArray(event.arguments))))();
 }
 function DEBUG_OP_NEW_END(hash, self, ret) {
   self.indent -= INDENT_FACTOR;
@@ -8320,6 +8405,8 @@ function DEBUG_PROGRAM_LEAVE(hash, ret) {
 function DEBUG_PROGRAM_FRAME_VALUE(value) {
   //console.log(value);
 }
+
+
 
 var _debug = Object.freeze({
 	DEBUG_IF_TEST: DEBUG_IF_TEST,

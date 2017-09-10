@@ -24,7 +24,6 @@
           ]
         },
         "modules": false,
-        "loose": true,
         "debug": false
       }
     ]
