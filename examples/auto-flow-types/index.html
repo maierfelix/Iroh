@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,300,700" />
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+
+  <link rel="stylesheet" href="http://codemirror.net/3/lib/codemirror.css">
+  <script src="http://codemirror.net/3/lib/codemirror.js"></script>
+  <script src="http://codemirror.net/3/mode/javascript/javascript.js"></script>
+
+  <style>
+    body {
+      background: rgba(0,0,0,0.01);
+      line-height: 1.5;
+      font-family: "Open Sans",arial,x-locale-body,sans-serif;
+      padding: 0px 6px 0px;
+    }
+    #input, #output {
+      border: 1px solid rgba(0,0,0,0.1);
+      width: 45%;
+      display: inline-block;
+    }
+  </style>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+  <body>
+
+  <div class="container">
+    <h3>Auto <a href="https://flow.org/en/docs/getting-started/">flow</a> type annotations</h3>
+    <div>
+      <div id="input"></div>
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <div id="code" style="display:none;">function add(a, b) {
+  return a + b;
+};
+
+let a = add(2, 3);
+let b = add("Hello", "World");
+</div>
+
+  <!-- include iroh -->
+  <script type="text/javascript" src="../../dist/iroh-browser.js"></script>
+  <!-- our little type check script -->
+  <script type="text/javascript" src="type-check.js"></script>
+
+  <script>
+  let editor2 = CodeMirror(document.getElementById("output"), {
+    mode: "text/javascript",
+    lineNumbers: true
+  });
+  let out = editor2.getDoc();
+  </script>
+
+  <script>
+  let editor = CodeMirror(document.getElementById("input"), {
+    mode: "text/javascript",
+    lineNumbers: true
+  });
+  let doc = editor.getDoc();
+
+  doc.setValue(code.textContent);
+
+  doc.on("change", () => {
+    runStage(doc.getValue());
+  });
+  // manually trigger change event
+  doc._handlers.change[0]();
+  </script>
+
+  </body>
+</html>
