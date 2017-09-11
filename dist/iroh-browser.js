@@ -14,7 +14,7 @@ var extend = function(cls, prot) {
   }
 };
 
-var version = "0.2.6";
+var version = "0.3.0";
 
 // indent factor
 var INDENT_FACTOR = 1;
@@ -26,7 +26,7 @@ var DEBUG_KEY = "$";
 var TEMP_VAR_BASE = "Iroh$$x";
 
 // log all errors, logs also internal errors
-var LOG_ALL_ERRORS = false;
+
 
 // clean or minimal debug command related output
 var CLEAN_DEBUG_INJECTION = false;
@@ -103,6 +103,12 @@ var CATEGORY = {};
   INSTR.TRY_ENTER = ii++;
   INSTR.TRY_LEAVE = ii++;
 
+  INSTR.CATCH_ENTER = ii++;
+  INSTR.CATCH_LEAVE = ii++;
+
+  INSTR.FINAL_ENTER = ii++;
+  INSTR.FINAL_LEAVE = ii++;
+
   INSTR.ALLOC = ii++;
 
   INSTR.MEMBER_EXPR = ii++;
@@ -130,6 +136,8 @@ var CATEGORY = {};
   CATEGORY.LITERAL = ii++;
   CATEGORY.IDENTIFIER = ii++;
   CATEGORY.TRY = ii++;
+  CATEGORY.CATCH = ii++;
+  CATEGORY.FINALLY = ii++;
   CATEGORY.OP_NEW = ii++;
   CATEGORY.VAR = ii++;
   CATEGORY.IF = ii++;
@@ -183,33 +191,6 @@ var CATEGORY = {};
   OP["--"] = ii++;
 
 })();
-
-// unique temporary variable index
-var utvidx = 1;
-function reserveTempVarId() {
-  return (
-    ("" + TEMP_VAR_BASE + (utvidx++))
-  );
-}
-
-// general unique index
-var uidx = 1;
-function uid() {
-  return uidx++;
-}
-
-// unique branch index
-var ubidx = 1;
-function uBranchHash() {
-  return ubidx++;
-}
-
-
-var _utils = Object.freeze({
-	reserveTempVarId: reserveTempVarId,
-	uid: uid,
-	uBranchHash: uBranchHash
-});
 
 // Reserved word lists for various dialects of the language
 
@@ -3866,438 +3847,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-var walk = createCommonjsModule(function (module, exports) {
-(function (global, factory) {
-	factory(exports);
-}(commonjsGlobal, (function (exports) { 'use strict';
-
-// AST walker module for Mozilla Parser API compatible trees
-
-// A simple walk is one where you simply specify callbacks to be
-// called on specific nodes. The last two arguments are optional. A
-// simple use would be
-//
-//     walk.simple(myTree, {
-//         Expression: function(node) { ... }
-//     });
-//
-// to do something with all expressions. All Parser API node types
-// can be used to identify node types, as well as Expression,
-// Statement, and ScopeBody, which denote categories of nodes.
-//
-// The base argument can be used to pass a custom (recursive)
-// walker, and state can be used to give this walked an initial
-// state.
-
-function simple(node, visitors, base, state, override) {
-  if (!base) { base = exports.base
-  ; }(function c(node, st, override) {
-    var type = override || node.type, found = visitors[type];
-    base[type](node, st, c);
-    if (found) { found(node, st); }
-  })(node, state, override);
-}
-
-// An ancestor walk keeps an array of ancestor nodes (including the
-// current node) and passes them to the callback as third parameter
-// (and also as state parameter when no other state is present).
-function ancestor(node, visitors, base, state) {
-  if (!base) { base = exports.base; }
-  var ancestors = [];(function c(node, st, override) {
-    var type = override || node.type, found = visitors[type];
-    var isNew = node != ancestors[ancestors.length - 1];
-    if (isNew) { ancestors.push(node); }
-    base[type](node, st, c);
-    if (found) { found(node, st || ancestors, ancestors); }
-    if (isNew) { ancestors.pop(); }
-  })(node, state);
-}
-
-// A recursive walk is one where your functions override the default
-// walkers. They can modify and replace the state parameter that's
-// threaded through the walk, and can opt how and whether to walk
-// their child nodes (by calling their third argument on these
-// nodes).
-function recursive(node, state, funcs, base, override) {
-  var visitor = funcs ? exports.make(funcs, base) : base;(function c(node, st, override) {
-    visitor[override || node.type](node, st, c);
-  })(node, state, override);
-}
-
-function makeTest(test) {
-  if (typeof test == "string")
-    { return function (type) { return type == test; } }
-  else if (!test)
-    { return function () { return true; } }
-  else
-    { return test }
-}
-
-var Found = function Found(node, state) { this.node = node; this.state = state; };
-
-// A full walk triggers the callback on each node
-function full(node, callback, base, state, override) {
-  if (!base) { base = exports.base
-  ; }(function c(node, st, override) {
-    var type = override || node.type;
-    base[type](node, st, c);
-    callback(node, st, type);
-  })(node, state, override);
-}
-
-// An fullAncestor walk is like an ancestor walk, but triggers
-// the callback on each node
-function fullAncestor(node, callback, base, state) {
-  if (!base) { base = exports.base; }
-  var ancestors = [];(function c(node, st, override) {
-    var type = override || node.type;
-    var isNew = node != ancestors[ancestors.length - 1];
-    if (isNew) { ancestors.push(node); }
-    base[type](node, st, c);
-    callback(node, st || ancestors, ancestors, type);
-    if (isNew) { ancestors.pop(); }
-  })(node, state);
-}
-
-// Find a node with a given start, end, and type (all are optional,
-// null can be used as wildcard). Returns a {node, state} object, or
-// undefined when it doesn't find a matching node.
-function findNodeAt(node, start, end, test, base, state) {
-  test = makeTest(test);
-  if (!base) { base = exports.base; }
-  try {
-    (function c(node, st, override) {
-      var type = override || node.type;
-      if ((start == null || node.start <= start) &&
-          (end == null || node.end >= end))
-        { base[type](node, st, c); }
-      if ((start == null || node.start == start) &&
-          (end == null || node.end == end) &&
-          test(type, node))
-        { throw new Found(node, st) }
-    })(node, state);
-  } catch (e) {
-    if (e instanceof Found) { return e }
-    throw e
-  }
-}
-
-// Find the innermost node of a given type that contains the given
-// position. Interface similar to findNodeAt.
-function findNodeAround(node, pos, test, base, state) {
-  test = makeTest(test);
-  if (!base) { base = exports.base; }
-  try {
-    (function c(node, st, override) {
-      var type = override || node.type;
-      if (node.start > pos || node.end < pos) { return }
-      base[type](node, st, c);
-      if (test(type, node)) { throw new Found(node, st) }
-    })(node, state);
-  } catch (e) {
-    if (e instanceof Found) { return e }
-    throw e
-  }
-}
-
-// Find the outermost matching node after a given position.
-function findNodeAfter(node, pos, test, base, state) {
-  test = makeTest(test);
-  if (!base) { base = exports.base; }
-  try {
-    (function c(node, st, override) {
-      if (node.end < pos) { return }
-      var type = override || node.type;
-      if (node.start >= pos && test(type, node)) { throw new Found(node, st) }
-      base[type](node, st, c);
-    })(node, state);
-  } catch (e) {
-    if (e instanceof Found) { return e }
-    throw e
-  }
-}
-
-// Find the outermost matching node before a given position.
-function findNodeBefore(node, pos, test, base, state) {
-  test = makeTest(test);
-  if (!base) { base = exports.base; }
-  var max;(function c(node, st, override) {
-    if (node.start > pos) { return }
-    var type = override || node.type;
-    if (node.end <= pos && (!max || max.node.end < node.end) && test(type, node))
-      { max = new Found(node, st); }
-    base[type](node, st, c);
-  })(node, state);
-  return max
-}
-
-// Fallback to an Object.create polyfill for older environments.
-var create = Object.create || function(proto) {
-  function Ctor() {}
-  Ctor.prototype = proto;
-  return new Ctor
-};
-
-// Used to create a custom walker. Will fill in all missing node
-// type properties with the defaults.
-function make(funcs, base) {
-  if (!base) { base = exports.base; }
-  var visitor = create(base);
-  for (var type in funcs) { visitor[type] = funcs[type]; }
-  return visitor
-}
-
-function skipThrough(node, st, c) { c(node, st); }
-function ignore(_node, _st, _c) {}
-
-// Node walkers.
-
-var base = {};
-
-base.Program = base.BlockStatement = function (node, st, c) {
-  for (var i = 0, list = node.body; i < list.length; i += 1)
-    {
-    var stmt = list[i];
-
-    c(stmt, st, "Statement");
-  }
-};
-base.Statement = skipThrough;
-base.EmptyStatement = ignore;
-base.ExpressionStatement = base.ParenthesizedExpression =
-  function (node, st, c) { return c(node.expression, st, "Expression"); };
-base.IfStatement = function (node, st, c) {
-  c(node.test, st, "Expression");
-  c(node.consequent, st, "Statement");
-  if (node.alternate) { c(node.alternate, st, "Statement"); }
-};
-base.LabeledStatement = function (node, st, c) { return c(node.body, st, "Statement"); };
-base.BreakStatement = base.ContinueStatement = ignore;
-base.WithStatement = function (node, st, c) {
-  c(node.object, st, "Expression");
-  c(node.body, st, "Statement");
-};
-base.SwitchStatement = function (node, st, c) {
-  c(node.discriminant, st, "Expression");
-  for (var i = 0, list = node.cases; i < list.length; i += 1) {
-    var cs = list[i];
-
-    if (cs.test) { c(cs.test, st, "Expression"); }
-    for (var i$1 = 0, list$1 = cs.consequent; i$1 < list$1.length; i$1 += 1)
-      {
-      var cons = list$1[i$1];
-
-      c(cons, st, "Statement");
-    }
-  }
-};
-base.ReturnStatement = base.YieldExpression = base.AwaitExpression = function (node, st, c) {
-  if (node.argument) { c(node.argument, st, "Expression"); }
-};
-base.ThrowStatement = base.SpreadElement =
-  function (node, st, c) { return c(node.argument, st, "Expression"); };
-base.TryStatement = function (node, st, c) {
-  c(node.block, st, "Statement");
-  if (node.handler) { c(node.handler, st); }
-  if (node.finalizer) { c(node.finalizer, st, "Statement"); }
-};
-base.CatchClause = function (node, st, c) {
-  c(node.param, st, "Pattern");
-  c(node.body, st, "ScopeBody");
-};
-base.WhileStatement = base.DoWhileStatement = function (node, st, c) {
-  c(node.test, st, "Expression");
-  c(node.body, st, "Statement");
-};
-base.ForStatement = function (node, st, c) {
-  if (node.init) { c(node.init, st, "ForInit"); }
-  if (node.test) { c(node.test, st, "Expression"); }
-  if (node.update) { c(node.update, st, "Expression"); }
-  c(node.body, st, "Statement");
-};
-base.ForInStatement = base.ForOfStatement = function (node, st, c) {
-  c(node.left, st, "ForInit");
-  c(node.right, st, "Expression");
-  c(node.body, st, "Statement");
-};
-base.ForInit = function (node, st, c) {
-  if (node.type == "VariableDeclaration") { c(node, st); }
-  else { c(node, st, "Expression"); }
-};
-base.DebuggerStatement = ignore;
-
-base.FunctionDeclaration = function (node, st, c) { return c(node, st, "Function"); };
-base.VariableDeclaration = function (node, st, c) {
-  for (var i = 0, list = node.declarations; i < list.length; i += 1)
-    {
-    var decl = list[i];
-
-    c(decl, st);
-  }
-};
-base.VariableDeclarator = function (node, st, c) {
-  c(node.id, st, "Pattern");
-  if (node.init) { c(node.init, st, "Expression"); }
-};
-
-base.Function = function (node, st, c) {
-  if (node.id) { c(node.id, st, "Pattern"); }
-  for (var i = 0, list = node.params; i < list.length; i += 1)
-    {
-    var param = list[i];
-
-    c(param, st, "Pattern");
-  }
-  c(node.body, st, node.expression ? "ScopeExpression" : "ScopeBody");
-};
-// FIXME drop these node types in next major version
-// (They are awkward, and in ES6 every block can be a scope.)
-base.ScopeBody = function (node, st, c) { return c(node, st, "Statement"); };
-base.ScopeExpression = function (node, st, c) { return c(node, st, "Expression"); };
-
-base.Pattern = function (node, st, c) {
-  if (node.type == "Identifier")
-    { c(node, st, "VariablePattern"); }
-  else if (node.type == "MemberExpression")
-    { c(node, st, "MemberPattern"); }
-  else
-    { c(node, st); }
-};
-base.VariablePattern = ignore;
-base.MemberPattern = skipThrough;
-base.RestElement = function (node, st, c) { return c(node.argument, st, "Pattern"); };
-base.ArrayPattern = function (node, st, c) {
-  for (var i = 0, list = node.elements; i < list.length; i += 1) {
-    var elt = list[i];
-
-    if (elt) { c(elt, st, "Pattern"); }
-  }
-};
-base.ObjectPattern = function (node, st, c) {
-  for (var i = 0, list = node.properties; i < list.length; i += 1)
-    {
-    var prop = list[i];
-
-    c(prop.value, st, "Pattern");
-  }
-};
-
-base.Expression = skipThrough;
-base.ThisExpression = base.Super = base.MetaProperty = ignore;
-base.ArrayExpression = function (node, st, c) {
-  for (var i = 0, list = node.elements; i < list.length; i += 1) {
-    var elt = list[i];
-
-    if (elt) { c(elt, st, "Expression"); }
-  }
-};
-base.ObjectExpression = function (node, st, c) {
-  for (var i = 0, list = node.properties; i < list.length; i += 1)
-    {
-    var prop = list[i];
-
-    c(prop, st);
-  }
-};
-base.FunctionExpression = base.ArrowFunctionExpression = base.FunctionDeclaration;
-base.SequenceExpression = base.TemplateLiteral = function (node, st, c) {
-  for (var i = 0, list = node.expressions; i < list.length; i += 1)
-    {
-    var expr = list[i];
-
-    c(expr, st, "Expression");
-  }
-};
-base.UnaryExpression = base.UpdateExpression = function (node, st, c) {
-  c(node.argument, st, "Expression");
-};
-base.BinaryExpression = base.LogicalExpression = function (node, st, c) {
-  c(node.left, st, "Expression");
-  c(node.right, st, "Expression");
-};
-base.AssignmentExpression = base.AssignmentPattern = function (node, st, c) {
-  c(node.left, st, "Pattern");
-  c(node.right, st, "Expression");
-};
-base.ConditionalExpression = function (node, st, c) {
-  c(node.test, st, "Expression");
-  c(node.consequent, st, "Expression");
-  c(node.alternate, st, "Expression");
-};
-base.NewExpression = base.CallExpression = function (node, st, c) {
-  c(node.callee, st, "Expression");
-  if (node.arguments)
-    { for (var i = 0, list = node.arguments; i < list.length; i += 1)
-      {
-        var arg = list[i];
-
-        c(arg, st, "Expression");
-      } }
-};
-base.MemberExpression = function (node, st, c) {
-  c(node.object, st, "Expression");
-  if (node.computed) { c(node.property, st, "Expression"); }
-};
-base.ExportNamedDeclaration = base.ExportDefaultDeclaration = function (node, st, c) {
-  if (node.declaration)
-    { c(node.declaration, st, node.type == "ExportNamedDeclaration" || node.declaration.id ? "Statement" : "Expression"); }
-  if (node.source) { c(node.source, st, "Expression"); }
-};
-base.ExportAllDeclaration = function (node, st, c) {
-  c(node.source, st, "Expression");
-};
-base.ImportDeclaration = function (node, st, c) {
-  for (var i = 0, list = node.specifiers; i < list.length; i += 1)
-    {
-    var spec = list[i];
-
-    c(spec, st);
-  }
-  c(node.source, st, "Expression");
-};
-base.ImportSpecifier = base.ImportDefaultSpecifier = base.ImportNamespaceSpecifier = base.Identifier = base.Literal = ignore;
-
-base.TaggedTemplateExpression = function (node, st, c) {
-  c(node.tag, st, "Expression");
-  c(node.quasi, st);
-};
-base.ClassDeclaration = base.ClassExpression = function (node, st, c) { return c(node, st, "Class"); };
-base.Class = function (node, st, c) {
-  if (node.id) { c(node.id, st, "Pattern"); }
-  if (node.superClass) { c(node.superClass, st, "Expression"); }
-  for (var i = 0, list = node.body.body; i < list.length; i += 1)
-    {
-    var item = list[i];
-
-    c(item, st);
-  }
-};
-base.MethodDefinition = base.Property = function (node, st, c) {
-  if (node.computed) { c(node.key, st, "Expression"); }
-  c(node.value, st, "Expression");
-};
-
-exports.simple = simple;
-exports.ancestor = ancestor;
-exports.recursive = recursive;
-exports.full = full;
-exports.fullAncestor = fullAncestor;
-exports.findNodeAt = findNodeAt;
-exports.findNodeAround = findNodeAround;
-exports.findNodeAfter = findNodeAfter;
-exports.findNodeBefore = findNodeBefore;
-exports.make = make;
-exports.base = base;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
-});
-
-var walk_1 = walk.base;
-var walk_2 = walk.full;
-var walk_3 = walk.recursive;
-
 var astring = createCommonjsModule(function (module, exports) {
 (function (global, factory) {
   if (typeof undefined === "function" && undefined.amd) {
@@ -5368,6 +4917,475 @@ var astring = createCommonjsModule(function (module, exports) {
 
 var astring_1 = astring.generate;
 
+// unique temporary variable index
+var utvidx = 1;
+function reserveTempVarId() {
+  return (
+    ("" + TEMP_VAR_BASE + (utvidx++))
+  );
+}
+
+// general unique index
+var uidx = 1;
+function uid() {
+  return uidx++;
+}
+
+// unique branch index
+var ubidx = 1;
+function uBranchHash() {
+  return ubidx++;
+}
+
+function parse$$1() {
+  return parse$1.apply(null, arguments);
+}
+
+function generate$$1() {
+  return astring_1.apply(null, arguments);
+}
+
+
+var _utils = Object.freeze({
+	reserveTempVarId: reserveTempVarId,
+	uid: uid,
+	uBranchHash: uBranchHash,
+	parse: parse$$1,
+	generate: generate$$1
+});
+
+var walk = createCommonjsModule(function (module, exports) {
+(function (global, factory) {
+	factory(exports);
+}(commonjsGlobal, (function (exports) { 'use strict';
+
+// AST walker module for Mozilla Parser API compatible trees
+
+// A simple walk is one where you simply specify callbacks to be
+// called on specific nodes. The last two arguments are optional. A
+// simple use would be
+//
+//     walk.simple(myTree, {
+//         Expression: function(node) { ... }
+//     });
+//
+// to do something with all expressions. All Parser API node types
+// can be used to identify node types, as well as Expression,
+// Statement, and ScopeBody, which denote categories of nodes.
+//
+// The base argument can be used to pass a custom (recursive)
+// walker, and state can be used to give this walked an initial
+// state.
+
+function simple(node, visitors, base, state, override) {
+  if (!base) { base = exports.base
+  ; }(function c(node, st, override) {
+    var type = override || node.type, found = visitors[type];
+    base[type](node, st, c);
+    if (found) { found(node, st); }
+  })(node, state, override);
+}
+
+// An ancestor walk keeps an array of ancestor nodes (including the
+// current node) and passes them to the callback as third parameter
+// (and also as state parameter when no other state is present).
+function ancestor(node, visitors, base, state) {
+  if (!base) { base = exports.base; }
+  var ancestors = [];(function c(node, st, override) {
+    var type = override || node.type, found = visitors[type];
+    var isNew = node != ancestors[ancestors.length - 1];
+    if (isNew) { ancestors.push(node); }
+    base[type](node, st, c);
+    if (found) { found(node, st || ancestors, ancestors); }
+    if (isNew) { ancestors.pop(); }
+  })(node, state);
+}
+
+// A recursive walk is one where your functions override the default
+// walkers. They can modify and replace the state parameter that's
+// threaded through the walk, and can opt how and whether to walk
+// their child nodes (by calling their third argument on these
+// nodes).
+function recursive(node, state, funcs, base, override) {
+  var visitor = funcs ? exports.make(funcs, base) : base;(function c(node, st, override) {
+    visitor[override || node.type](node, st, c);
+  })(node, state, override);
+}
+
+function makeTest(test) {
+  if (typeof test == "string")
+    { return function (type) { return type == test; } }
+  else if (!test)
+    { return function () { return true; } }
+  else
+    { return test }
+}
+
+var Found = function Found(node, state) { this.node = node; this.state = state; };
+
+// A full walk triggers the callback on each node
+function full(node, callback, base, state, override) {
+  if (!base) { base = exports.base
+  ; }(function c(node, st, override) {
+    var type = override || node.type;
+    base[type](node, st, c);
+    callback(node, st, type);
+  })(node, state, override);
+}
+
+// An fullAncestor walk is like an ancestor walk, but triggers
+// the callback on each node
+function fullAncestor(node, callback, base, state) {
+  if (!base) { base = exports.base; }
+  var ancestors = [];(function c(node, st, override) {
+    var type = override || node.type;
+    var isNew = node != ancestors[ancestors.length - 1];
+    if (isNew) { ancestors.push(node); }
+    base[type](node, st, c);
+    callback(node, st || ancestors, ancestors, type);
+    if (isNew) { ancestors.pop(); }
+  })(node, state);
+}
+
+// Find a node with a given start, end, and type (all are optional,
+// null can be used as wildcard). Returns a {node, state} object, or
+// undefined when it doesn't find a matching node.
+function findNodeAt(node, start, end, test, base, state) {
+  test = makeTest(test);
+  if (!base) { base = exports.base; }
+  try {
+    (function c(node, st, override) {
+      var type = override || node.type;
+      if ((start == null || node.start <= start) &&
+          (end == null || node.end >= end))
+        { base[type](node, st, c); }
+      if ((start == null || node.start == start) &&
+          (end == null || node.end == end) &&
+          test(type, node))
+        { throw new Found(node, st) }
+    })(node, state);
+  } catch (e) {
+    if (e instanceof Found) { return e }
+    throw e
+  }
+}
+
+// Find the innermost node of a given type that contains the given
+// position. Interface similar to findNodeAt.
+function findNodeAround(node, pos, test, base, state) {
+  test = makeTest(test);
+  if (!base) { base = exports.base; }
+  try {
+    (function c(node, st, override) {
+      var type = override || node.type;
+      if (node.start > pos || node.end < pos) { return }
+      base[type](node, st, c);
+      if (test(type, node)) { throw new Found(node, st) }
+    })(node, state);
+  } catch (e) {
+    if (e instanceof Found) { return e }
+    throw e
+  }
+}
+
+// Find the outermost matching node after a given position.
+function findNodeAfter(node, pos, test, base, state) {
+  test = makeTest(test);
+  if (!base) { base = exports.base; }
+  try {
+    (function c(node, st, override) {
+      if (node.end < pos) { return }
+      var type = override || node.type;
+      if (node.start >= pos && test(type, node)) { throw new Found(node, st) }
+      base[type](node, st, c);
+    })(node, state);
+  } catch (e) {
+    if (e instanceof Found) { return e }
+    throw e
+  }
+}
+
+// Find the outermost matching node before a given position.
+function findNodeBefore(node, pos, test, base, state) {
+  test = makeTest(test);
+  if (!base) { base = exports.base; }
+  var max;(function c(node, st, override) {
+    if (node.start > pos) { return }
+    var type = override || node.type;
+    if (node.end <= pos && (!max || max.node.end < node.end) && test(type, node))
+      { max = new Found(node, st); }
+    base[type](node, st, c);
+  })(node, state);
+  return max
+}
+
+// Fallback to an Object.create polyfill for older environments.
+var create = Object.create || function(proto) {
+  function Ctor() {}
+  Ctor.prototype = proto;
+  return new Ctor
+};
+
+// Used to create a custom walker. Will fill in all missing node
+// type properties with the defaults.
+function make(funcs, base) {
+  if (!base) { base = exports.base; }
+  var visitor = create(base);
+  for (var type in funcs) { visitor[type] = funcs[type]; }
+  return visitor
+}
+
+function skipThrough(node, st, c) { c(node, st); }
+function ignore(_node, _st, _c) {}
+
+// Node walkers.
+
+var base = {};
+
+base.Program = base.BlockStatement = function (node, st, c) {
+  for (var i = 0, list = node.body; i < list.length; i += 1)
+    {
+    var stmt = list[i];
+
+    c(stmt, st, "Statement");
+  }
+};
+base.Statement = skipThrough;
+base.EmptyStatement = ignore;
+base.ExpressionStatement = base.ParenthesizedExpression =
+  function (node, st, c) { return c(node.expression, st, "Expression"); };
+base.IfStatement = function (node, st, c) {
+  c(node.test, st, "Expression");
+  c(node.consequent, st, "Statement");
+  if (node.alternate) { c(node.alternate, st, "Statement"); }
+};
+base.LabeledStatement = function (node, st, c) { return c(node.body, st, "Statement"); };
+base.BreakStatement = base.ContinueStatement = ignore;
+base.WithStatement = function (node, st, c) {
+  c(node.object, st, "Expression");
+  c(node.body, st, "Statement");
+};
+base.SwitchStatement = function (node, st, c) {
+  c(node.discriminant, st, "Expression");
+  for (var i = 0, list = node.cases; i < list.length; i += 1) {
+    var cs = list[i];
+
+    if (cs.test) { c(cs.test, st, "Expression"); }
+    for (var i$1 = 0, list$1 = cs.consequent; i$1 < list$1.length; i$1 += 1)
+      {
+      var cons = list$1[i$1];
+
+      c(cons, st, "Statement");
+    }
+  }
+};
+base.ReturnStatement = base.YieldExpression = base.AwaitExpression = function (node, st, c) {
+  if (node.argument) { c(node.argument, st, "Expression"); }
+};
+base.ThrowStatement = base.SpreadElement =
+  function (node, st, c) { return c(node.argument, st, "Expression"); };
+base.TryStatement = function (node, st, c) {
+  c(node.block, st, "Statement");
+  if (node.handler) { c(node.handler, st); }
+  if (node.finalizer) { c(node.finalizer, st, "Statement"); }
+};
+base.CatchClause = function (node, st, c) {
+  c(node.param, st, "Pattern");
+  c(node.body, st, "ScopeBody");
+};
+base.WhileStatement = base.DoWhileStatement = function (node, st, c) {
+  c(node.test, st, "Expression");
+  c(node.body, st, "Statement");
+};
+base.ForStatement = function (node, st, c) {
+  if (node.init) { c(node.init, st, "ForInit"); }
+  if (node.test) { c(node.test, st, "Expression"); }
+  if (node.update) { c(node.update, st, "Expression"); }
+  c(node.body, st, "Statement");
+};
+base.ForInStatement = base.ForOfStatement = function (node, st, c) {
+  c(node.left, st, "ForInit");
+  c(node.right, st, "Expression");
+  c(node.body, st, "Statement");
+};
+base.ForInit = function (node, st, c) {
+  if (node.type == "VariableDeclaration") { c(node, st); }
+  else { c(node, st, "Expression"); }
+};
+base.DebuggerStatement = ignore;
+
+base.FunctionDeclaration = function (node, st, c) { return c(node, st, "Function"); };
+base.VariableDeclaration = function (node, st, c) {
+  for (var i = 0, list = node.declarations; i < list.length; i += 1)
+    {
+    var decl = list[i];
+
+    c(decl, st);
+  }
+};
+base.VariableDeclarator = function (node, st, c) {
+  c(node.id, st, "Pattern");
+  if (node.init) { c(node.init, st, "Expression"); }
+};
+
+base.Function = function (node, st, c) {
+  if (node.id) { c(node.id, st, "Pattern"); }
+  for (var i = 0, list = node.params; i < list.length; i += 1)
+    {
+    var param = list[i];
+
+    c(param, st, "Pattern");
+  }
+  c(node.body, st, node.expression ? "ScopeExpression" : "ScopeBody");
+};
+// FIXME drop these node types in next major version
+// (They are awkward, and in ES6 every block can be a scope.)
+base.ScopeBody = function (node, st, c) { return c(node, st, "Statement"); };
+base.ScopeExpression = function (node, st, c) { return c(node, st, "Expression"); };
+
+base.Pattern = function (node, st, c) {
+  if (node.type == "Identifier")
+    { c(node, st, "VariablePattern"); }
+  else if (node.type == "MemberExpression")
+    { c(node, st, "MemberPattern"); }
+  else
+    { c(node, st); }
+};
+base.VariablePattern = ignore;
+base.MemberPattern = skipThrough;
+base.RestElement = function (node, st, c) { return c(node.argument, st, "Pattern"); };
+base.ArrayPattern = function (node, st, c) {
+  for (var i = 0, list = node.elements; i < list.length; i += 1) {
+    var elt = list[i];
+
+    if (elt) { c(elt, st, "Pattern"); }
+  }
+};
+base.ObjectPattern = function (node, st, c) {
+  for (var i = 0, list = node.properties; i < list.length; i += 1)
+    {
+    var prop = list[i];
+
+    c(prop.value, st, "Pattern");
+  }
+};
+
+base.Expression = skipThrough;
+base.ThisExpression = base.Super = base.MetaProperty = ignore;
+base.ArrayExpression = function (node, st, c) {
+  for (var i = 0, list = node.elements; i < list.length; i += 1) {
+    var elt = list[i];
+
+    if (elt) { c(elt, st, "Expression"); }
+  }
+};
+base.ObjectExpression = function (node, st, c) {
+  for (var i = 0, list = node.properties; i < list.length; i += 1)
+    {
+    var prop = list[i];
+
+    c(prop, st);
+  }
+};
+base.FunctionExpression = base.ArrowFunctionExpression = base.FunctionDeclaration;
+base.SequenceExpression = base.TemplateLiteral = function (node, st, c) {
+  for (var i = 0, list = node.expressions; i < list.length; i += 1)
+    {
+    var expr = list[i];
+
+    c(expr, st, "Expression");
+  }
+};
+base.UnaryExpression = base.UpdateExpression = function (node, st, c) {
+  c(node.argument, st, "Expression");
+};
+base.BinaryExpression = base.LogicalExpression = function (node, st, c) {
+  c(node.left, st, "Expression");
+  c(node.right, st, "Expression");
+};
+base.AssignmentExpression = base.AssignmentPattern = function (node, st, c) {
+  c(node.left, st, "Pattern");
+  c(node.right, st, "Expression");
+};
+base.ConditionalExpression = function (node, st, c) {
+  c(node.test, st, "Expression");
+  c(node.consequent, st, "Expression");
+  c(node.alternate, st, "Expression");
+};
+base.NewExpression = base.CallExpression = function (node, st, c) {
+  c(node.callee, st, "Expression");
+  if (node.arguments)
+    { for (var i = 0, list = node.arguments; i < list.length; i += 1)
+      {
+        var arg = list[i];
+
+        c(arg, st, "Expression");
+      } }
+};
+base.MemberExpression = function (node, st, c) {
+  c(node.object, st, "Expression");
+  if (node.computed) { c(node.property, st, "Expression"); }
+};
+base.ExportNamedDeclaration = base.ExportDefaultDeclaration = function (node, st, c) {
+  if (node.declaration)
+    { c(node.declaration, st, node.type == "ExportNamedDeclaration" || node.declaration.id ? "Statement" : "Expression"); }
+  if (node.source) { c(node.source, st, "Expression"); }
+};
+base.ExportAllDeclaration = function (node, st, c) {
+  c(node.source, st, "Expression");
+};
+base.ImportDeclaration = function (node, st, c) {
+  for (var i = 0, list = node.specifiers; i < list.length; i += 1)
+    {
+    var spec = list[i];
+
+    c(spec, st);
+  }
+  c(node.source, st, "Expression");
+};
+base.ImportSpecifier = base.ImportDefaultSpecifier = base.ImportNamespaceSpecifier = base.Identifier = base.Literal = ignore;
+
+base.TaggedTemplateExpression = function (node, st, c) {
+  c(node.tag, st, "Expression");
+  c(node.quasi, st);
+};
+base.ClassDeclaration = base.ClassExpression = function (node, st, c) { return c(node, st, "Class"); };
+base.Class = function (node, st, c) {
+  if (node.id) { c(node.id, st, "Pattern"); }
+  if (node.superClass) { c(node.superClass, st, "Expression"); }
+  for (var i = 0, list = node.body.body; i < list.length; i += 1)
+    {
+    var item = list[i];
+
+    c(item, st);
+  }
+};
+base.MethodDefinition = base.Property = function (node, st, c) {
+  if (node.computed) { c(node.key, st, "Expression"); }
+  c(node.value, st, "Expression");
+};
+
+exports.simple = simple;
+exports.ancestor = ancestor;
+exports.recursive = recursive;
+exports.full = full;
+exports.fullAncestor = fullAncestor;
+exports.findNodeAt = findNodeAt;
+exports.findNodeAround = findNodeAround;
+exports.findNodeAfter = findNodeAfter;
+exports.findNodeBefore = findNodeBefore;
+exports.make = make;
+exports.base = base;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+});
+
+var walk_1 = walk.base;
+var walk_2 = walk.full;
+var walk_3 = walk.recursive;
+
 function getInheritanceTree(cls) {
   var base = cls;
   var tree = [cls.name];
@@ -5537,6 +5555,18 @@ function isTryStatementFrameType(type) {
   );
 }
 
+function isCatchClauseFrameType(type) {
+  return (
+    type === INSTR.CATCH_ENTER
+  );
+}
+
+function isFinalClauseFrameType(type) {
+  return (
+    type === INSTR.FINAL_ENTER
+  );
+}
+
 function isInstantiationFrameType(type) {
   return (
     type === INSTR.OP_NEW
@@ -5599,23 +5629,23 @@ function deepMagicPatch(node) {
   });
 }
 
-function parse$$1() {
+function parse$2() {
   return parse$1.apply(null, arguments);
 }
 
-function generate$$1() {
+function generate$1() {
   return astring_1.apply(null, arguments);
 }
 
 function parseExpression(input) {
-  var node = parse$$1(input);
+  var node = parse$2(input);
   var result = node.body[0].expression;
   deepMagicPatch(result);
   return result;
 }
 
 function parseExpressionStatement(input) {
-  var node = parse$$1(input);
+  var node = parse$2(input);
   var result = node.body[0];
   deepMagicPatch(result);
   return result;
@@ -5649,6 +5679,12 @@ function getCategoryFromInstruction(type) {
     case INSTR.TRY_ENTER:
     case INSTR.TRY_LEAVE:
       return CATEGORY.TRY | 0;
+    case INSTR.CATCH_ENTER:
+    case INSTR.CATCH_LEAVE:
+      return CATEGORY.CATCH | 0;
+    case INSTR.FINAL_ENTER:
+    case INSTR.FINAL_LEAVE:
+      return CATEGORY.FINALLY | 0;
     case INSTR.OP_NEW:
     case INSTR.OP_NEW_END:
       return CATEGORY.OP_NEW | 0;
@@ -5719,6 +5755,8 @@ var Frame = function Frame(type, hash) {
   this.isSloppy = false;
   this.isBreakable = false;
   this.isReturnable = false;
+  this.isCatchClause = false;
+  this.isFinalClause = false;
   this.isTryStatement = false;
   this.isSwitchDefault = false;
   this.isInstantiation = false;
@@ -5730,6 +5768,8 @@ var Frame = function Frame(type, hash) {
   this.isBreakable = isBreakableFrameType(type);
   this.isSwitchCase = isSwitchCaseFrameType(type);
   this.isReturnable = isReturnableFrameType(type);
+  this.isCatchClause = isCatchClauseFrameType(type);
+  this.isFinalClause = isFinalClauseFrameType(type);
   this.isContinuable = isContinuableFrameType(type);
   this.isTryStatement = isTryStatementFrameType(type);
   this.isInstantiation = isInstantiationFrameType(type);
@@ -6028,11 +6068,20 @@ STAGE1.CallExpression = function(node, patcher) {
         if (node.callee.type === "MemberExpression") {
           var property = node.callee.property;
           // identifier
-          if (property.type === "Identifier") { return {
-            magic: true,
-            type: "Literal",
-            value: property.name
-          }; }
+          if (property.type === "Identifier") {
+            if (node.callee.computed) {
+              return {
+                magic: true,
+                type: "Identifier",
+                name: property.name
+              };
+            }
+            return ({
+              magic: true,
+              type: "Literal",
+              value: property.name
+            });
+          }
           return property;
         }
         return parseExpression("null");
@@ -6799,8 +6848,56 @@ STAGE3.BlockStatement = function(node, patcher) {
       );
       body.splice(ii + 1, 0, end);
       ii++;
+      if (isTryStmt) {
+        if (child.finalizer) { STAGE3.FinalClause(child.finalizer, patcher); }
+      }
     }
   }
+};
+
+STAGE3.CatchClause = function(node, patcher) {
+  if (node.magic) { return; }
+  patcher.pushScope(node);
+  patcher.walk(node.param, patcher, patcher.stage);
+  patcher.walk(node.body, patcher, patcher.stage);
+
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  var hashExpr = parseExpression(hash);
+  var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_LEAVE"));
+  var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_CATCH_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.body.unshift(start);
+  node.body.body.push(end);
+
+  patcher.popScope();
+};
+
+STAGE3.FinalClause = function(node, patcher) {
+  if (node.magic) { return; }
+  patcher.pushScope(node);
+  patcher.walk(node, patcher, patcher.stage);
+
+  var hash = uBranchHash();
+  // create node link
+  patcher.nodes[hash] = {
+    hash: hash,
+    node: cloneNode(node)
+  };
+  var hashExpr = parseExpression(hash);
+  var end = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_LEAVE"));
+  var start = parseExpressionStatement(patcher.instance.getLinkCall("DEBUG_FINAL_ENTER"));
+  end.expression.arguments.push(hashExpr);
+  start.expression.arguments.push(hashExpr);
+  node.body.unshift(start);
+  node.body.push(end);
+
+  patcher.popScope();
 };
 
 STAGE3.Program = STAGE1.Program;
@@ -7249,7 +7346,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             child.type === "ForStatement" ?
             parseExpression(true) :
             "" // throws error
-          )
+          ),
+          parseExpression(("\"" + (child.type) + "\""))
         ]
       };
       child.test = test;
@@ -7273,7 +7371,8 @@ STAGE7.BlockStatement = function(node, patcher) {
             arguments: [
               parseExpression(hash),
               // set the loop enter state to fullfilled
-              parseExpression((id + " = 1"))
+              parseExpression((id + " = 1")),
+              parseExpression(("\"" + (child.type) + "\""))
             ]
           }
         }
@@ -7295,8 +7394,8 @@ STAGE7.BlockStatement = function(node, patcher) {
           },
           arguments: [
             parseExpression(hash),
-            parseExpression(id)
-          ]
+            parseExpression(id),
+            parseExpression(("\"" + (child.type) + "\"")) ]
         }
       };
       body.splice(ii + 1, 0, end$1);
@@ -7779,21 +7878,23 @@ function DEBUG_ELSE_LEAVE(hash) {
 }
 
 // #LOOPS
-function DEBUG_LOOP_TEST(hash, value) {
+function DEBUG_LOOP_TEST(hash, value, kind) {
   // API
   var event = this.createEvent(INSTR.LOOP_TEST);
   event.hash = hash;
-  event.value = value;
   event.indent = this.indent;
+  event.value = value;
+  event.kind = kind;
   event.trigger("test");
   // API END
   return event.value;
 }
-function DEBUG_LOOP_ENTER(hash) {
+function DEBUG_LOOP_ENTER(hash, id, kind) {
   // API
   var event = this.createEvent(INSTR.LOOP_ENTER);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("enter");
   // API END
   //console.log(indentString(this.indent) + "loop", hash);
@@ -7803,7 +7904,7 @@ function DEBUG_LOOP_ENTER(hash) {
   // FRAME END
   this.indent += INDENT_FACTOR;
 }
-function DEBUG_LOOP_LEAVE(hash, entered) {
+function DEBUG_LOOP_LEAVE(hash, entered, kind) {
   // loop never entered, so dont leave it
   if (entered === 0) { return; }
   this.indent -= INDENT_FACTOR;
@@ -7811,6 +7912,7 @@ function DEBUG_LOOP_LEAVE(hash, entered) {
   var event = this.createEvent(INSTR.LOOP_LEAVE);
   event.hash = hash;
   event.indent = this.indent;
+  event.kind = kind;
   event.trigger("leave");
   // API END
   //console.log(indentString(this.indent) + "loop end", hash);
@@ -7952,7 +8054,7 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
     proto = object;
   } else {
     root = object;
-    proto = ctx;
+    proto = null;
   }
   name = root.name;
 
@@ -7987,8 +8089,21 @@ function DEBUG_FUNCTION_CALL(hash, ctx, object, call, args) {
   try {
     value = before.call.apply(before.object, before.arguments);
   } catch (e) {
-    if (LOG_ALL_ERRORS) { console.error(e); }
-    // function knocked out :(
+    var tryFrame = this.resolveTryFrame(this.frame, true);
+    // error isn't try-catch wrapped
+    if (tryFrame === null) {
+      this.reset();
+      throw e;
+    // error is try-catch wrapped
+    } else {
+      var catchFrame = this.resolveCatchClauseFrame(this.frame, true);
+      var finalFrame = this.resolveFinalClauseFrame(this.frame, true);
+      // something failed inside the catch frame
+      if (catchFrame !== null || finalFrame !== null) {
+        this.reset();
+        throw e;
+      }
+    }
   }
   this.indent -= INDENT_FACTOR;
 
@@ -8208,14 +8323,6 @@ function DEBUG_TRY_ENTER(hash) {
   // FRAME END
 }
 function DEBUG_TRY_LEAVE(hash) {
-  this.indent -= INDENT_FACTOR;
-
-  // API
-  var event = this.createEvent(INSTR.TRY_LEAVE);
-  event.hash = hash;
-  event.indent = this.indent;
-  event.trigger("leave");
-  // API END
 
   // FRAME
   // fix up missing left frames until try_leave
@@ -8227,7 +8334,76 @@ function DEBUG_TRY_LEAVE(hash) {
   this.popFrame();
   // FRAME END
 
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.TRY_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
   //console.log(indentString(this.indent) + "try end");
+}
+
+// #CATCH
+function DEBUG_CATCH_ENTER(hash) {
+
+  // API
+  var event = this.createEvent(INSTR.CATCH_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  var frame = this.pushFrame(INSTR.CATCH_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+}
+function DEBUG_CATCH_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.CATCH_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
+}
+
+// #FINALLY
+function DEBUG_FINAL_ENTER(hash) {
+
+  // API
+  var event = this.createEvent(INSTR.FINAL_ENTER);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("enter");
+  // API END
+
+  this.indent += INDENT_FACTOR;
+  // FRAME
+  var frame = this.pushFrame(INSTR.FINAL_ENTER, hash);
+  frame.values = [hash];
+  // FRAME END
+}
+function DEBUG_FINAL_LEAVE(hash) {
+  this.indent -= INDENT_FACTOR;
+
+  // API
+  var event = this.createEvent(INSTR.FINAL_LEAVE);
+  event.hash = hash;
+  event.indent = this.indent;
+  event.trigger("leave");
+  // API END
+
+  this.popFrame();
+  // FRAME END
 }
 
 // #ALLOC
@@ -8479,6 +8655,10 @@ var _debug = Object.freeze({
 	DEBUG_METHOD_LEAVE: DEBUG_METHOD_LEAVE,
 	DEBUG_TRY_ENTER: DEBUG_TRY_ENTER,
 	DEBUG_TRY_LEAVE: DEBUG_TRY_LEAVE,
+	DEBUG_CATCH_ENTER: DEBUG_CATCH_ENTER,
+	DEBUG_CATCH_LEAVE: DEBUG_CATCH_LEAVE,
+	DEBUG_FINAL_ENTER: DEBUG_FINAL_ENTER,
+	DEBUG_FINAL_LEAVE: DEBUG_FINAL_LEAVE,
 	DEBUG_ALLOC: DEBUG_ALLOC,
 	DEBUG_MEMBER_EXPR: DEBUG_MEMBER_EXPR,
 	DEBUG_BLOCK_ENTER: DEBUG_BLOCK_ENTER,
@@ -8524,6 +8704,10 @@ var Stage = function Stage(input, opt) {
 
 
 extend(Stage, _debug);
+
+Stage.prototype.reset = function() {
+  this.indent = 0;
+};
 
 Stage.prototype.triggerListeners = function(event, trigger) {
   var type = event.type;
@@ -8620,6 +8804,8 @@ Stage.prototype.getInverseInstruction = function(frame) {
     case INSTR.METHOD_ENTER:   return links.$DEBUG_METHOD_LEAVE.fn;
     case INSTR.OP_NEW:         return links.$DEBUG_OP_NEW_END.fn;
     case INSTR.TRY_ENTER:      return links.$DEBUG_TRY_LEAVE.fn;
+    case INSTR.CATCH_ENTER:    return links.$DEBUG_CATCH_LEAVE.fn;
+    case INSTR.FINAL_ENTER:    return links.$DEBUG_FINAL_LEAVE.fn;
     case INSTR.BLOCK_ENTER:    return links.$DEBUG_BLOCK_LEAVE.fn;
     default:
       throw new Error(("Unexpected frame type " + (frame.cleanType)));
@@ -8737,15 +8923,44 @@ Stage.prototype.resolveCaseFrame = function(frm) {
   return frame;
 };
 
-Stage.prototype.resolveTryFrame = function(frm) {
+Stage.prototype.resolveTryFrame = function(frm, silent) {
   var frame = frm;
   while (true) {
     if (frame.isTryStatement) { break; }
     if (frame.isGlobal()) { break; }
     frame = frame.parent;
   }
+  if (silent) { return (frame.type === INSTR.TRY_ENTER ? frame : null); }
   console.assert(
     frame.type === INSTR.TRY_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveCatchClauseFrame = function(frm, silent) {
+  var frame = frm;
+  while (true) {
+    if (frame.isCatchClause) { break; }
+    if (frame.isGlobal()) { break; }
+    frame = frame.parent;
+  }
+  if (silent) { return (frame.type === INSTR.CATCH_ENTER ? frame : null); }
+  console.assert(
+    frame.type === INSTR.CATCH_ENTER
+  );
+  return frame;
+};
+
+Stage.prototype.resolveFinalClauseFrame = function(frm, silent) {
+  var frame = frm;
+  while (true) {
+    if (frame.isFinalClause) { break; }
+    if (frame.isGlobal()) { break; }
+    frame = frame.parent;
+  }
+  if (silent) { return (frame.type === INSTR.FINAL_ENTER ? frame : null); }
+  console.assert(
+    frame.type === INSTR.FINAL_ENTER
   );
   return frame;
 };
@@ -8788,13 +9003,13 @@ Stage.prototype.getFrameByHashFrom = function(frm, hash) {
 
 Stage.prototype.patch = function(input) {
   var patcher = new Patcher(this);
-  var ast = parse$$1(input, { locations: true });
+  var ast = parse$2(input, { locations: true });
   this.frame = new Frame(INSTR.PROGRAM, this.$$frameHash);
   patcher.applyPatches(ast);
   // link walk things to stage
   this.nodes = patcher.nodes;
   this.symbols = patcher.symbols;
-  return generate$$1(ast, {
+  return generate$1(ast, {
     format: {
       indent: {
         style: "  "
@@ -8832,52 +9047,6 @@ var _setup = Object.freeze({
 	greet: greet
 });
 
-function pushScope(node) {
-  var tmp = this.scope;
-  this.scope = new Scope(node);
-  this.scope.parent = tmp;
-}
-
-function popScope(node) {
-  this.scope = this.scope.parent;
-}
-
-function forceLoopBodyBlocked$1(node) {
-  if (node.body.type !== "BlockStatement") {
-    node.body = {
-      magic: true,
-      type: "BlockStatement",
-      body: [node.body]
-    };
-  }
-}
-
-function applyStagePatch(ast, stage) {
-  this.stage = stage;
-  this.walk(ast, this.state, this.stage);
-}
-
-function applyPatches(instance, ast) {
-  this.instance = instance;
-  this.applyStagePatch(ast, STAGE2);
-  //this.applyStagePatch(ast, STAGE7);
-  //this.applyStagePatch(ast, STAGE4);
-  //this.applyStagePatch(ast, STAGE5);
-  this.applyStagePatch(ast, STAGE1);
-  //this.applyStagePatch(ast, STAGE3);
-  //this.applyStagePatch(ast, STAGE6);
-  //this.applyStagePatch(ast, STAGE8);
-}
-
-
-var _patch = Object.freeze({
-	pushScope: pushScope,
-	popScope: popScope,
-	forceLoopBodyBlocked: forceLoopBodyBlocked$1,
-	applyStagePatch: applyStagePatch,
-	applyPatches: applyPatches
-});
-
 var Iroh = function Iroh() {
   // patch AST scope
   this.scope = null;
@@ -8898,7 +9067,6 @@ var Iroh = function Iroh() {
 // link methods to main class
 extend(Iroh, _utils);
 extend(Iroh, _setup);
-extend(Iroh, _patch);
 
 var iroh = new Iroh();
 
