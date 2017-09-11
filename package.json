@@ -1,6 +1,6 @@
 {
   "name": "iroh",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "description": "Intercept, record and analyze JavaScript at runtime",
   "license": "MIT",
   "repository": {

@@ -14,7 +14,7 @@ var extend = function(cls, prot) {
   }
 };
 
-var version = "0.2.8";
+var version = "0.3.0";
 
 // indent factor
 var INDENT_FACTOR = 1;
