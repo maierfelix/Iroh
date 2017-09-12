@@ -102,9 +102,9 @@ When now running ``add`` it should always return ``42``.
 
 ### Visualize code
 
-Iroh keeps track of the control-flow of your program, means it generates a numeric indentation value based on when code branches are *entered* and *left*. A code branch can be an ``if``, ``else``, ``call``, ``loop`` etc. For example, when entering an ``if``, the indentation value goes ``+1``, when leaving it is decremented ``-1``.
+Iroh keeps track of the control-flow of your program, means it generates a numeric indentation value based on when code branches are *entered* and *left*. A code branch can be an ``if``, ``else``, ``call``, ``loop`` and so on. For example, when entering an ``if``, the indentation value goes ``+1``, when leaving it decrements by ``-1``.
 
-This makes it possible create any kind of model of the running code in realtime. All listeners provide an ``RuntimeEvent.indent`` property, which represents the current branch level.
+This makes it possible to create any kind of model from the running code in realtime. **All** listeners provide an ``RuntimeEvent.indent``!
 
 The code of this example is also available on [jsfiddle](//jsfiddle.net/wwn90rp3/4/).
 
@@ -144,9 +144,9 @@ stage.addListener(Iroh.IF)
 });
 ````
 
-You may noticed the ``" ".repeat(e.indent)`` inside all listener events. This just repeats the string on its left (a blank sign here) x times. The higher the ``e.indent`` number is, the more we are padding to the right. This results in a nice effect which shows the control-flow of the listened code.
+You may noticed the ``" ".repeat(e.indent)`` inside all listener events. This just repeats the string on its left (a blank sign here) x times. The higher the ``e.indent`` number is, the more we are padding to the right. This results in a nice effect which directly shows the control-flow of the running code.
 
-After running the stage, your console should come up with something like this:
+After the program finished, your console should come up with something like this:
 ````
  if enter
   loop enter
