@@ -1,86 +1,10 @@
-### Getting started
-
-The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code.
-
-Iroh's listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript.
-
-The pipeline of Iroh is:
-
- * Create a stage, pass in your code
- * Add listeners to the stage
- * Run the stage
-
-##### 1. Creating a stage:
-We need a stage object to submit our code into and to attach some listeners.
-
-Syntax:
-````js
-let stage = new Iroh.Stage(code:string)
-````
-Example:
-````js
-let code = "console.log({ a:1, b:2 })";
-let stage = new Iroh.Stage(code);
-````
-
-##### 2. Add listeners
-Listeners get triggered while your code is executed. Their purpose is to allow you to listen for runtime data while your script is running, but without changing your script in it's expected behaviour. They just listen and give you insights about your running code.
-
-Syntax:
-````js
-let listener = stage.addListener(type:number);
-listener.on(event:string, trigger:function);
-````
-Example:
-````js
-// Let's catch all object and array creations in our code
-let listener = stage.addListener(Iroh.ALLOC);
-listener.on("fire", (e) => {
-  let value = e.value; // {a:1, b:2}
-  console.log("Something got created:", value);
-});
-````
-
-##### 3. Running the stage
-After attaching the listeners we now need to run the stage, so our code actually gets executed. Since Iroh has to patch your code first, we need to run the patched version manually afterwards.
-
-Syntax:
-````js
-stage.script; // this contains the patched code to run
-````
-Example:
-````js
-let script = stage.script;
-eval(script); // not recommended, but we just use eval here to keep things simple
-````
-
-If you are wondering what the patched code looks like:
-
-**Input**:
-
-````js
-function add(a, b) {
-  return a + b;
-};
-add(2, 4);
-````
-
-**Output**:
-````js
-const $$STx1 = Iroh.stages["$$STx1"];
-var $$frameValue = void 0;
-$$STx1.$45(5)
-function add(a, b) {
-  $$STx1.$4(6, this, add, arguments);
-  return $$STx1.$1(1, "add", $$STx1.$32(7, 1, a, b));
-  $$STx1.$5(6, this);
-}
-;
-$$STx1.$44($$frameValue = $$STx1.$2(4, this, add, null, [$$STx1.$30(2, 2), $$STx1.$30(3, 4)]));
-$$STx1.$46(5, $$frameValue)
-````
-
 ### API
+
+- [Iroh](#iroh)
+- [Iroh.Stage](#iroh.stage)
+- [Iroh.Stage.RuntimeListener](#iroh.stage.runtimelistener)
+- [RuntimeListener.RuntimeEvent](#runtimeevent)
+- [Listener Specification](#specification)
 
 #### Iroh:
 
@@ -141,90 +65,7 @@ All ``RuntimeEvents`` come with the following fixed methods:
 
 ``getSource``: Returns the original (non-patched) relative source code
 
-#### Specification:
-
-Iroh provides the following listeners types, which can be used to listen for specific code types.
-
-````js
-Iroh.IF
-  if () {}
-  else if () {}
-Iroh.ELSE
-  else {}
-Iroh.LOOP
-  while () {}
-  do {} while ()
-  for () {}
-  for (a in b) {}
-  for (a of b) {}
-Iroh.BREAK
-  break
-Iroh.CONTINUE
-  continue
-Iroh.SWITCH
-  switch () {}
-Iroh.CASE
-  case :
-  default :
-Iroh.CALL
-  object()
-Iroh.FUNCTION
-  function() {}
-Iroh.VAR
-  let
-  var
-  const
-Iroh.OP_NEW
-  new object()
-Iroh.TRY
-  try {}
-Iroh.CATCH
-  catch(e) {}
-Iroh.FINALLY
-  finally() {}
-Iroh.ALLOC
-  {},
-  []
-Iroh.MEMBER
-  a.b
-  a[b]
-Iroh.THIS
-  this
-Iroh.LITERAL
-  ""
-  1
-  true
-  ..
-Iroh.ASSIGN
-  a = 2
-  a += 2
-  ..
-Iroh.TERNARY
-  true ? 1 : 0
-Iroh.LOGICAL
-  &&,
-  ||
-Iroh.BINARY
-  +,
-  -,
-  *
-  ..
-Iroh.UNARY
-  +0,
-  -0,
-  !true
-  typeof a
-  ..
-Iroh.UPDATE
-  ++object
-  --object
-  object++
-  object--
-  ..
-Iroh.PROGRAM
-  Code enter,
-  Code exit
-````
+### RuntimeEvent
 
 This list gives you an overview, which events a listener supports and which properties come along with it.
 
@@ -475,3 +316,89 @@ This list gives you an overview, which events a listener supports and which prop
     * ``hash``: Unique hash
     * ``indent``: Indent level
     * ``return``: The program's returned frame value
+
+
+### Specification:
+
+Iroh provides the following listeners types, which can be used to listen for specific code types.
+
+````js
+Iroh.IF
+  if () {}
+  else if () {}
+Iroh.ELSE
+  else {}
+Iroh.LOOP
+  while () {}
+  do {} while ()
+  for () {}
+  for (a in b) {}
+  for (a of b) {}
+Iroh.BREAK
+  break
+Iroh.CONTINUE
+  continue
+Iroh.SWITCH
+  switch () {}
+Iroh.CASE
+  case :
+  default :
+Iroh.CALL
+  object()
+Iroh.FUNCTION
+  function() {}
+Iroh.VAR
+  let
+  var
+  const
+Iroh.OP_NEW
+  new object()
+Iroh.TRY
+  try {}
+Iroh.CATCH
+  catch(e) {}
+Iroh.FINALLY
+  finally() {}
+Iroh.ALLOC
+  {},
+  []
+Iroh.MEMBER
+  a.b
+  a[b]
+Iroh.THIS
+  this
+Iroh.LITERAL
+  ""
+  1
+  true
+  ..
+Iroh.ASSIGN
+  a = 2
+  a += 2
+  ..
+Iroh.TERNARY
+  true ? 1 : 0
+Iroh.LOGICAL
+  &&,
+  ||
+Iroh.BINARY
+  +,
+  -,
+  *
+  ..
+Iroh.UNARY
+  +0,
+  -0,
+  !true
+  typeof a
+  ..
+Iroh.UPDATE
+  ++object
+  --object
+  object++
+  object--
+  ..
+Iroh.PROGRAM
+  Code enter,
+  Code exit
+````
