@@ -1,8 +1,8 @@
 ### API
 
 - [Iroh](#iroh)
-- [Iroh.Stage](#iroh.stage)
-- [Iroh.Stage.RuntimeListener](#iroh.stage.runtimelistener)
+- [Iroh.Stage](#irohstage)
+- [Iroh.Stage.RuntimeListener](#irohstageruntimelistener)
 - [RuntimeListener.RuntimeEvent](#runtimeevent)
 - [Listener Specification](#specification)
 

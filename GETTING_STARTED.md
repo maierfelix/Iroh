@@ -2,7 +2,7 @@
 
 The idea behind Iroh is simple. You attach listeners to your code and as soon as the specified code part is reached, it will fire. You can listen for calls, returns, loops or any other supported code type.
 
-Iroh's listeners are named in regard to [EStree](https://github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript. There is also a list [here](https://github.com/maierfelix/Iroh/blob/master/API.md#specification) which gives an simple overview of all code types you can listen for.
+Iroh's listeners are named in regard to [EStree](//github.com/estree/estree/blob/master/es5.md) which is an AST specification format for JavaScript. There is also a list [here](//github.com/maierfelix/Iroh/blob/master/API.md#specification) which gives an simple overview of all code types you can listen for.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The pipeline of Iroh is simple:
 
 ##### 1. Create a stage
 
-The code of this example is also available on [jsfiddle](https://jsfiddle.net/58y7p92v/).
+The code of this example is also available on [jsfiddle](//jsfiddle.net/58y7p92v/).
 
 At first we need to create a ``stage``. The stage object is the root connection between us and the running code.
 
@@ -35,7 +35,7 @@ let stage = new Iroh.Stage(code);
 
 ##### 2. Add listeners
 
-After creating a stage, we now need to specify what exactly we want to listen for. Let's listen for all variable declarations in our code. All event listeners provide specific events to listen for, you can find a whole list [here](). E.g. ``Iroh.VAR`` has two events:
+After creating a stage, we now need to specify what exactly we want to listen for. Let's listen for all variable declarations in our code. All event listeners provide specific events to listen for, you can find the whole list [here](//github.com/maierfelix/Iroh/blob/master/API.md#runtimeevent). E.g. ``Iroh.VAR`` has two events:
   * ``before``: What to do before a variable got it's value assigned
   * ``after``: What to do after the variable got it's value assigned
 
@@ -75,7 +75,7 @@ function add(a, b) {
 
 Our goal is to make the function ``add`` always return ``42`` instead of ``a + b``.
 
-The code of this example is also available on [jsfiddle](https://jsfiddle.net/8ycm17uu/1/).
+The code of this example is also available on [jsfiddle](//jsfiddle.net/8ycm17uu/1/).
 
 ##### Adding the listener
 ````js
@@ -104,7 +104,7 @@ Iroh keeps track of the control-flow of your program, means it generates a numer
 
 This makes it possible create any kind of model of the running code in realtime. All listeners provide an ``RuntimeEvent.indent`` property, which represents the current branch level.
 
-The code of this example is also available on [jsfiddle](https://jsfiddle.net/wwn90rp3/4/).
+The code of this example is also available on [jsfiddle](//jsfiddle.net/wwn90rp3/4/).
 
 Input: 
 ````js
