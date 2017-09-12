@@ -27,14 +27,14 @@ Iroh allows to record your code flow in realtime, intercept runtime informations
 
 #### What is Dynamic analysis?
 
-Dynamic analysis is in contrast to static analysis (e.g. used in [Babel](https://github.com/babel/babel) and [ESlint](https://github.com/eslint/eslint)). It allows to collect data which is only available at runtime. Iroh makes it possible to collect type informations of your running program, analyze it's behaviour, capture and manipulate runtime values like parameters or variables - and all this while your code is actually running!
+Dynamic analysis is in contrast to static analysis (e.g. used in [Babel](//github.com/babel/babel) and [ESlint](//github.com/eslint/eslint)). It allows to collect data which is only available at runtime. Iroh makes it possible to collect type informations of your running program, analyze it's behaviour, capture and manipulate runtime values like parameters or variables - and all this while your code is actually running!
 
 ### Installation
 
 ````
 npm install iroh
 ````
-or alternatively the browser distribution from [here](//cdn.rawgit.com/maierfelix/Iroh/b84dde46/dist/iroh-browser.js).
+or alternatively the browser distribution from [here](//cdn.rawgit.com/maierfelix/Iroh/master/dist/iroh-browser.js).
 
 ### Examples
 
