@@ -35,7 +35,9 @@ let stage = new Iroh.Stage(code);
 
 ##### 2. Add listeners
 
-After creating a stage, we now need to specify what exactly we want to listen for. Let's listen for all variable declarations in our code. All event listeners provide specific events to listen for, you can find the whole list [here](//github.com/maierfelix/Iroh/blob/master/API.md#runtimeevent). E.g. ``Iroh.VAR`` has two events:
+After creating a stage, we now need to specify what exactly we want to listen for. Let's listen for all variable declarations in our code. All event listeners provide specific events to listen for, you can find the whole list [here](//github.com/maierfelix/Iroh/blob/master/API.md#runtimeevent).
+
+E.g. ``Iroh.VAR`` has two events:
   * ``before``: What to do before a variable got it's value assigned
   * ``after``: What to do after the variable got it's value assigned
 
