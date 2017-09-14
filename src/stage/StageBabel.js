@@ -1,8 +1,8 @@
 import flatten from 'lodash.flatten';
 import uniq from 'lodash.uniq';
 import Stage from "./index";
-import visitors from '../visitors';
-import {parse, transform, traverse} from 'babel-core';
+import visitors from '../visitors/index';
+import {transform, traverse} from 'babel-core';
 
 export default class StageBabel extends Stage {
   constructor(...args) {

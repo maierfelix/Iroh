@@ -33,7 +33,8 @@
   "scripts": {
     "dist": "npm run build && npm run browser",
     "build": "rollup -c rollup/rollup.config.cjs.js && rollup -c rollup/rollup.config.es.js",
-    "browser": "rollup -c rollup/rollup.config.iife.js",
+    "browser": "npm run browser:pre && rollup -c rollup/rollup.config.iife.js",
+    "browser:pre": "browserify -s babelCore ./node_modules/babel-core/ > vendor/babel-core.js",
     "test": "node tests/index.js",
     "test:babylon": "mocha --opts tests/babylon/mocha.opts tests/babylon"
   },
@@ -41,6 +42,7 @@
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.0",
     "babel-register": "^6.26.0",
+    "browserify": "^14.4.0",
     "chai": "^4.1.1",
     "env-test": "^1.0.0",
     "lodash.flatten": "^4.4.0",
@@ -50,6 +52,7 @@
     "rollup-plugin-commonjs": "^8.1.0",
     "rollup-plugin-json": "^2.3.0",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-paths": "0.0.3",
     "sinon": "^3.2.1"
   },
   "dependencies": {

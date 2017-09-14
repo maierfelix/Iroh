@@ -5,8 +5,12 @@ export default {
   moduleName: "iroh",
   external: [
     "acorn",
+    "acorn/dist/walk",
     "acorn/dist/walk.es",
-    "astring"
+    "astring",
+    "babel-core",
+    "lodash.flatten",
+    "lodash.uniq"
   ],
   plugins: [
     json()

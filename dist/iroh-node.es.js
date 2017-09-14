@@ -1,6 +1,9 @@
 import { parse } from 'acorn';
 import { generate } from 'astring';
 import { base, full, recursive } from 'acorn/dist/walk';
+import flatten from 'lodash.flatten';
+import uniq from 'lodash.uniq';
+import { transform, traverse } from 'babel-core';
 
 /**
  * @param {Class} cls
@@ -851,7 +854,7 @@ STAGE1.ArrowFunctionExpression = function(node, patcher) {
   patcher.popScope();
 };
 
-STAGE1.CallExpression = function(node, patcher) {
+STAGE1.CallExpression = function(node, patcher) {//MOVED to ../visitors/call.js
   // patched in node, ignore
   if (node.magic) {
     patcher.walk(node.callee, patcher, patcher.stage);
@@ -3400,7 +3403,11 @@ class Stage {
     this.listeners = {};
     this.generateLinks();
     this.generateListeners();
-    this.script = this.patch(input);
+    this.initScript();
+  }
+
+  initScript() {
+    this.script = this.patch(this.input);
   }
 }
 
@@ -3674,6 +3681,139 @@ Stage.prototype.patch = function(input) {
   });
 };
 
+var init = function (babel) {
+  const {types: t, template} = babel;
+  const stageDeclaration = template('const stage = Iroh.stages[key];');
+
+  return {
+    visitor: {
+      Program(path, state) {
+        const stageId = state.opts.stage.key,
+           stageName = t.identifier(stageId);
+        state.dynamicData.stageVariable = stageName;
+        state.dynamicData.hash = 0;
+        path.unshiftContainer('body', stageDeclaration({
+          stage: stageName,
+          key: t.stringLiteral(String(stageId)),
+        }));
+      }
+    }
+  };
+};
+
+var call = function (babel) {
+  const {types: t, template} = babel;
+  const watcher = template('DEBUG_FUNCTION_CALL(hash, ctx, object, call, args)');
+
+  return {
+    visitor: {
+      CallExpression: {
+        exit(path, state) {
+          const node = path.node,
+             callee = node.callee,
+             hash = state.dynamicData.hash++;
+
+          state.opts.stage.nodes[hash] = {
+            hash: hash,
+            node: t.cloneDeep(node)
+          };
+
+          path.replaceWith(
+             watcher({
+               DEBUG_FUNCTION_CALL: template(state.opts.stage.getLink("DEBUG_FUNCTION_CALL"))(),
+               hash: t.numericLiteral(hash),
+               ctx: t.identifier('this'),
+               object: resolveCallee(callee),
+               call: resolveCall(callee),
+               args: t.arrayExpression(node.arguments)
+             })
+          );
+          path.skip();
+        }
+      }
+    }
+  };
+
+  function resolveCallee(callee) {
+    if (t.isMemberExpression(callee)) {
+      return callee.object;
+    }
+    return callee;
+  }
+
+  function resolveCall(callee) {
+    if (t.isMemberExpression(callee)) {
+      const property = callee.property;
+      if (t.isMemberExpression(callee, {computed: false})) {
+        return t.stringLiteral(property.name);
+      }
+      return property;
+    }
+    return t.nullLiteral();
+  }
+};
+
+var visitors = {
+  init,
+  [CATEGORY.CALL]: [call]//TODO sloppy visitor
+};
+
+class StageBabel extends Stage {
+  constructor(...args) {
+    super(...args);
+  }
+
+  get script() {
+    return this.patch(this.input);
+  }
+
+  patch(input) {
+    const categories = Object.keys(this.listeners)
+          .filter(k => this.listeners[k].length),
+       plugins = uniq(flatten([
+         visitors.init,
+         ...categories.map(category => visitors[category])
+       ])),
+       mergedPlugins = (babel) => {
+         return {
+           visitor: traverse.visitors.merge(
+              plugins.map(fn => fn(babel).visitor)
+           )
+         };
+       },
+       transformed = transform(
+          input,
+          {
+            // TODO need use user's .babelrc(after work of our plugins)
+            plugins: [
+              [
+                mergedPlugins,
+                {
+                  stage: {
+                    key: this.key,
+                    nodes: {},
+                    symbols: {},
+                    getLink: this.getLink.bind(this)
+                  }
+                }
+              ]
+            ]
+          }
+       ),
+       stageFromOptions = transformed.options.plugins[0][1].stage;
+
+    // TODO is really need, and how should works? Maybe need clone original node before any transformation?
+    // @see https://astexplorer.net/, path.node.original for example
+    this.nodes = stageFromOptions.nodes;
+    this.symbols = stageFromOptions.symbols;
+
+    return transformed.code;
+  }
+
+  initScript() {
+  }
+}
+
 function setup() {
   this.generateCategoryBits();
 }
@@ -3736,6 +3876,13 @@ let _Stage = function() {
 };
 _Stage.prototype = Object.create(Stage.prototype);
 iroh.Stage = _Stage;
+
+iroh.StageBabel = class _StageBabel extends StageBabel {
+  constructor(...args) {
+    super(...args);
+    iroh.stages[this.key] = this;
+  }
+};
 
 // link to outer space
 if (typeof window !== "undefined") {
