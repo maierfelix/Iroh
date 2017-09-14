@@ -364,15 +364,15 @@ var types = {
   eq: new TokenType("=", {beforeExpr: true, isAssign: true}),
   assign: new TokenType("_=", {beforeExpr: true, isAssign: true}),
   incDec: new TokenType("++/--", {prefix: true, postfix: true, startsExpr: true}),
-  prefix: new TokenType("prefix", {beforeExpr: true, prefix: true, startsExpr: true}),
+  prefix: new TokenType("!/~", {beforeExpr: true, prefix: true, startsExpr: true}),
   logicalOR: binop("||", 1),
   logicalAND: binop("&&", 2),
   bitwiseOR: binop("|", 3),
   bitwiseXOR: binop("^", 4),
   bitwiseAND: binop("&", 5),
-  equality: binop("==/!=", 6),
-  relational: binop("</>", 7),
-  bitShift: binop("<</>>", 8),
+  equality: binop("==/!=/===/!==", 6),
+  relational: binop("</>/<=/>=", 7),
+  bitShift: binop("<</>>/>>>", 8),
   plusMin: new TokenType("+/-", {beforeExpr: true, binop: 9, prefix: true, startsExpr: true}),
   modulo: binop("%", 10),
   star: binop("*", 10),
@@ -722,7 +722,7 @@ var pp = Parser.prototype;
 
 // ## Parser utilities
 
-var literal = /^(?:'((?:[^']|\.)*)'|"((?:[^"]|\.)*)"|;)/;
+var literal = /^(?:'((?:\\.|[^'])*?)'|"((?:\\.|[^"])*?)"|;)/;
 pp.strictDirective = function(start) {
   var this$1 = this;
 
@@ -2436,7 +2436,7 @@ pp$3.parseTemplate = function(ref) {
 
 pp$3.isAsyncProp = function(prop) {
   return !prop.computed && prop.key.type === "Identifier" && prop.key.name === "async" &&
-    (this.type === types.name || this.type === types.num || this.type === types.string || this.type === types.bracketL) &&
+    (this.type === types.name || this.type === types.num || this.type === types.string || this.type === types.bracketL || this.type.keyword) &&
     !lineBreak.test(this.input.slice(this.lastTokEnd, this.start))
 };
 
@@ -3312,7 +3312,7 @@ pp$8.readToken_caret = function() { // '^'
 pp$8.readToken_plus_min = function(code) { // '+-'
   var next = this.input.charCodeAt(this.pos + 1);
   if (next === code) {
-    if (next == 45 && this.input.charCodeAt(this.pos + 2) == 62 &&
+    if (next == 45 && !this.inModule && this.input.charCodeAt(this.pos + 2) == 62 &&
         (this.lastTokEnd === 0 || lineBreak.test(this.input.slice(this.lastTokEnd, this.pos)))) {
       // A `-->` line comment
       this.skipLineComment(3);
@@ -3333,9 +3333,8 @@ pp$8.readToken_lt_gt = function(code) { // '<>'
     if (this.input.charCodeAt(this.pos + size) === 61) { return this.finishOp(types.assign, size + 1) }
     return this.finishOp(types.bitShift, size)
   }
-  if (next == 33 && code == 60 && this.input.charCodeAt(this.pos + 2) == 45 &&
+  if (next == 33 && code == 60 && !this.inModule && this.input.charCodeAt(this.pos + 2) == 45 &&
       this.input.charCodeAt(this.pos + 3) == 45) {
-    if (this.inModule) { this.unexpected(); }
     // `<!--`, an XML-style comment that should be interpreted as a line comment
     this.skipLineComment(4);
     this.skipSpace();
@@ -13474,30 +13473,29 @@ function _shouldIgnore(pattern, filename) {
 }
 },{"babel-runtime/core-js/get-iterator":53,"lodash/escapeRegExp":426,"lodash/includes":435,"lodash/isRegExp":447,"lodash/startsWith":460,"minimatch":470,"path":473,"slash":477,"util":496}],30:[function(require,module,exports){
 module.exports={
-  "_from": "babel-core",
+  "_from": "babel-core@^6.26.0",
   "_id": "babel-core@6.26.0",
   "_inBundle": false,
   "_integrity": "sha1-rzL3izGm/O8RnIew/Y2XU/A6C7g=",
   "_location": "/babel-core",
   "_phantomChildren": {},
   "_requested": {
-    "type": "tag",
+    "type": "range",
     "registry": true,
-    "raw": "babel-core",
+    "raw": "babel-core@^6.26.0",
     "name": "babel-core",
     "escapedName": "babel-core",
-    "rawSpec": "",
+    "rawSpec": "^6.26.0",
     "saveSpec": null,
-    "fetchSpec": "latest"
+    "fetchSpec": "^6.26.0"
   },
   "_requiredBy": [
-    "#USER",
     "/",
     "/babel-register"
   ],
   "_resolved": "https://registry.npmjs.org/babel-core/-/babel-core-6.26.0.tgz",
   "_shasum": "af32f78b31a6fcef119c87b0fd8d9753f03a0bb8",
-  "_spec": "babel-core",
+  "_spec": "babel-core@^6.26.0",
   "_where": "C:\\Projects2\\github\\Iroh",
   "author": {
     "name": "Sebastian McKenzie",
