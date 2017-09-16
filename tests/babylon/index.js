@@ -23,12 +23,13 @@ describe('babylon parser tests', function () {
 
         const sandbox = {Iroh},
             script = stage.script;
+        console.log(script);
         vm.runInNewContext(script, sandbox);
 
         expect(sandbox.result).to.deep.equal([4, 9]);
         assertEvents('before', beforeStub.args, {
             // hash: [4, 8],
-            // indent: [1, 1],
+            indent: [1, 1],
             arguments: [[2], [3]],
             context: [sandbox, sandbox],
             object: [null, null],
@@ -38,7 +39,7 @@ describe('babylon parser tests', function () {
         });
         assertEvents('after', afterStub.args, {
             // hash: [4, 8],
-            // indent: [1, 1],
+            indent: [1, 1],
             arguments: [[2], [3]],
             return: [4, 9],
             context: [sandbox, sandbox],
@@ -53,7 +54,9 @@ describe('babylon parser tests', function () {
     function loadFixtures(testContext) {
         const fixturePath = getFixturesPath(testContext.currentTest),
             fixtureSource = fs.readFileSync(fixturePath, {encoding: 'utf8'}),
-            stage = new Iroh.StageBabel(fixtureSource);
+            stage = new Iroh.StageBabel(fixtureSource, {
+              fullTransformation: true
+            });
         return stage;
     }
 

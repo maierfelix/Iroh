@@ -10,7 +10,7 @@ import {
 
 let STAGE1 = {};
 
-STAGE1.Program = function(node, patcher) {
+STAGE1.Program = function(node, patcher) {//MOVED to ../visitors/program.js
   //if (node.magic) return;
   node.magic = true;
   patcher.pushScope(node);

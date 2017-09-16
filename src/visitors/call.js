@@ -9,6 +9,9 @@ export default function (babel) {
           const node = path.node,
              callee = node.callee,
              hash = state.dynamicData.hash++;
+          if(!path.node.loc) {
+            return;
+          }
 
           state.opts.stage.nodes[hash] = {
             hash: hash,

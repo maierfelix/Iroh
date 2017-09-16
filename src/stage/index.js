@@ -37,7 +37,7 @@ export default class Stage {
     this.links = {};
     this.nodes = null;
     this.symbols = null;
-    this.options = {};
+    this.options = opt;
     this.indent = 0;
     this.frame = null;
     this.$$frameHash = 0;
