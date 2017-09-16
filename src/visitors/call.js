@@ -28,7 +28,6 @@ export default function (babel) {
                args: t.arrayExpression(node.arguments)
              })
           );
-          path.skip();
         }
       }
     }

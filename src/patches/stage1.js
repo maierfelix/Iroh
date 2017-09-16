@@ -580,7 +580,7 @@ STAGE1.MemberExpression = function(node, patcher) {
   };
 };
 
-STAGE1.AssignmentExpression = function(node, patcher) {
+STAGE1.AssignmentExpression = function(node, patcher) {//MOVED to ../visitors/assign.js
   if (node.magic) {
     node.left.magic = true;
     patcher.walk(node.left, patcher, patcher.stage);
