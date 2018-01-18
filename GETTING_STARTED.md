@@ -106,7 +106,7 @@ Iroh keeps track of the control-flow of your program, means it generates a numer
 
 This makes it possible to create any kind of model from the running code in realtime. **All** listeners provide an ``RuntimeEvent.indent``!
 
-The code of this example is also available on [jsfiddle](//jsfiddle.net/wwn90rp3/4/).
+The code of this example is also available on [jsfiddle](//jsfiddle.net/wwn90rp3/8/).
 
 Input: 
 ````js
@@ -129,7 +129,7 @@ stage.addListener(Iroh.LOOP)
 })
 .on("leave", function(e) {
   // we leave the loop
-  console.log(" ".repeat(e.indent) + "loop enter");
+  console.log(" ".repeat(e.indent) + "loop leave");
 });
 
 // if, else if
@@ -150,7 +150,7 @@ After the program finished, your console should come up with something like this
 ````
  if enter
   loop enter
-  loop enter
+  loop leave
  if leave
 ````
 With each branch deepness level we move in by 1 blank sign.
